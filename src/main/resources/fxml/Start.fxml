@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.mky.jfxmpi.StartController">
+   <children>
+      <AmbientLight color="CHARTREUSE" layoutX="119.0" layoutY="134.0" lightOn="true" />
+      <ImageView fitHeight="353.0" fitWidth="600.0" layoutX="-2.0" layoutY="-2.0" pickOnBounds="true" preserveRatio="true" />
+      <Button layoutX="272.0" layoutY="361.0" mnemonicParsing="false" onAction="#startGame" text="Start" />
+   </children>
+</Pane>

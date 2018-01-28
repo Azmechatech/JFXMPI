@@ -1,0 +1,14 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package systemknowhow.emotions;
+
+/**
+ *
+ * @author Manoj
+ */
+public enum EmotionTagFactory {
+    ACCEPTANCE,AFFECTION,AGGRESSION,AMBIVALENCE,APATHY,ANXIETY,BOREDOM,COMPASSION,CONFUSION,CONTEMPT,DEPRESSION,DOUBT,ECSTASY,EMPATHY,ENVY,EMBARRASSMENT,EUPHORIA,FORGIVENESS,FRUSTRATION,GRATITUDE,GRIEF,GUILT,HATRED,HOPE,HORROR,HOSTILITY,HOMESICKNESS,HUNGER,HYSTERIA,INTEREST,LONELINESS,LOVE,PARANOIA,PITY,PLEASURE,PRIDE,RAGE,REGRET,REMORSE,SHAME,SUFFERING,SYMPATHY
+}
