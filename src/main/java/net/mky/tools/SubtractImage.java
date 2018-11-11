@@ -19,11 +19,11 @@ import javax.imageio.ImageIO;
 public class SubtractImage {
     public static void main(String[] args) throws Exception {
         int[][][] ch = new int[4][4][4];
-        BufferedImage image2 = ImageIO.read(new File("G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317409970.jpg"));
-        BufferedImage image1 = ImageIO.read(new File("G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317391299.png"));
+        BufferedImage image2 = ImageIO.read(new File(args.length>0?args[0]:"G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317409970.jpg"));
+        BufferedImage image1 = ImageIO.read(new File(args.length>1?args[1]:"G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317391299.png"));
         BufferedImage image3 = getSubtracted(image1,image2);// new BufferedImage(image1.getWidth(), image1.getHeight(), image1.getType());
 
-        ImageIO.write(image3, "png",  new File("G:/bkp/$AVG/baseDir/Imports/Sprites/WOMEN/765324Milfs-_1515317409970.png"));
+        ImageIO.write(image3, "png",  new File(args.length>2?args[2]:"G:/bkp/$AVG/baseDir/Imports/Sprites/WOMEN/765324Milfs-_1515317409970.png"));
 
         
         String itemsToSubtract[]={

@@ -37,8 +37,9 @@ public class Graph {
         this.model = new Model();
 
         canvas = new Group();
+        canvas.setStyle("-fx-background-color: transparent;");
         cellLayer = new CellLayer();
-
+        cellLayer.setStyle("-fx-background-color: transparent;");
         canvas.getChildren().add(cellLayer);
 
         mouseGestures = new MouseGestures(this);
@@ -47,6 +48,8 @@ public class Graph {
 
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
+        
+        scrollPane.setStyle("-fx-background-color: transparent;");
 
     }
 
@@ -63,6 +66,7 @@ public class Graph {
     }
 
     public void beginUpdate() {
+       // model.clear();
     }
 
     public void endUpdate() {

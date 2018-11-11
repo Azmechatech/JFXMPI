@@ -3,19 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.mky.graphUI;
+package systemknowhow;
+
+import java.util.HashMap;
+import systemknowhow.human.Life;
 
 /**
  *
  * @author Maneesh
  */
-public enum CellType {
-
-     RECTANGLE,
-    TRIANGLE,
-    LABEL,
-    IMAGE,
-    BUTTON,
-    TITLEDPANE,LIFE
-    ;
+public class LifePool {
+    public static HashMap<String,Life> pool=new HashMap();
 }

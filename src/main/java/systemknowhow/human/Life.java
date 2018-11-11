@@ -5,9 +5,13 @@
  */
 package systemknowhow.human;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+//import org.hypergraphdb.HyperGraph;
 import systemknowhow.human.guns.CompositeGun;
 import systemknowhow.humanactivity.IndoorActivityTagFactory;
 import systemknowhow.humanactivity.OutdoorActivityTagFactory;
@@ -17,6 +21,7 @@ import systemknowhow.humanactivity.SocialActionTagFactory;
 import systemknowhow.humanactivity.SocialRelationTags;
 import systemknowhow.pt.Sentence;
 import systemknowhow.pt.SentenceFactory;
+import systemknowhow.tools.NERHelper;
 
 /**
  * Life is a characteristic distinguishing physical entities having biological
@@ -29,7 +34,11 @@ import systemknowhow.pt.SentenceFactory;
 public abstract class Life {
     
     void init(){
-       
+        //Construct its memory as graph and blockchain
+//        HyperGraph graph = new HyperGraph("/path/to/workdir/bje");
+//        String hello = graph.get(graph.add("Hello World")); 
+//        System.out.println(hello.toLowerCase());
+//        graph.close();
     }
     public HashMap<SenseNameTagFactory,Sense> senses=new HashMap<>();;
     
@@ -119,7 +128,15 @@ public abstract class Life {
         for(String sentence: sentences){
             Sentence sentenceObject=new Sentence();
             sentenceObject.setGun(GUN);
-            sentenceObject.setSentenceTemplate(sentence);
+            try {
+                sentenceObject.setSentenceTemplate(NERHelper.getMarked(sentence));
+            } catch (IOException ex) {
+                Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassCastException ex) {
+                Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
+            }
             sentenceObject.setKey(GUN.toString()+"L"+TAG);
             if(sentence!=null)
             SentenceFactory.add(sentenceObject);

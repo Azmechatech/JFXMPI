@@ -31,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
@@ -81,17 +82,21 @@ public class CharacterPane extends StackPane {
     ImageView imageView;
     public String CharacterFile = "";
     Life thisCharcter;//=""
+    Life otherCharcter;//=""
 
+    public void setOtherCharcter(Life otherCharcter) {
+        this.otherCharcter = otherCharcter;
+    }
     String name = "";
     String age = "";
     String SeedFile = "";
     LifeTagFactory ltf;
     public String CharacterPool[];
-    
+
     Button playButton;
 
-    private static final double W = 400;
-    private static final double H = 400;
+    private static final double W = 200;
+    private static final double H = 200;
     private static final int SHADOW_LENGTH = 100;
 
     private static final double IMG_X = 20;
@@ -102,9 +107,12 @@ public class CharacterPane extends StackPane {
     private static final double SHADOW_SLOPE_FACTOR = 1.5;
 
     Color SHADOW_COLOR = Color.GRAY.brighter();
+    Label chatMessage = new Label("Hello There! ");
+
+    FileChooser fileChooser = new FileChooser();
 
     public CharacterPane(final int width, final int height, boolean border) {
-        setMinSize(300, 300);
+        setMinSize(200, 200);
         if (border) {
             setBorder(new Border(new BorderStroke(Color.GOLDENROD,
                     BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
@@ -117,25 +125,42 @@ public class CharacterPane extends StackPane {
                     + "-fx-border-radius: 5;" + "-fx-background-color: linear-gradient(from 25% 25% to 100% 100%, #dc143c, #661a33)"
             /*"-fx-border-color: GOLDENROD;"*/);
         }
-        //setStyle("-fx-border-color: blue;");
-        //Label count = new Label();
-        //count.textProperty().bind(Bindings.convert(frame));
-        //getChildren().add(count);
-        //count.setMouseTransparent(true);
 
-        Rectangle rectangle = new Rectangle(width, height / 3, Color.rgb(200, 200, 200, 0.5));
-        //rectangle.setArcWidth(30);
-        //rectangle.setArcHeight(30);
-        // rectangle.setFill(Color.rgb(200, 200, 200, 0.5));
-        rectangle.setEffect(new DropShadow(10, 5, 5, Color.GRAY));
-        //getChildren().add(rectangle);
-        //StackPane.setAlignment(rectangle, Pos.CENTER);
+        //Use this http://www.drawsvg.org/drawsvg.html
+        chatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
+                + "    -fx-background-color: black, white;\n"
+                + "    -fx-background-insets: 0,1;\n"
+                + "    -fx-font-family: \"Helvetica\";\n"
+                + "    -fx-font-size: 18px;\n"
+                + "    -fx-font-weight: bold;\n"
+                + "    -fx-padding: 50");
+            String textAreaStyle="-fx-shape: \"M617.796387,96.331444c0,-10.000282 -13.401611,-18.051064 -30.04834,-18.051064l-471.95871,0c-16.64682,0 -30.048409,8.050781 -30.048409,18.051064l0,14.354454l-70.861718,23.273758l70.861718,7.245163l0,73.639435c0,10.00029 13.401588,18.051056 30.048409,18.051056l471.95871,0c16.646729,0 30.04834,-8.050766 30.04834,-18.051056l0,-118.51281Z \";\n"
+                + "    -fx-background-color: black, white;\n"
+            + "-fx-control-inner-background: linear-gradient(to bottom, #f2994a, #f2c94c);;"
+                + "    -fx-background-insets: 0,1;\n"
+                 + "    -fx-font-family: \"Helvetica\";\n"
+                    + "    -fx-font-size: 18px;\n"
+                    + "    -fx-font-weight: bold;\n"
+                + "    -fx-padding: 2 10 2 35";
+        TextField tbx = new TextField("Hey");
+        tbx.setStyle("-fx-shape: \"M188,124C191.3000030517578,115.30000305175781,193.10000610351562,106,198,98C207.5,85.30000305175781,213,78.0999984741211,226,68C272.5,60.79999923706055,281.79998779296875,61.5,328,58C356.79998779296875,60.400001525878906,366.3999938964844,61.29999923706055,395,66C411.5,71.5,420.5,74.9000015258789,436,83C446.3999938964844,90.19999694824219,453.8999938964844,95.4000015258789,462,106C467.3999938964844,123.9000015258789,469.1000061035156,132,469,151C464.5,159.39999389648438,457.70001220703125,164.6999969482422,450,169C384.8999938964844,187.5,375.1000061035156,185.39999389648438,310,204C298.1000061035156,212.8000030517578,296.1000061035156,222.5,283,231C278.5,224.3000030517578,283,215.39999389648438,279,209C249,186.39999389648438,239,185.89999389648438,209,164C198.1999969482422,148,195.6999969482422,138.60000610351562,187,122Z \";\n"
+                + "    -fx-background-color: black, white;\n"
+                + "    -fx-background-insets: 0,1;\n"
+                + "    -fx-font-family: \"Helvetica\";\n"
+                + "    -fx-font-size: 14px;\n"
+                + "    -fx-font-weight: bold;\n"
+                + "    -fx-padding: 50");
+        TextArea taxa = new TextArea("Hey");
+        tbx.setStyle(textAreaStyle);
+        // getChildren().add(taxa);
+        // StackPane.setAlignment(taxa, Pos.TOP_CENTER);
+
         try {
-            input = new FileInputStream("C:/Users/Maneesh/Desktop/Kshatrujas2.png");
+            input = new FileInputStream("C:/Users/Maneesh/Desktop/Emiko_1513270388079.png");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Image image = new Image(input, 400, 800, true, true);
+        Image image = new Image(input, 200, 300, true, true);
 
         //Image image = getImage();
         imageView = new ImageView(image);
@@ -143,8 +168,8 @@ public class CharacterPane extends StackPane {
         //Scale scale = new Scale(scaleVal,scaleVal); 
         //imageView.getTransforms().add(scale); //rotate by 45 degrees
         getChildren().add(imageView);
-
-        //StackPane.setAlignment(imageView, Pos.TOP_LEFT);
+        getChildren().add(chatMessage);
+        StackPane.setAlignment(chatMessage, Pos.TOP_LEFT);
         setOnMousePressed(new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
                 pressedX = event.getX();
@@ -233,7 +258,7 @@ public class CharacterPane extends StackPane {
                             name = nameFiled.getText();
                             age = comment.getText();
                             ltf = cbxStatus.getValue();
-                            thisCharcter=createLife(name, ltf, getLines(SeedFile));
+                            thisCharcter = createLife(name, ltf, getLines(SeedFile));
                         } catch (FileNotFoundException ex) {
                             Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
                         } finally {
@@ -289,7 +314,7 @@ public class CharacterPane extends StackPane {
         EventHandler<ActionEvent> addMultipleFilesAction = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                FileChooser fileChooser = new FileChooser();
+
                 List<File> list = fileChooser.showOpenMultipleDialog(new Stage());
                 if (list != null) {
                     CharacterPool = new String[list.size()];
@@ -317,7 +342,7 @@ public class CharacterPane extends StackPane {
 //                    dialog.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
 //                    dialog.setHeight(Screen.getPrimary().getVisualBounds()
 //                            .getHeight());
-                    Scene dialogScene = new Scene(root, 400, 400);
+                    Scene dialogScene = new Scene(root, 200, 200);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }
@@ -325,7 +350,7 @@ public class CharacterPane extends StackPane {
             }
         };
 
-         playButton = new Button(name);
+        playButton = new Button("*" + name);
         playButton.getStyleClass().add("play");
         playButton.setStyle(StylesForAll.aliveTheme);
         playButton.setOnAction(pickPic);
@@ -354,6 +379,8 @@ public class CharacterPane extends StackPane {
                 imageView.setTranslateX(imageView.getTranslateX() + event.getX() - pressedX);
                 imageView.setTranslateY(imageView.getTranslateY() + event.getY() - pressedY);
 
+                chatMessage.setTranslateX(chatMessage.getTranslateX() + event.getX() - pressedX);
+                chatMessage.setTranslateY(chatMessage.getTranslateY() + event.getY() - pressedY);
                 event.consume();
             }
         };
@@ -390,7 +417,36 @@ public class CharacterPane extends StackPane {
         decSize.setStyle(StylesForAll.pigletTheme);
         getChildren().add(decSize);
         StackPane.setAlignment(decSize, Pos.BOTTOM_LEFT);
-        
+
+        EventHandler<ActionEvent> flipAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                //Has issues with drag translation
+                //imageView.setScaleX(-1*imageView.getScaleX());
+                imageView.setTranslateX(pressedX);
+                imageView.setTranslateY(pressedY);
+            }
+        };
+        Button flipImg = new Button("/");
+        flipImg.setOnAction(flipAction);
+        flipImg.setStyle(StylesForAll.transparentAlive);
+        getChildren().add(flipImg);
+        StackPane.setAlignment(flipImg, Pos.BOTTOM_CENTER);
+
+        EventHandler<ActionEvent> showHide = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                
+                imageView.setVisible(!imageView.isVisible());
+                chatMessage.setText((String) thisCharcter.talk(otherCharcter, name).toArray()[0]);
+            }
+        };
+
+        Button showHideImg = new Button("[-]");
+        showHideImg.setOnAction(showHide);
+        showHideImg.setStyle(StylesForAll.transparentAlive);
+        getChildren().add(showHideImg);
+        StackPane.setAlignment(showHideImg, Pos.TOP_CENTER);
 
 //    Timeline t = new Timeline(new KeyFrame(Duration.millis(100), new EventHandler<ActionEvent>() {
 //      @Override public void handle(ActionEvent event) {
@@ -504,7 +560,7 @@ public class CharacterPane extends StackPane {
                                 BorderPane borderPane = new BorderPane();
                                 ImageView imageView = new ImageView();
                                 //Image image = new Image(new FileInputStream(imageFile));
-                                Image image = new Image(new FileInputStream(imageFile), 300, 800, true, true);
+                                Image image = new Image(new FileInputStream(imageFile), 200, 400, true, true);
                                 imageView.setImage(image);
                                 imageView.setStyle("-fx-background-color: BLACK");
                                 imageView.setFitHeight(1024 - 10);
@@ -576,7 +632,7 @@ public class CharacterPane extends StackPane {
         age = data.has("age") ? data.getString("age") : age;
         SeedFile = data.has("SeedFile") ? data.getString("SeedFile") : SeedFile;
         ltf = data.has("ltf") ? LifeTagFactory.valueOf(data.getString("ltf")) : ltf;
-
+        CharacterFile = data.has("cpane") ? data.getString("cpane") : CharacterFile;
         if (data.has("CharacterPool")) { //String[] charlist = projData.getJSONArray("charlist").toString().replace("},{", " ,").split(" ");
             List<String> list = new ArrayList<String>();
             for (int i = 0; i < data.getJSONArray("CharacterPool").length(); i++) {
@@ -584,27 +640,40 @@ public class CharacterPane extends StackPane {
             }
             CharacterPool = list.toArray(new String[0]);
         }
-        
-        thisCharcter=createLife( name,  ltf, getLines(SeedFile));
+
+        thisCharcter = createLife(name, ltf, getLines(SeedFile));
         playButton.setText(name);
+
+        try {
+            input = new FileInputStream(CharacterFile);
+            Image image = new Image(input, 400, 600, true, true);
+            imageView.setImage(image);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
-    
+
     public String[] getLines(String filePath) {
-                Set<String> linesRead=new LinkedHashSet<>();
-		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new FileReader(filePath));
-			String line = reader.readLine();
-			while (line != null) {
-				//System.out.println(line);
-				// read next line
-				line = reader.readLine();
-                                linesRead.add(line);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        return linesRead.toArray(new String[0]);
-	}
+        Set<String> linesRead = new LinkedHashSet<>();
+        StringBuilder readStrings = new StringBuilder();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(filePath));
+            String line = reader.readLine();
+            while (line != null) {
+                //System.out.println(line);
+                // read next line
+                line = reader.readLine();
+                readStrings.append(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String[] result = readStrings.toString().split("\\.");
+        //linesRead.add(line);
+        return result;
+    }
 }

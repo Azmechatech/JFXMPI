@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.mky.graphUI.ButtonCell;
+import net.mky.graphUI.ImageCell;
+import systemknowhow.human.Life;
 
 
 public class Model {
@@ -99,11 +102,42 @@ public class Model {
             addCell(circleCell);
             break;
 
+            case BUTTON:
+                ButtonCell ButtonCell = new ButtonCell(id);
+            addCell(ButtonCell);
+            break;
+         
+                case IMAGE:
+                ImageCell imageCell = new ImageCell(id,"");
+            addCell(imageCell);
+            break;
+            
+         case LIFE:
+            ImageCell imageCell2 = new ImageCell(id,"");
+            
+            addLifeCell(imageCell2);
+            break;
+            
         default:
             throw new UnsupportedOperationException("Unsupported type: " + type);
         }
     }
 
+    public void addCell(Life life, CellType type) {
+
+        switch (type) {
+
+         case LIFE:
+            ImageCell imageCell = new ImageCell(life.getName(),"");
+            imageCell.setThisLife(life);
+            addLifeCell(imageCell);
+            break;
+            
+        default:
+            throw new UnsupportedOperationException("Unsupported type: " + type);
+        }
+    }
+    
     private void addCell( Cell cell) {
 
         addedCells.add(cell);
@@ -111,11 +145,30 @@ public class Model {
         cellMap.put( cell.getCellId(), cell);
 
     }
+    
+    private void addLifeCell( Cell cell) {
+
+        addedCells.add(cell);
+
+        cellMap.put( cell.getThisLife().getName(), cell);
+
+    }
 
     public void addEdge( String sourceId, String targetId) {
 
         Cell sourceCell = cellMap.get( sourceId);
         Cell targetCell = cellMap.get( targetId);
+
+        Edge edge = new Edge( sourceCell, targetCell);
+
+        addedEdges.add( edge);
+
+    }
+    
+    public void addEdge( Life sourceId, Life  targetId) {
+
+        Cell sourceCell = cellMap.get( sourceId.getName());
+        Cell targetCell = cellMap.get( targetId.getName());
 
         Edge edge = new Edge( sourceCell, targetCell);
 

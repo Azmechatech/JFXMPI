@@ -5,17 +5,14 @@
  */
 package net.mky.graphUI;
 
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import javafx.scene.image.Image;
+
 /**
  *
  * @author Maneesh
  */
-public enum CellType {
-
-     RECTANGLE,
-    TRIANGLE,
-    LABEL,
-    IMAGE,
-    BUTTON,
-    TITLEDPANE,LIFE
-    ;
+public class ImagePool {
+   public static HashMap<String, Image> pool=new HashMap();
 }

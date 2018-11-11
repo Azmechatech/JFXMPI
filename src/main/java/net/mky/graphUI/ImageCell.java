@@ -16,12 +16,12 @@ import javafx.scene.image.ImageView;
 
 public class ImageCell extends net.mky.graphUI.Cell {
 
-    public ImageCell(String id) {
+    public ImageCell(String id,String imageLocation) {
         super(id);
 
         ImageView view = new ImageView("http://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Siberischer_tiger_de_edit02.jpg/800px-Siberischer_tiger_de_edit02.jpg");
         view.setFitWidth(100);
-        view.setFitHeight(80);
+       // view.setFitHeight(80);
 
         setView(view);
 

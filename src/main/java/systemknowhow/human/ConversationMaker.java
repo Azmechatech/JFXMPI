@@ -43,6 +43,18 @@ public class ConversationMaker {
         
     }
     
+    public String getOutdoorAction(){
+        return lifeA.makeOutdoorDecision(lifeB).toString();
+    }
+    
+    public String getindoorAction(){
+        return lifeA.makeIndoorDecision(lifeB).toString();
+    }
+    
+    public String getSecretAction(){
+        return lifeA.makeSecretDecision(lifeB).toString();
+    }
+    
     public String getNextSenetce(){
         String result="";
         long timeDelay=10*(seedSentenceA.length()+seedSentenceB.length());

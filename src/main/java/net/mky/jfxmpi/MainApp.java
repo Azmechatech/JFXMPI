@@ -22,7 +22,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ScrollPane;
@@ -56,27 +55,36 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javax.imageio.ImageIO;
+import net.mky.graphUI.ImagePool;
 import net.mky.tools.AnimatedGif;
 import net.mky.tools.Animation;
 import net.mky.tools.BruteForceRenderer;
 import net.mky.tools.MediaControl;
 import net.mky.tools.StylesForAll;
-import org.json.JSONArray;
 import org.json.JSONObject;
+import systemknowhow.LifePool;
 import systemknowhow.human.ConversationMaker;
 import systemknowhow.human.Life;
+import systemknowhow.humanactivity.SocialRelationTags;
+import systemknowhow.tools.HilbertCurvePatternDetect;
 
 public class MainApp extends Application {
 
     String dirPath = "";
     String scenesFiles[];int sceneCounter=0;
     JSONObject projData;
-    int width = 300;
-    int height = 800;
+    int width = 200;
+    int height = 600;
     CharacterPane characterA = new CharacterPane(width, height, false);
     CharacterPane characterB = new CharacterPane(width, height, false);
-    GraphPane gp=new GraphPane();
-    TextPane tp = new TextPane(width, height);
+    CharacterPane characterC = new CharacterPane(width, height, false);
+     GraphPane graphBoard=new GraphPane();
+    StoryBoard StoryBoard = new StoryBoard(width, height);
+    
+    List<CharacterPane> charactersArray;
+    String[] charPrefixes=new String[]{"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
+    
+    
     final MainPane pe = new MainPane();
     final BruteForceRenderer bfr=new BruteForceRenderer();
     static ConversationMaker convMaker;
@@ -111,50 +119,54 @@ public class MainApp extends Application {
          stage.initStyle(StageStyle.UNDECORATED);
          
          ToolBar toolBar = new ToolBar();
+         charactersArray=new ArrayList<>();
+         HBox characters=new HBox();
+        //int height = 25;
 
-        int height = 25;
-//        toolBar.setPrefHeight(height);
-//        toolBar.setMinHeight(height);
-//        toolBar.setMaxHeight(height);
-//        toolBar.getItems().add(new WindowButtons());
-
-        
-        
-
-        //String fxmlFile = "/fxml/hello.fxml";
-//        String fxmlFile = "/fxml/Start.fxml";
-//        FXMLLoader loader = new FXMLLoader();
-//        Parent rootNode = (Parent) loader.load(getClass().getResourceAsStream(fxmlFile));
-//
-//
-//        Scene scene = new Scene(rootNode, 800, 600);
-//        scene.getStylesheets().add("/styles/styles.css");
-//
-//        stage.setTitle("Hello JavaFX and Maven");
-//        stage.setScene(scene);
-//        stage.show();
-// stage.setTitle("ImageView Experiment 1");
-//
-//        FileInputStream input = new FileInputStream("G:/delete/14-107.jpg");
-//        Image image = new Image(input);
-//        ImageView imageView = new ImageView(image);
-//
-//        HBox hbox = new HBox(imageView);
-//
-//        Scene scene = new Scene(hbox, 800, 600);
-//        stage.setScene(scene);
-//        stage.show();
+     
+    
         // Use a border pane as the root for scene
         BorderPane border = new BorderPane();
         Scene scene = new Scene(border);
         final FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
-        
-        //CharacterPane characterA = new CharacterPane(width, height,false);
-        //CharacterPane characterB = new CharacterPane(width, height,false);
-        
-        
-        
+
+        //==========Generate IsoView Geometry==========
+//        for(int j=1;j<3;j++)
+//        for (int i = 0; i < 5; i++) {
+//            double wd=300d;
+//            double ht=300d;
+//            double startX=300d*j;
+//            double startY=300d;
+//            //Trapozoid
+//            double offsetX=300d;
+//            double changeY=-30d;
+//            
+//            
+//            Polygon polygon = new Polygon();
+//            polygon.getPoints().addAll(i*startX,i*startY+changeY*(j-1)
+//            ,i*startX+wd,i*startY+changeY*(j-1)
+//            ,i*startX+wd,i*startY+ht+changeY*(j-1)
+//            ,i*startX,i*startY+ht+changeY*(j-1));
+//            polygon.setFill(Color.SKYBLUE);
+//            polygon.setStrokeWidth(3);
+//            polygon.setStroke(Color.BLACK);
+//            border.getChildren().add(polygon);
+//            
+//            
+//            
+//            polygon = new Polygon();
+//            polygon.getPoints().addAll(i*startX+offsetX,i*startY
+//            ,i*startX+wd+offsetX,i*startY+changeY*j
+//            ,i*startX+wd+offsetX,i*startY+ht+changeY*j
+//            ,i*startX+offsetX,i*startY+ht);
+//            polygon.setFill(Color.BEIGE);
+//            polygon.setStrokeWidth(3);
+//            polygon.setStroke(Color.BLACK);
+//            border.getChildren().add(polygon);
+//
+//        }
+
         Button playButton = new Button("\u25b6 Change the Theme");
         playButton.getStyleClass().add("play");
 
@@ -185,7 +197,7 @@ public class MainApp extends Application {
         playButton.setStyle(StylesForAll.transparentAlive);
         // mainPane.setCenter(homePane);
         HBox buttonPane = new HBox(12, playButton);
-        buttonPane.setAlignment(Pos.CENTER_RIGHT);
+        buttonPane.setAlignment(Pos.CENTER_LEFT);
         buttonPane.setStyle("-fx-background-color:\n"
                 + "        linear-gradient(#686868 0%, #232723 25%, #373837 75%, rgba(0, 100, 100, 0.5) 100%),\n"
                 + "        linear-gradient(#020b02, #3a3a3a),\n"
@@ -228,7 +240,7 @@ public class MainApp extends Application {
         addGIF.getStyleClass().add("play");
         addGIF.setOnAction(addAnimation);
         addGIF.setStyle(StylesForAll.transparentAlive);
-        buttonPane.getChildren().add(addGIF);
+       // buttonPane.getChildren().add(addGIF);
         
         
    
@@ -286,9 +298,72 @@ public class MainApp extends Application {
         addVideo.getStyleClass().add("play");
         addVideo.setOnAction(addVideoAction);
         addVideo.setStyle(StylesForAll.transparentAlive);
-        buttonPane.getChildren().add(addVideo);
+       // buttonPane.getChildren().add(addVideo);
 
+       //Save scene
+         
+        EventHandler<ActionEvent> saveGameAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    projData = new JSONObject();
+                    projData.put("dirPath", dirPath);
+                    projData.put("bgFile", pe.bgImageFile);
+//                    projData.put("cpane", characterA.CharacterFile);
+//                    projData.put("cpane2", characterB.CharacterFile);
+//                    projData.put("cpane3", characterC.CharacterFile);
+//                    JSONArray charlist=new JSONArray(characterA.CharacterPool);
+//                    JSONArray charlist2=new JSONArray(characterB.CharacterPool);
+//                    JSONArray charlist3=new JSONArray(characterC.CharacterPool);
+//                    projData.put("charlist", charlist);
+//                    projData.put("charlist2", charlist2);
+//                    projData.put("charlist3", charlist3);
+                    
+//                    projData.put("characterA", characterA.getCharacterData());
+//                    projData.put("characterB", characterB.getCharacterData());
+//                    projData.put("characterC", characterC.getCharacterData());
+                    int i=0;
+                    for(CharacterPane cp:charactersArray){
+                    //charPrefixes
+                        projData.put("character"+charPrefixes[i++], cp.getCharacterData());
+                    }
+                    
+                    List<String> lines = Arrays.asList(projData.toString());
+                    Path file = Paths.get(dirPath + "/game_" + System.currentTimeMillis() + ".JSON");
+                    Files.write(file, lines, Charset.forName("UTF-8"));
+                } catch (IOException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
+            }
+        };
+
+        Button saveGame = new Button("Save Scene");
+        saveGame.getStyleClass().add("play");
+        saveGame.setOnAction(saveGameAction);
+        saveGame.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(saveGame);
+       
+        //Add a character Pane
+
+        EventHandler<ActionEvent> addCharacterPane = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                CharacterPane newCharacter=new CharacterPane(width, height, false);
+                charactersArray.add(newCharacter);
+                characters.getChildren().add(newCharacter);
+
+            }
+        };
+
+        Button addCharPane = new Button("Add Character");
+        //addCharPane.getStyleClass().add("play");
+        addCharPane.setOnAction(addCharacterPane);
+        addCharPane.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(addCharPane);
+        
+        
+        
         EventHandler<ActionEvent> takeSnapshot = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -314,32 +389,10 @@ public class MainApp extends Application {
         TakeSnapShot.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(TakeSnapShot);
 
-        EventHandler<ActionEvent> setDirectoryAction = new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                DirectoryChooser directoryChooser = new DirectoryChooser();
-                File selectedDirectory
-                        = directoryChooser.showDialog(stage);
-
-                if (selectedDirectory == null) {
-                    dirPath = "No Directory selected";
-                } else {
-                    dirPath = selectedDirectory.getAbsolutePath();
-                }
-
-            }
-        };
-
-        Button setDirectory = new Button("Set Directory");
-        setDirectory.getStyleClass().add("play");
-        setDirectory.setOnAction(setDirectoryAction);
-        setDirectory.setStyle(StylesForAll.transparentAlive);
-        buttonPane.getChildren().add(setDirectory);
-        
         
         
         //Image resizing
-        EventHandler<ActionEvent> inc = new EventHandler<ActionEvent>() {
+    EventHandler<ActionEvent> inc = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 try{
@@ -363,15 +416,22 @@ public class MainApp extends Application {
         incSize.setStyle(StylesForAll.transparentAlive);
         incSize.getStyleClass().add("play");
         incSize.setOnAction(inc);
-        buttonPane.getChildren().add(incSize);
+       // buttonPane.getChildren().add(incSize);
         //StackPane.setAlignment(incSize, Pos.TOP_LEFT);
         Button decSize = new Button("Prev Scene");
         decSize.getStyleClass().add("play");
         decSize.setOnAction(dec);
         decSize.setStyle(StylesForAll.transparentAlive);
-        buttonPane.getChildren().add(decSize);
+      //  buttonPane.getChildren().add(decSize);
         //StackPane.setAlignment(decSize, Pos.BOTTOM_LEFT);
         
+        
+        /////////////////////////////////////////
+        //Character setup
+        ////////////////////////////////////////
+        StoryBoard.imageChar1.setImage(new Image(characterA.input,200,300,true,true));
+        StoryBoard.imageChar2.setImage(new Image(characterB.input,200,300,true,true));
+        StoryBoard.imageChar3.setImage(new Image(characterC.input,200,300,true,true));
 
         EventHandler<ActionEvent> playGameAction = new EventHandler<ActionEvent>() {
             @Override
@@ -379,7 +439,7 @@ public class MainApp extends Application {
                //Set textPane data
                Life charaA= characterA.getLife();
                Life charaB= characterB.getLife();
-               tp.getConvMaker().init(charaA, charaB, tp.charAText.getText(), tp.charBText.getText());
+               StoryBoard.getConvMaker().init(charaA, charaB, StoryBoard.charAText.getText(), StoryBoard.charBText.getText());
 
             }
         };
@@ -389,39 +449,7 @@ public class MainApp extends Application {
         playGame.setOnAction(playGameAction);
         playGame.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(playGame);
-        
-        EventHandler<ActionEvent> saveGameAction = new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try {
-                    projData = new JSONObject();
-                    projData.put("dirPath", dirPath);
-                    projData.put("bgFile", pe.bgImageFile);
-                    projData.put("cpane", characterA.CharacterFile);
-                    projData.put("cpane2", characterB.CharacterFile);
-                    JSONArray charlist=new JSONArray(characterA.CharacterPool);
-                    JSONArray charlist2=new JSONArray(characterB.CharacterPool);
-                    projData.put("charlist", charlist);
-                    projData.put("charlist2", charlist2);
-                    
-                    projData.put("characterA", characterA.getCharacterData());
-                    projData.put("characterB", characterB.getCharacterData());
-                    
-                    List<String> lines = Arrays.asList(projData.toString());
-                    Path file = Paths.get(dirPath + "/game_" + System.currentTimeMillis() + ".JSON");
-                    Files.write(file, lines, Charset.forName("UTF-8"));
-                } catch (IOException ex) {
-                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-            }
-        };
-
-        Button saveGame = new Button("Save Scene");
-        saveGame.getStyleClass().add("play");
-        saveGame.setOnAction(saveGameAction);
-        saveGame.setStyle(StylesForAll.transparentAlive);
-        buttonPane.getChildren().add(saveGame);
+      
 
         EventHandler<ActionEvent> loadGameAction = new EventHandler<ActionEvent>() {
             @Override
@@ -450,40 +478,81 @@ public class MainApp extends Application {
                             pe.bgImageFile = projData.getString("bgFile");
                         }
 
-                        input = new FileInputStream(projData.getString("cpane"));
-                        characterA.CharacterFile = projData.getString("cpane");
-                        Image image = new Image(input, 400, 600, true, true);
-                        characterA.imageView.setImage(image);
+                        if (projData.has("cpane")) //OLD Convention
+                        {
+                            input = new FileInputStream(projData.getString("cpane"));
+                            characterA.CharacterFile = projData.getString("cpane");
+                            Image image = new Image(input, 400, 600, true, true);
+                            characterA.imageView.setImage(image);
 
-                        input = new FileInputStream(projData.getString("cpane2"));
-                        characterB.CharacterFile = projData.getString("cpane2");
-                        image = new Image(input, 400, 600, true, true);
-                        characterB.imageView.setImage(image);
+                            input = new FileInputStream(projData.getString("cpane2"));
+                            characterB.CharacterFile = projData.getString("cpane2");
+                            image = new Image(input, 400, 600, true, true);
+                            characterB.imageView.setImage(image);
+                        }
+                        
 
-                        if(projData.has("charlist"))
+                        if(projData.has("charlist")) //OLD Convention
 
                         { //String[] charlist = projData.getJSONArray("charlist").toString().replace("},{", " ,").split(" ");
-                        List<String> list = new ArrayList<String>();
-                        for(int i = 0; i < projData.getJSONArray("charlist").length(); i++){
-                            list.add(projData.getJSONArray("charlist").getString(i));
+                            List<String> list = new ArrayList<String>();
+                            for (int i = 0; i < projData.getJSONArray("charlist").length(); i++) {
+                                list.add(projData.getJSONArray("charlist").getString(i));
+                            }
+                            characterA.CharacterPool = list.toArray(new String[0]);
+
+                            //String[] charlist2 = projData.getJSONArray("charlist2").toString().replace("},{", " ,").split(" ");
+                            list = new ArrayList<String>();
+                            for (int i = 0; i < projData.getJSONArray("charlist2").length(); i++) {
+                                list.add(projData.getJSONArray("charlist2").getString(i));
+                            }
+
+                            characterB.CharacterPool = list.toArray(new String[0]);
                         }
-                        characterA.CharacterPool=list.toArray(new String[0]);
                         
-                        //String[] charlist2 = projData.getJSONArray("charlist2").toString().replace("},{", " ,").split(" ");
-                        list = new ArrayList<String>();
-                        for(int i = 0; i < projData.getJSONArray("charlist2").length(); i++){
-                            list.add(projData.getJSONArray("charlist2").getString(i));
-                        }
-                        
-                        characterB.CharacterPool=list.toArray(new String[0]);
-                        }
-                        
-                        //Populate life data
+                        //Populate life data -> New convention
                         if(projData.has("characterA"))
                         {
                             characterA.loadCharacterData(projData.getJSONObject("characterA"));
                             characterB.loadCharacterData(projData.getJSONObject("characterB"));
+                            if(projData.has("characterC"))characterC.loadCharacterData(projData.getJSONObject("characterC"));
+
+//                            Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png",characterA.CharacterFile),200,200), null);
+//                            Image imageFB = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png",characterB.CharacterFile),200,200), null);
+//                            Image imageFC = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png",characterC.CharacterFile),200,200), null);
+//                            
+//                            
+//                            StoryBoard.imageChar1.setImage(imageFA);
+//                            StoryBoard.imageChar2.setImage(imageFB);
+                           // StoryBoard.imageChar3.setImage(imageFC);
+                            
                         }
+                        
+                        //Unlimited Character Version - Active version
+                        characters.getChildren().removeAll(charactersArray);
+                        charactersArray=new ArrayList<>();
+                        ArrayList<Life> lifeArray=new ArrayList<>();
+                        for (String cPref : charPrefixes) {
+                            if (projData.has("character" + cPref)) {
+
+                                CharacterPane characterThis = new CharacterPane(width, height, false);
+                                characterThis.loadCharacterData(projData.getJSONObject("character" + cPref));
+                                
+                                lifeArray.add(characterThis.getLife());
+                                charactersArray.add(characterThis);
+                                characters.getChildren().add(characterThis);
+
+                                Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png", characterThis.CharacterFile), 75, 75), null);
+                                ImagePool.pool.put(characterThis.getLife().getName(), SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png", characterThis.CharacterFile),null));
+                                LifePool.pool.put(characterThis.getLife().getName(), characterThis.getLife());
+                                StoryBoard.addCharacter(new ImageView(imageFA), characterThis.name);
+                            }
+                        }
+                        
+                        for(CharacterPane cp :charactersArray)
+                            charactersArray.stream().forEach(c->c.getLife().relations.put(cp.getLife(), SocialRelationTags.FRIENDSHIP));
+                        
+                         graphBoard.addLifeComponents(charactersArray);
                        
                         //Load all other scenes as well
                         final File folder = new File(dirPath);
@@ -502,15 +571,6 @@ public class MainApp extends Application {
                         
                         scenesFiles=scenesList.toArray(new String[0]);
 
-
-
-
-                        
-                        // Set extension filter
-//                FileChooser.ExtensionFilter extFilter = 
-//                        new FileChooser.ExtensionFilter("JSON (*.JSON)", "*.json");
-//                fileChooser.getExtensionFilters().add(extFilter);
-
                     }
 
                 } catch (FileNotFoundException ex) {
@@ -521,22 +581,66 @@ public class MainApp extends Application {
 
             }
         };
+        
 
         Button loadGame = new Button("Load Scene");
         loadGame.getStyleClass().add("play");
         loadGame.setOnAction(loadGameAction);
         loadGame.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(loadGame);
+        
+        EventHandler<ActionEvent> setDirectoryAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                DirectoryChooser directoryChooser = new DirectoryChooser();
+                File selectedDirectory
+                        = directoryChooser.showDialog(stage);
+
+                if (selectedDirectory == null) {
+                    dirPath = "No Directory selected";
+                } else {
+                    dirPath = selectedDirectory.getAbsolutePath();
+                }
+
+            }
+        };
+
+        Button setDirectory = new Button("Set Directory");
+        setDirectory.getStyleClass().add("play");
+        setDirectory.setOnAction(setDirectoryAction);
+        setDirectory.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(setDirectory);
+        
+         EventHandler<ActionEvent> showHide = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                characters.setVisible(!characters.isVisible());
+            }
+        };
+
+        Button showHideImg = new Button("[-]");
+        showHideImg.setOnAction(showHide);
+        showHideImg.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(showHideImg);
+        
+        
+        
         buttonPane.getChildren().add(new WindowButtons());
         
-        //border.setCenter(pe);//addAnchorPane(addGridPane())
-        border.setCenter(gp);
-        border.setLeft(characterA);// addVBox()
-        border.setRight(characterB);
+        border.setCenter(pe);//addAnchorPane(addGridPane())
+        //border.setCenter(gp);
+        //Old convention
+//        characters.getChildren().add(characterA);
+//        characters.getChildren().add(characterB);
+//        characters.getChildren().add(characterC);
+        border.setLeft(characters);// addVBox()
+        
+       // border.setRight(characters);
         border.setTop(buttonPane); //hbox
        
 
-        border.setBottom(tp);
+       // border.setBottom(StoryBoard);GraphPane
+       border.setBottom(graphBoard);
 
         border.setStyle("-fx-background-color: linear-gradient(to right, #642b73, #c6426e);");
         border.setStyle("-fx-background-color:linear-gradient(to right, #40e0d0, #ff8c00, #ff0080);");

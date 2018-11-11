@@ -12,13 +12,18 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.Skin;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,14 +32,19 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 
 import javafx.scene.effect.BoxBlur;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Region;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import net.mky.graphUI.CellType;
 import net.mky.graphUI.Graph;
 import net.mky.tools.MediaControl;
 import net.mky.tools.Model;
+import net.mky.tools.StylesForAll;
 
 /**
  *
@@ -76,6 +86,9 @@ public class MainPane extends StackPane {
     //getChildren().add(count);
     count.setMouseTransparent(true);
 
+   
+    
+    
       try {
           input = new FileInputStream("C:/Users/Maneesh/Desktop/bpForText.jpg");
       } catch (FileNotFoundException ex) {
@@ -133,6 +146,37 @@ public class MainPane extends StackPane {
             }
         };
       
+    
+      EventHandler<ActionEvent> blurMore = new EventHandler<ActionEvent>() {
+          @Override
+          public void handle(ActionEvent event) {
+
+              BoxBlur bb = new BoxBlur();
+              bb.setWidth(5);
+              bb.setHeight(5);
+              bb.setIterations(3);
+
+//                float scaleInc=(float) (imageView.getScaleX()-imageView.getScaleX()*.1);
+//                Scale scale = new Scale(scaleInc,scaleInc);
+              imageView.setEffect(bb);
+          }
+      };
+    
+     EventHandler<ActionEvent> blurNoMore = new EventHandler<ActionEvent>() {
+          @Override
+          public void handle(ActionEvent event) {
+
+              BoxBlur bb = new BoxBlur();
+              bb.setWidth(0);
+              bb.setHeight(0);
+              bb.setIterations(0);
+
+//                float scaleInc=(float) (imageView.getScaleX()-imageView.getScaleX()*.1);
+//                Scale scale = new Scale(scaleInc,scaleInc);
+              imageView.setEffect(bb);
+          }
+      };
+     
         Button playButton = new Button("+");
         playButton.getStyleClass().add("play");
         playButton.setOnAction(goAction);
@@ -143,14 +187,49 @@ public class MainPane extends StackPane {
         playButton2.setOnAction(goAction2);
         getChildren().add(playButton2);
         StackPane.setAlignment(playButton2, Pos.BOTTOM_LEFT);
+        Button blr = new Button("#");
+        blr.setStyle(StylesForAll.transparentAlive);
+        blr.setOnAction(blurMore);
+        getChildren().add(blr);
+        StackPane.setAlignment(blr, Pos.BOTTOM_RIGHT);
+        
+        Button blrNo = new Button("=");
+        blrNo.setStyle(StylesForAll.transparentAlive);
+        blrNo.setOnAction(blurNoMore);
+        getChildren().add(blrNo);
+        StackPane.setAlignment(blrNo, Pos.TOP_RIGHT);
+        
         
        //         Seed text field
-        TextField textField = new TextField ("> Starts here");
+       TextArea textArea = new TextArea("I have an ugly white background :-(");
+    // we don't use lambdas to create the change listener since we use
+    // the instance twice via 'this' (see *)
+    textArea.skinProperty().addListener(new ChangeListener<Skin<?>>() {
+
+        @Override
+        public void changed(
+          ObservableValue<? extends Skin<?>> ov, Skin<?> t, Skin<?> t1) {
+            if (t1 != null && t1.getNode() instanceof Region) {
+                Region r = (Region) t1.getNode();
+                r.setBackground(Background.EMPTY);
+
+                r.getChildrenUnmodifiable().stream().
+                        filter(n -> n instanceof Region).
+                        map(n -> (Region) n).
+                        forEach(n -> n.setBackground(Background.EMPTY));
+
+                r.getChildrenUnmodifiable().stream().
+                        filter(n -> n instanceof Control).
+                        map(n -> (Control) n).
+                        forEach(c -> c.skinProperty().addListener(this)); // *
+            }
+        }
+    });
         //textField.setStyle(StylesForAll.buttonBoldBlack);
         //VBox vbox = new VBox(textField);
         //vbox.getChildren().add(textField);
-       // getChildren().add(vbox);
-        StackPane.setAlignment(textField, Pos.TOP_CENTER);
+//        getChildren().add(textArea);
+//        StackPane.setAlignment(textArea, Pos.TOP_CENTER);
         
 //        //Circile Animation
 //        Group circles = new Group();

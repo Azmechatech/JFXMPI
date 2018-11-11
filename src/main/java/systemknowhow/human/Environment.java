@@ -24,11 +24,31 @@ import systemknowhow.humanactivity.SocialRelationTags;
  * @author Maneesh
  */
 public class Environment {
+
+    public void setLives(Set<Life> lives) {
+        this.lives = lives;
+    }
+
+    public void setSignStimulus(Set<SignStimulus> SignStimulus) {
+        this.SignStimulus = SignStimulus;
+    }
+
+    public void setReleaser(Set<Releaser> releaser) {
+        this.releaser = releaser;
+    }
+    
+    public boolean  addLife(Life life){
+        return lives.add(life);
+    }
+    
     Set<Life> lives;
     
     Set<SignStimulus> SignStimulus;
     
     Set<Releaser> releaser;
+    
+    
+    //setup the queue for Setup, New Situation,Progress,Complications,Final Push,After Math
     
     //Define life Relations
     //Example
