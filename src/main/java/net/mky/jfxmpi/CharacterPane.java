@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -67,6 +68,7 @@ import systemknowhow.human.Life;
 import systemknowhow.human.LifeTagFactory;
 import systemknowhow.human.Male;
 import systemknowhow.human.guns.CompositeGun;
+import systemknowhow.tools.HilbertCurvePatternDetect;
 
 /**
  *
@@ -154,14 +156,16 @@ public class CharacterPane extends StackPane {
         tbx.setStyle(textAreaStyle);
         // getChildren().add(taxa);
         // StackPane.setAlignment(taxa, Pos.TOP_CENTER);
-
+Image image;
         try {
             input = new FileInputStream("C:/Users/Maneesh/Desktop/Emiko_1513270388079.png");
+             image = new Image(input, 200, 300, true, true);
         } catch (FileNotFoundException ex) {
+             image = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
             Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Image image = new Image(input, 200, 300, true, true);
-
+        
+//SwingFXUtils
         //Image image = getImage();
         imageView = new ImageView(image);
         //float scaleVal=image.getHeight()>image.getWidth()?(float) (image.getWidth()/width):(float) (image.getHeight()/height);

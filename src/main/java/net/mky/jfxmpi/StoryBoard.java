@@ -18,6 +18,7 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -60,6 +61,7 @@ import javafx.util.StringConverter;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import systemknowhow.human.*;
+import systemknowhow.tools.HilbertCurvePatternDetect;
 
 /**
  *
@@ -279,12 +281,15 @@ public class StoryBoard extends StackPane {
             textArea3.setPrefColumnCount(10);
             textArea3.setWrapText(true);
         //textArea.setPrefWidth(150);
+        Image imageChar;
             try {
             input = new FileInputStream("C:/Users/Maneesh/Desktop/Emiko_1513270388079.png");
+            imageChar = new Image(input, 200, 300, false, true);
         } catch (FileNotFoundException ex) {
+             imageChar = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
             Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Image imageChar = new Image(input, 200, 300, false, true);
+       
 
         //Image image = getImage();
         imageView = new ImageView(imageChar);
@@ -339,11 +344,11 @@ public class StoryBoard extends StackPane {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(StoryBoard.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            try {
-                input.close();
-            } catch (IOException ex) {
-                Logger.getLogger(StoryBoard.class.getName()).log(Level.SEVERE, null, ex);
-            }
+//            try {
+//                input.close();
+//            } catch (IOException ex) {
+//                Logger.getLogger(StoryBoard.class.getName()).log(Level.SEVERE, null, ex);
+//            }
         }
 
         convMaker = new ConversationMaker();

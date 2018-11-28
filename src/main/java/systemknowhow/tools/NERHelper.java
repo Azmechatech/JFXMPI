@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 public class NERHelper {
     
     
-    static String serializedClassifier = "G:/Softwares/JavaLibs/stanford-ner-2017-06-09/stanford-ner-2017-06-09/classifiers/english.all.3class.distsim.crf.ser.gz";
+    static String serializedClassifier = "C:/NetBeansProjects/stanford-ner-2018-10-16/classifiers/english.all.3class.distsim.crf.ser.gz";
     static AbstractSequenceClassifier<CoreLabel> classifier;
 
     static {

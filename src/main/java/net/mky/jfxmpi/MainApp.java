@@ -429,9 +429,9 @@ public class MainApp extends Application {
         /////////////////////////////////////////
         //Character setup
         ////////////////////////////////////////
-        StoryBoard.imageChar1.setImage(new Image(characterA.input,200,300,true,true));
-        StoryBoard.imageChar2.setImage(new Image(characterB.input,200,300,true,true));
-        StoryBoard.imageChar3.setImage(new Image(characterC.input,200,300,true,true));
+//        StoryBoard.imageChar1.setImage(new Image(characterA.input,200,300,true,true));
+ //       StoryBoard.imageChar2.setImage(new Image(characterB.input,200,300,true,true));
+ //       StoryBoard.imageChar3.setImage(new Image(characterC.input,200,300,true,true));
 
         EventHandler<ActionEvent> playGameAction = new EventHandler<ActionEvent>() {
             @Override
@@ -542,8 +542,8 @@ public class MainApp extends Application {
                                 charactersArray.add(characterThis);
                                 characters.getChildren().add(characterThis);
 
-                                Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png", characterThis.CharacterFile), 75, 75), null);
-                                ImagePool.pool.put(characterThis.getLife().getName(), SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png", characterThis.CharacterFile),null));
+                                Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile), 75, 75), null);
+                                ImagePool.pool.put(characterThis.getLife().getName(), SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile),null));
                                 LifePool.pool.put(characterThis.getLife().getName(), characterThis.getLife());
                                 StoryBoard.addCharacter(new ImageView(imageFA), characterThis.name);
                             }

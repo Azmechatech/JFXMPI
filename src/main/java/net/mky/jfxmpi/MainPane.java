@@ -14,6 +14,7 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -45,6 +46,7 @@ import net.mky.graphUI.Graph;
 import net.mky.tools.MediaControl;
 import net.mky.tools.Model;
 import net.mky.tools.StylesForAll;
+import systemknowhow.tools.HilbertCurvePatternDetect;
 
 /**
  *
@@ -88,13 +90,15 @@ public class MainPane extends StackPane {
 
    
     
-    
+    Image image ;
       try {
           input = new FileInputStream("C:/Users/Maneesh/Desktop/bpForText.jpg");
+          image = new Image(input);
       } catch (FileNotFoundException ex) {
+           image = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
           Logger.getLogger(MainPane.class.getName()).log(Level.SEVERE, null, ex);
       }
-        Image image = new Image(input);
+      
         
          imageView = new ImageView();
         //imageView.getTransforms().add(new Rotate(45,0,0)); //rotate by 45 degrees

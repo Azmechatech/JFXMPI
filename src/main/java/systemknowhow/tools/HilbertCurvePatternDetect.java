@@ -57,7 +57,7 @@ public class HilbertCurvePatternDetect {
         
         HilbertCurveRenderer.renderToFile(4, 1000, "target/imageColor4.png", Option.COLORIZE, Option.LABEL);
         
-       final File folder = new File("G:/bkp/$AVG/baseDir/Imports/Sprites/MEN/");
+       final File folder = new File("C:/$AVG/baseDir/Imports/Sprites/MEN/");
     for (final File fileEntry : folder.listFiles()) {
         if (fileEntry.isDirectory()) {
            // listFilesForFolder(fileEntry);
@@ -378,6 +378,38 @@ public static BufferedImage resizeImage(Image image, int width, int height) {
 
     }
 
+    
+     public static BufferedImage getRandomImage(int width,int height){
+     //image dimension
+//     int width = 640;
+//     int height = 320;
+     //create buffered image object img
+     BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+     //file object
+     File f = null;
+     //create random image pixel by pixel
+     for(int y = 0; y < height; y++){
+       for(int x = 0; x < width; x++){
+         int a = (int)(Math.random()*256); //alpha
+         int r = (int)(Math.random()*256); //red
+         int g = (int)(Math.random()*256); //green
+         int b = (int)(Math.random()*256); //blue
+ 
+         int p = (a<<24) | (r<<16) | (g<<8) | b; //pixel
+ 
+         img.setRGB(x, y, p);
+       }
+     }
+     //write image
+//     try{
+//       f = new File("D:\\Image\\Output.png");
+//       ImageIO.write(img, "png", f);
+//     }catch(IOException e){
+//       System.out.println("Error: " + e);
+//     }
+     
+     return img;
+  }
    
 
 }
