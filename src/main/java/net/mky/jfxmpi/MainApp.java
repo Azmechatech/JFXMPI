@@ -440,6 +440,7 @@ public class MainApp extends Application {
                Life charaA= characterA.getLife();
                Life charaB= characterB.getLife();
                StoryBoard.getConvMaker().init(charaA, charaB, StoryBoard.charAText.getText(), StoryBoard.charBText.getText());
+               
 
             }
         };
