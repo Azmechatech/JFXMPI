@@ -29,10 +29,7 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -40,7 +37,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -67,7 +63,6 @@ import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import net.mky.graphUI.ButtonCell;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -141,41 +136,42 @@ public class CharacterPane extends StackPane {
                 + "    -fx-background-color: black, white;\n"
                 + "    -fx-background-insets: 0,1;\n"
                 + "    -fx-font-family: \"Helvetica\";\n"
-                + "    -fx-font-size: 18px;\n"
+                + "    -fx-font-size: 16px;\n"
                 + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 50");
+                + "    -fx-padding: 30");
         
          chatMessage.setWrapText(true);
-        chatMessage.setTextAlignment(TextAlignment.JUSTIFY);
-            String textAreaStyle="-fx-shape: \"M617.796387,96.331444c0,-10.000282 -13.401611,-18.051064 -30.04834,-18.051064l-471.95871,0c-16.64682,0 -30.048409,8.050781 -30.048409,18.051064l0,14.354454l-70.861718,23.273758l70.861718,7.245163l0,73.639435c0,10.00029 13.401588,18.051056 30.048409,18.051056l471.95871,0c16.646729,0 30.04834,-8.050766 30.04834,-18.051056l0,-118.51281Z \";\n"
-                + "    -fx-background-color: black, white;\n"
-            + "-fx-control-inner-background: linear-gradient(to bottom, #f2994a, #f2c94c);;"
-                + "    -fx-background-insets: 0,1;\n"
-                 + "    -fx-font-family: \"Helvetica\";\n"
-                    + "    -fx-font-size: 18px;\n"
-                    + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 2 10 2 35";
+         
+        chatMessage.setTextAlignment(TextAlignment.CENTER);
+//            String textAreaStyle="-fx-shape: \"M617.796387,96.331444c0,-10.000282 -13.401611,-18.051064 -30.04834,-18.051064l-471.95871,0c-16.64682,0 -30.048409,8.050781 -30.048409,18.051064l0,14.354454l-70.861718,23.273758l70.861718,7.245163l0,73.639435c0,10.00029 13.401588,18.051056 30.048409,18.051056l471.95871,0c16.646729,0 30.04834,-8.050766 30.04834,-18.051056l0,-118.51281Z \";\n"
+//                + "    -fx-background-color: black, white;\n"
+//            + "-fx-control-inner-background: linear-gradient(to bottom, #f2994a, #f2c94c);;"
+//                + "    -fx-background-insets: 0,1;\n"
+//                 + "    -fx-font-family: \"Helvetica\";\n"
+//                    + "    -fx-font-size: 18px;\n"
+//                    + "    -fx-font-weight: bold;\n"
+//                + "    -fx-padding: 2 10 2 35";
             
-            taxachatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
-                + "    -fx-background-color: black, white;\n"
-                + "    -fx-background-insets: 0,1;\n"
-                + "    -fx-font-family: \"Helvetica\";\n"
-                + "    -fx-font-size: 18px;\n"
-                + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 50");
-            taxachatMessage.setPrefRowCount(3);
-            taxachatMessage.setPrefColumnCount(10);
-            taxachatMessage.setWrapText(true);
-        TextField tbx = new TextField("Hey");
-        tbx.setStyle("-fx-shape: \"M188,124C191.3000030517578,115.30000305175781,193.10000610351562,106,198,98C207.5,85.30000305175781,213,78.0999984741211,226,68C272.5,60.79999923706055,281.79998779296875,61.5,328,58C356.79998779296875,60.400001525878906,366.3999938964844,61.29999923706055,395,66C411.5,71.5,420.5,74.9000015258789,436,83C446.3999938964844,90.19999694824219,453.8999938964844,95.4000015258789,462,106C467.3999938964844,123.9000015258789,469.1000061035156,132,469,151C464.5,159.39999389648438,457.70001220703125,164.6999969482422,450,169C384.8999938964844,187.5,375.1000061035156,185.39999389648438,310,204C298.1000061035156,212.8000030517578,296.1000061035156,222.5,283,231C278.5,224.3000030517578,283,215.39999389648438,279,209C249,186.39999389648438,239,185.89999389648438,209,164C198.1999969482422,148,195.6999969482422,138.60000610351562,187,122Z \";\n"
-                + "    -fx-background-color: black, white;\n"
-                + "    -fx-background-insets: 0,1;\n"
-                + "    -fx-font-family: \"Helvetica\";\n"
-                + "    -fx-font-size: 14px;\n"
-                + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 50");
-        TextArea taxa = new TextArea("Hey");
-        tbx.setStyle(textAreaStyle);
+//            taxachatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
+//                + "    -fx-background-color: black, white;\n"
+//                + "    -fx-background-insets: 0,1;\n"
+//                + "    -fx-font-family: \"Helvetica\";\n"
+//                + "    -fx-font-size: 18px;\n"
+//                + "    -fx-font-weight: bold;\n"
+//                + "    -fx-padding: 50");
+//            taxachatMessage.setPrefRowCount(3);
+//            taxachatMessage.setPrefColumnCount(10);
+//            taxachatMessage.setWrapText(true);
+//        TextField tbx = new TextField("Hey");
+//        tbx.setStyle("-fx-shape: \"M188,124C191.3000030517578,115.30000305175781,193.10000610351562,106,198,98C207.5,85.30000305175781,213,78.0999984741211,226,68C272.5,60.79999923706055,281.79998779296875,61.5,328,58C356.79998779296875,60.400001525878906,366.3999938964844,61.29999923706055,395,66C411.5,71.5,420.5,74.9000015258789,436,83C446.3999938964844,90.19999694824219,453.8999938964844,95.4000015258789,462,106C467.3999938964844,123.9000015258789,469.1000061035156,132,469,151C464.5,159.39999389648438,457.70001220703125,164.6999969482422,450,169C384.8999938964844,187.5,375.1000061035156,185.39999389648438,310,204C298.1000061035156,212.8000030517578,296.1000061035156,222.5,283,231C278.5,224.3000030517578,283,215.39999389648438,279,209C249,186.39999389648438,239,185.89999389648438,209,164C198.1999969482422,148,195.6999969482422,138.60000610351562,187,122Z \";\n"
+//                + "    -fx-background-color: black, white;\n"
+//                + "    -fx-background-insets: 0,1;\n"
+//                + "    -fx-font-family: \"Helvetica\";\n"
+//                + "    -fx-font-size: 14px;\n"
+//                + "    -fx-font-weight: bold;\n"
+//                + "    -fx-padding: 50");
+//        TextArea taxa = new TextArea("Hey");
+//        tbx.setStyle(textAreaStyle);
         // getChildren().add(taxa);
         // StackPane.setAlignment(taxa, Pos.TOP_CENTER);
 Image image;
@@ -331,21 +327,7 @@ Image image;
                 dialog.setScene(dialogScene);
                 dialog.show();
 
-//                    FileChooser fileChooser = new FileChooser();
-//
-//                    fileChooser.setTitle("Open Resource File");
-//                    File file = fileChooser.showOpenDialog(new Stage());
-//                    //CharacterFile=file.getAbsolutePath();
-//                    if (file != null) {
-//                        FileInputStream input = new FileInputStream(file.getAbsolutePath());
-//                        CharacterFile = file.getAbsolutePath();
-//                        Image image = new Image(input, 300, 800, true, true);
-//                        //float scaleVal=image.getHeight()>image.getWidth()?(float) (image.getWidth()/width):(float) (image.getHeight()/height);
-//                        //Scale scale = new Scale(scaleVal,scaleVal); 
-//                        //imageView.getTransforms().add(scale); //rotate by 45 degrees
-//                        imageView.setImage(image);
-//                        //changeImage(new Image(input),true);
-//                    }
+
             }
         };
 
@@ -477,6 +459,7 @@ Image image;
                 
                 imageView.setVisible(!imageView.isVisible());
                 chatMessage.setVisible(!chatMessage.isVisible());
+                playButton.setVisible(!playButton.isVisible());
 //                chatMessage.setText((String) thisCharcter.talk(otherCharcter, name).toArray()[0]);
             }
         };
@@ -487,22 +470,6 @@ Image image;
         getChildren().add(showHideImg);
         StackPane.setAlignment(showHideImg, Pos.TOP_CENTER);
 
-//    Timeline t = new Timeline(new KeyFrame(Duration.millis(100), new EventHandler<ActionEvent>() {
-//      @Override public void handle(ActionEvent event) {
-//        frame.set(frame.get() + 1);
-//
-//        if (rect != null) {
-//          getChildren().remove(rect);
-//        }
-//
-//        rect = new Rectangle(10, 10, 200, 200);
-//        rect.setFill(Color.RED);
-//        rect.setMouseTransparent(true);
-//        getChildren().add(0, rect);
-//      }
-//    }));
-//    t.setCycleCount(Timeline.INDEFINITE);
-//    t.play();
     }
 
     public void changeImage(Image image, boolean replace) {

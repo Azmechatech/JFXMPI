@@ -1,5 +1,13 @@
 package net.mky.jfxmpi;
 
+import java.awt.Graphics;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -96,8 +104,8 @@ public class MainApp extends Application {
     public static void main(String[] args) throws Exception {
         convMaker=new ConversationMaker();
         launch(args);
-
     }
+    
    class WindowButtons extends HBox {
 
         public WindowButtons() {
@@ -388,8 +396,24 @@ public class MainApp extends Application {
         TakeSnapShot.setOnAction(takeSnapshot);
         TakeSnapShot.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(TakeSnapShot);
-
-        
+//Clipboard image
+Button bnPaste = new Button("Paste");
+bnPaste.setStyle(StylesForAll.transparentAlive);
+bnPaste.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                    try {
+                        java.awt.Image image = getImageFromClipboard();
+                        if (image != null) {
+                            javafx.scene.image.Image fimage = awtImageToFX(image);
+                            pe.imageView.setImage(fimage);
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        buttonPane.getChildren().add(bnPaste);
         
         //Image resizing
     EventHandler<ActionEvent> inc = new EventHandler<ActionEvent>() {
@@ -623,6 +647,8 @@ public class MainApp extends Application {
         showHideImg.setOnAction(showHide);
         showHideImg.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(showHideImg);
+        
+        
         
         
         
@@ -943,4 +969,33 @@ public class MainApp extends Application {
 
         return anchorpane;
     }
+    
+     private java.awt.Image getImageFromClipboard() {
+            Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+            if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+                try {
+                    return (java.awt.Image) transferable.getTransferData(DataFlavor.imageFlavor);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        private static javafx.scene.image.Image awtImageToFX(java.awt.Image image) throws Exception {
+            if (!(image instanceof RenderedImage)) {
+                BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null),
+                        BufferedImage.TYPE_INT_ARGB);
+                Graphics g = bufferedImage.createGraphics();
+                g.drawImage(image, 0, 0, null);
+                g.dispose();
+
+                image = bufferedImage;
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write((RenderedImage) image, "png", out);
+            out.flush();
+            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+            return new javafx.scene.image.Image(in);
+        }
 }
