@@ -1,5 +1,5 @@
 # JFXMPI
-JavaFx Desktop App for Visula Content &amp; Story Creation
+JavaFx Desktop App for Visual Content &amp; Story Creation
 
 I will add more documentation once I have time.
 
