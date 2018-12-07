@@ -317,19 +317,7 @@ public class MainApp extends Application {
                     projData = new JSONObject();
                     projData.put("dirPath", dirPath);
                     projData.put("bgFile", pe.bgImageFile);
-//                    projData.put("cpane", characterA.CharacterFile);
-//                    projData.put("cpane2", characterB.CharacterFile);
-//                    projData.put("cpane3", characterC.CharacterFile);
-//                    JSONArray charlist=new JSONArray(characterA.CharacterPool);
-//                    JSONArray charlist2=new JSONArray(characterB.CharacterPool);
-//                    JSONArray charlist3=new JSONArray(characterC.CharacterPool);
-//                    projData.put("charlist", charlist);
-//                    projData.put("charlist2", charlist2);
-//                    projData.put("charlist3", charlist3);
-                    
-//                    projData.put("characterA", characterA.getCharacterData());
-//                    projData.put("characterB", characterB.getCharacterData());
-//                    projData.put("characterC", characterC.getCharacterData());
+
                     int i=0;
                     for(CharacterPane cp:charactersArray){
                     //charPrefixes

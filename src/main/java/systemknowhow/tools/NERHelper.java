@@ -149,8 +149,7 @@ public class NERHelper {
          assignments and an n-best list of classifications with probabilities.
       */
 
-      String[] example = {"We're having a sleepover,\" Lauren says as if that explains all of this. While she's getting outraged with me, I'm checking out her girlfriends. It's like looking at a live action Victoria Secret's ad. There's the African-American girl who spotted me in the hallway. My eyes zero in on the yellow nightie barely covering her impressive chest. Next to her is Kristina, Lauren's petite blonde friend from down the street, looking pretty in her pink lingerie. Finally, on the other end of the couch is a tall brunette all decked out in the sexiest shade of red. ",
-          "Good afternoon Rajat Raina, how are you today?",
+      String[] example = {"We're having a sleepove",
                           "I go to school at Stanford University, which is located in California." };
       for (String str : example) {
       //  System.out.println(classifier.classifyToString(str));
