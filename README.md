@@ -15,3 +15,6 @@ The characters are picked from game CG/Sprites. You can find them on various web
 ![alt text](screenshots/1544192831716.png "Description goes here")
 ![alt text](screenshots/1544193251352.png "Description goes here")
 ![alt text](screenshots/1544193272362.png "Description goes here")
+
+# Sample Backrgound Images 
+https://github.com/Azmechatech/NONHUMAN.git
