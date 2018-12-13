@@ -90,6 +90,7 @@ public class MainApp extends Application {
     StoryBoard StoryBoard = new StoryBoard(width, height);
     
     List<CharacterPane> charactersArray;
+    List<TextBubble> textBubbleArray;
     String[] charPrefixes=new String[]{"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
     
     
@@ -128,6 +129,7 @@ public class MainApp extends Application {
          
          ToolBar toolBar = new ToolBar();
          charactersArray=new ArrayList<>();
+         textBubbleArray=new ArrayList<>();
          HBox characters=new HBox();
         //int height = 25;
 
@@ -385,7 +387,7 @@ public class MainApp extends Application {
         TakeSnapShot.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(TakeSnapShot);
 //Clipboard image
-Button bnPaste = new Button("Paste");
+Button bnPaste = new Button("Ctrl+V");
 bnPaste.setStyle(StylesForAll.transparentAlive);
 bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent event) {
@@ -402,7 +404,17 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                 }
             });
         buttonPane.getChildren().add(bnPaste);
-        
+ 
+        //Text bubble
+        Button bnTextBubble = new Button("Text Bubble");
+        bnTextBubble.setStyle(StylesForAll.transparentAlive);
+        bnTextBubble.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                characters.getChildren().add(new TextBubble(width, height, false));
+            }
+        });
+        buttonPane.getChildren().add(bnTextBubble);
+
         //Image resizing
     EventHandler<ActionEvent> inc = new EventHandler<ActionEvent>() {
             @Override
