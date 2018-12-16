@@ -63,6 +63,7 @@ import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import static net.mky.jfxmpi.TextBubble.WORDS_IN_ROW;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -135,10 +136,10 @@ public class CharacterPane extends StackPane {
         chatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
                 + "    -fx-background-color: black, white;\n"
                 + "    -fx-background-insets: 0,1;\n"
-                + "    -fx-font-family: \"Helvetica\";\n"
-                + "    -fx-font-size: 16px;\n"
+                + "    -fx-font-family: \"Comic Sans MS\";\n"
+                + "    -fx-font-size: 20px;\n"
                 + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 30");
+                + "    -fx-padding: 10 10 60 20;"); //TOP, RIGHT, BOTTOM, LEFT
         
          chatMessage.setWrapText(true);
          
@@ -683,18 +684,31 @@ Image image;
         return result;
     }
     
-    private void showInputTextDialog() {
+ private void showInputTextDialog() {
  
         TextInputDialog dialog = new TextInputDialog("Tran");
  
-        dialog.setTitle("o7planning");
-        dialog.setHeaderText("Enter your name:");
-        dialog.setContentText("Name:");
+       // dialog.setTitle("o7planning");
+        dialog.setHeaderText("Enter text:");
+        dialog.setContentText("Text:");
  
         Optional<String> result = dialog.showAndWait();
  
         result.ifPresent(name -> {
-            this.chatMessage.setText(name);
+            String[] words=name.split(" ");
+            int i=0;
+            StringBuilder sb=new StringBuilder();
+            for(String word:words){
+                if(i<WORDS_IN_ROW){
+                    sb.append(word).append(" ");
+                    i++;
+                }else{
+                    i=0;
+                    sb.append(word).append("\n");
+                }
+                
+            }
+            this.chatMessage.setText(sb.toString());
         });
     }
 }

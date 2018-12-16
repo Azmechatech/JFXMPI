@@ -5,7 +5,6 @@
  */
 package net.mky.jfxmpi;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,49 +18,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -69,7 +45,6 @@ import systemknowhow.human.Life;
 import systemknowhow.human.LifeTagFactory;
 import systemknowhow.human.Male;
 import systemknowhow.human.guns.CompositeGun;
-import systemknowhow.tools.HilbertCurvePatternDetect;
 /**
  *
  * @author mkfs
@@ -133,10 +108,10 @@ public class TextBubble  extends StackPane {
         chatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
                 + "    -fx-background-color: black, white;\n"
                 + "    -fx-background-insets: 0,1;\n"
-                + "    -fx-font-family: \"Helvetica\";\n"
-                + "    -fx-font-size: 16px;\n"
+                + "    -fx-font-family: \"Comic Sans MS\";\n"
+                + "    -fx-font-size: 20px;\n"
                 + "    -fx-font-weight: bold;\n"
-                + "    -fx-padding: 30");
+                + "    -fx-padding: 10 10 60 20;"); //TOP, RIGHT, BOTTOM, LEFT
         
          chatMessage.setWrapText(true);
          
@@ -296,19 +271,32 @@ public class TextBubble  extends StackPane {
         //linesRead.add(line);
         return result;
     }
-    
+    public static int WORDS_IN_ROW=3;
     private void showInputTextDialog() {
  
         TextInputDialog dialog = new TextInputDialog("Tran");
  
-        dialog.setTitle("o7planning");
-        dialog.setHeaderText("Enter your name:");
-        dialog.setContentText("Name:");
+       // dialog.setTitle("o7planning");
+        dialog.setHeaderText("Enter text:");
+        dialog.setContentText("Text:");
  
         Optional<String> result = dialog.showAndWait();
  
         result.ifPresent(name -> {
-            this.chatMessage.setText(name);
+            String[] words=name.split(" ");
+            int i=0;
+            StringBuilder sb=new StringBuilder();
+            for(String word:words){
+                if(i<WORDS_IN_ROW){
+                    sb.append(word).append(" ");
+                    i++;
+                }else{
+                    i=0;
+                    sb.append(word).append("\n");
+                }
+                
+            }
+            this.chatMessage.setText(sb.toString());
         });
     }
 }
