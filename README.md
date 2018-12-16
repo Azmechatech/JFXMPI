@@ -1,5 +1,6 @@
 # JFXMPI
 JavaFx Desktop App for Visual Content &amp; Story Creation
+Executable: https://github.com/Azmechatech/JFXMPI/blob/master/lib/JFXMPI-1.0-SNAPSHOT-jar-with-dependencies.jar
 ![alt text](screenshots/OSView.PNG "Saved images shown in folder.")
 
 I will add more documentation once I have time.
