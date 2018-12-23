@@ -410,7 +410,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
         bnTextBubble.setStyle(StylesForAll.transparentAlive);
         bnTextBubble.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                characters.getChildren().add(new TextBubble(width, height, false));
+               // characters.getChildren().add(new TextBubble(width, height, false));
+                characters.getChildren().add(new StoryTimeline());
             }
         });
         buttonPane.getChildren().add(bnTextBubble);
@@ -539,7 +540,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                         if(projData.has("characterA"))
                         {
                             characterA.loadCharacterData(projData.getJSONObject("characterA"));
-                            characterB.loadCharacterData(projData.getJSONObject("characterB"));
+                            if(projData.has("characterB"))characterB.loadCharacterData(projData.getJSONObject("characterB"));
                             if(projData.has("characterC"))characterC.loadCharacterData(projData.getJSONObject("characterC"));
 
 //                            Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/Users/Maneesh/Desktop/face.png",characterA.CharacterFile),200,200), null);

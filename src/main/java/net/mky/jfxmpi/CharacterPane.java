@@ -269,9 +269,46 @@ Image image;
                 GridPane.setConstraints(submit, 0, 3);
                 submit.setOnAction(pickSeedFile);
                 grid.getChildren().add(submit);
+                
+                
+                //Defining the Submit button
+                EventHandler<ActionEvent> editDressAction = new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        //Set nameFiled and other properties
+                        final Stage dialog = new Stage();
+                        dialog.initModality(Modality.APPLICATION_MODAL);
+                        dialog.initOwner(null);
+                        VBox dialogVbox = new VBox(20);
+                        dialogVbox.getChildren().add(new Text("This is a Dialog"));
+
+                        //Show image gallery
+                        ScrollPane root = new ScrollPane();
+                        TilePane tile = new TilePane();
+                        root.setStyle("-fx-background-color: DAE6F3;");
+                        tile.setPadding(new Insets(15, 15, 15, 15));
+                        tile.setHgap(15);
+                        root.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Horizontal
+                        root.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Vertical scroll bar
+                        root.setFitToWidth(true);
+                        root.setContent(new DrawOnCanvas(imageView.getImage()));
+//                    dialog.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
+//                    dialog.setHeight(Screen.getPrimary().getVisualBounds()
+//                            .getHeight());
+                        Scene dialogScene = new Scene(root, 400, 400);
+                        dialog.setScene(dialogScene);
+                        dialog.show();
+                    }
+                };
+                
+                Button editDress = new Button("Dress Up");
+                GridPane.setConstraints(editDress, 0, 4);
+                submit.setOnAction(editDressAction);
+                grid.getChildren().add(editDress);
+                
 //                //Defining the Clear button
                 Label clear = new Label(SeedFile);
-                GridPane.setConstraints(clear, 0, 4);
+                GridPane.setConstraints(clear, 0, 5);
                 grid.getChildren().add(clear);
 
                 TilePane tile = new TilePane();
@@ -350,6 +387,7 @@ Image image;
                     dialog.initOwner(null);
                     VBox dialogVbox = new VBox(20);
                     dialogVbox.getChildren().add(new Text("This is a Dialog"));
+                    
                     //Show image gallery
                     ScrollPane root = new ScrollPane();
                     TilePane tile = new TilePane();
@@ -359,11 +397,11 @@ Image image;
                     root.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Horizontal
                     root.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Vertical scroll bar
                     root.setFitToWidth(true);
-                    root.setContent(dialogVbox);
+                    root.setContent(new DrawOnCanvas());
 //                    dialog.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
 //                    dialog.setHeight(Screen.getPrimary().getVisualBounds()
 //                            .getHeight());
-                    Scene dialogScene = new Scene(root, 200, 200);
+                    Scene dialogScene = new Scene(root, 400, 400);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }
@@ -629,6 +667,7 @@ Image image;
         data.put("ltf", ltf);
         data.put("cpane", CharacterFile);
         data.put("SeedFile", SeedFile);
+        data.put("currentText", chatMessage.getText());
         JSONArray charlist = new JSONArray(CharacterPool);
         data.put("CharacterPool", charlist);
         return data;
@@ -637,6 +676,7 @@ Image image;
     public void loadCharacterData(JSONObject data) {
         name = data.has("name") ? data.getString("name") : name;
         age = data.has("age") ? data.getString("age") : age;
+        chatMessage.setText( data.has("currentText") ? data.getString("currentText") : "I am ready to play!");
         SeedFile = data.has("SeedFile") ? data.getString("SeedFile") : SeedFile;
         ltf = data.has("ltf") ? LifeTagFactory.valueOf(data.getString("ltf")) : ltf;
         CharacterFile = data.has("cpane") ? data.getString("cpane") : CharacterFile;
@@ -684,7 +724,7 @@ Image image;
         return result;
     }
     
- private void showInputTextDialog() {
+  private void showInputTextDialog() {
  
         TextInputDialog dialog = new TextInputDialog("Tran");
  
@@ -696,10 +736,11 @@ Image image;
  
         result.ifPresent(name -> {
             String[] words=name.split(" ");
+            int closestMatch=(int) Math.sqrt(words.length);
             int i=0;
             StringBuilder sb=new StringBuilder();
             for(String word:words){
-                if(i<WORDS_IN_ROW){
+                if(i<closestMatch){
                     sb.append(word).append(" ");
                     i++;
                 }else{

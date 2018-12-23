@@ -284,10 +284,11 @@ public class TextBubble  extends StackPane {
  
         result.ifPresent(name -> {
             String[] words=name.split(" ");
+            int closestMatch=(int) Math.sqrt(words.length);
             int i=0;
             StringBuilder sb=new StringBuilder();
             for(String word:words){
-                if(i<WORDS_IN_ROW){
+                if(i<closestMatch){
                     sb.append(word).append(" ");
                     i++;
                 }else{
