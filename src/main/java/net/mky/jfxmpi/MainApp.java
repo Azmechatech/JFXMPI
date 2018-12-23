@@ -131,6 +131,7 @@ public class MainApp extends Application {
          charactersArray=new ArrayList<>();
          textBubbleArray=new ArrayList<>();
          HBox characters=new HBox();
+         characters.getChildren().add(new StoryTimeline());
         //int height = 25;
 
      
@@ -410,8 +411,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
         bnTextBubble.setStyle(StylesForAll.transparentAlive);
         bnTextBubble.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-               // characters.getChildren().add(new TextBubble(width, height, false));
-                characters.getChildren().add(new StoryTimeline());
+               characters.getChildren().add(new TextBubble(width, height, false));
+               //characters.getChildren().add(new StoryTimeline());
             }
         });
         buttonPane.getChildren().add(bnTextBubble);
