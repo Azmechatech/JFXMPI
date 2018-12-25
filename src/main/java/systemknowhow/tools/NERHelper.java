@@ -7,11 +7,20 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.sequences.DocumentReaderAndWriter;
 import edu.stanford.nlp.util.Triple;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 
 /** This is a demo of calling CRFClassifier programmatically.
@@ -81,6 +90,44 @@ public class NERHelper {
         return sentence;
     }
 
+    public static HashMap getCharacterSpaceData(String sentence) throws IOException, ClassCastException, ClassNotFoundException {
+        HashMap<String, String> lHmap = new LinkedHashMap<>();
+        if (sentence != null) {
+            List<Triple<String, Integer, Integer>> triples = classifier.classifyToCharacterOffsets(sentence);
+            String[] replaceTexts = new String[triples.size()];
+            String[] replaceTextsWith = new String[triples.size()];
+            int i = 0;
+            for (Triple<String, Integer, Integer> trip : triples) {
+                //System.out.printf("%s over character offsets [%d, %d) in sentence %d.%n",trip.first(), trip.second(), trip.third, j);
+                replaceTexts[i] = sentence.substring(trip.second(), trip.third);
+                replaceTextsWith[i] = trip.first();
+                lHmap.put( replaceTexts[i],trip.first);
+                i++;
+            }
+            lHmap.put( "sentence",sentence);
+
+//        for(int j=0;j<replaceTexts.length;j++){
+//            sentence=sentence.replaceAll(replaceTexts[j], "{{"+replaceTextsWith[j]+"}}");
+//        }
+//        System.out.println(sentence);
+        }
+
+        return lHmap;
+    }
+    
+    public static List<HashMap<String,String>> getStorySequence(String fullStory) throws IOException, ClassCastException, ClassNotFoundException{
+        Pattern END_OF_SENTENCE = Pattern.compile("\\.\\s+");
+        List<HashMap<String,String>> result=new LinkedList();
+            //int jk=0;
+            for (String sentence : END_OF_SENTENCE.split(fullStory)) {
+                result.add(getCharacterSpaceData(sentence));
+                //System.out.println(sentence);
+                //System.out.println(jk++ +">>" +Collections.singletonList(getCharacterSpaceData(sentence)));
+            }
+            
+            return result;
+    }
+    
   public static void main(String[] args) throws Exception {
 
     
@@ -209,7 +256,31 @@ public class NERHelper {
 
       System.out.println("---");
 
+            //Method test getCharacterSpaceData
+            File file = new File("C:/$AVG/baseDir/Imports/Sprites/txts/admiral.txt");
+            FileInputStream fis = new FileInputStream(file);
+            byte[] data = new byte[(int) file.length()];
+            fis.read(data);
+            fis.close();
+
+            String str = new String(data, "UTF-8");
+            System.out.println(Collections.singletonList(getStorySequence(str)));
+//            System.out.println("---By Line--");
+//            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//                String line;
+//                while ((line = br.readLine()) != null) {
+//                    System.out.println(Collections.singletonList(getCharacterSpaceData(line)));
+//                }
+//            }
+//            System.out.println("---By Sentence--");
+//            Pattern END_OF_SENTENCE = Pattern.compile("\\.\\s+");
+//            int jk=0;
+//            for (String sentence : END_OF_SENTENCE.split(str)) {
+//                System.out.println(sentence);
+//                System.out.println(jk++ +">>" +Collections.singletonList(getCharacterSpaceData(sentence)));
+//            }
+
+        }
     }
-  }
 
 }

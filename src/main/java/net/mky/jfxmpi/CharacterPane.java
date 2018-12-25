@@ -98,7 +98,7 @@ public class CharacterPane extends StackPane {
     LifeTagFactory ltf;
     public String CharacterPool[];
 
-    Button playButton;
+    Button selectCharPic;
 
     private static final double W = 200;
     private static final double H = 200;
@@ -144,37 +144,7 @@ public class CharacterPane extends StackPane {
          chatMessage.setWrapText(true);
          
         chatMessage.setTextAlignment(TextAlignment.CENTER);
-//            String textAreaStyle="-fx-shape: \"M617.796387,96.331444c0,-10.000282 -13.401611,-18.051064 -30.04834,-18.051064l-471.95871,0c-16.64682,0 -30.048409,8.050781 -30.048409,18.051064l0,14.354454l-70.861718,23.273758l70.861718,7.245163l0,73.639435c0,10.00029 13.401588,18.051056 30.048409,18.051056l471.95871,0c16.646729,0 30.04834,-8.050766 30.04834,-18.051056l0,-118.51281Z \";\n"
-//                + "    -fx-background-color: black, white;\n"
-//            + "-fx-control-inner-background: linear-gradient(to bottom, #f2994a, #f2c94c);;"
-//                + "    -fx-background-insets: 0,1;\n"
-//                 + "    -fx-font-family: \"Helvetica\";\n"
-//                    + "    -fx-font-size: 18px;\n"
-//                    + "    -fx-font-weight: bold;\n"
-//                + "    -fx-padding: 2 10 2 35";
-            
-//            taxachatMessage.setStyle("-fx-shape: \"M177.16535,46.062967 C 177.16535,46.062967 106.29921,46.062966 70.866142,99.212573 C 35.433071,152.36218 35.433071,223.22832 70.866142,276.37793 C 101.94300,322.99322 177.16535,329.52753 177.16535,329.52753 L 194.10223,433.03688 L 230.31496,329.52753 L 478.34646,329.52753 C 478.34646,329.52753 549.21260,329.52753 584.64567,276.37793 C 620.07874,223.22832 620.07874,152.36218 584.64567,99.212573 C 549.21260,46.062967 478.34646,46.062967 478.34646,46.062967 L 177.16535,46.062967Z \";\n"
-//                + "    -fx-background-color: black, white;\n"
-//                + "    -fx-background-insets: 0,1;\n"
-//                + "    -fx-font-family: \"Helvetica\";\n"
-//                + "    -fx-font-size: 18px;\n"
-//                + "    -fx-font-weight: bold;\n"
-//                + "    -fx-padding: 50");
-//            taxachatMessage.setPrefRowCount(3);
-//            taxachatMessage.setPrefColumnCount(10);
-//            taxachatMessage.setWrapText(true);
-//        TextField tbx = new TextField("Hey");
-//        tbx.setStyle("-fx-shape: \"M188,124C191.3000030517578,115.30000305175781,193.10000610351562,106,198,98C207.5,85.30000305175781,213,78.0999984741211,226,68C272.5,60.79999923706055,281.79998779296875,61.5,328,58C356.79998779296875,60.400001525878906,366.3999938964844,61.29999923706055,395,66C411.5,71.5,420.5,74.9000015258789,436,83C446.3999938964844,90.19999694824219,453.8999938964844,95.4000015258789,462,106C467.3999938964844,123.9000015258789,469.1000061035156,132,469,151C464.5,159.39999389648438,457.70001220703125,164.6999969482422,450,169C384.8999938964844,187.5,375.1000061035156,185.39999389648438,310,204C298.1000061035156,212.8000030517578,296.1000061035156,222.5,283,231C278.5,224.3000030517578,283,215.39999389648438,279,209C249,186.39999389648438,239,185.89999389648438,209,164C198.1999969482422,148,195.6999969482422,138.60000610351562,187,122Z \";\n"
-//                + "    -fx-background-color: black, white;\n"
-//                + "    -fx-background-insets: 0,1;\n"
-//                + "    -fx-font-family: \"Helvetica\";\n"
-//                + "    -fx-font-size: 14px;\n"
-//                + "    -fx-font-weight: bold;\n"
-//                + "    -fx-padding: 50");
-//        TextArea taxa = new TextArea("Hey");
-//        tbx.setStyle(textAreaStyle);
-        // getChildren().add(taxa);
-        // StackPane.setAlignment(taxa, Pos.TOP_CENTER);
+
 Image image;
         try {
             input = new FileInputStream("C:/Users/Maneesh/Desktop/Emiko_1513270388079.png");
@@ -409,14 +379,14 @@ Image image;
             }
         };
 
-        playButton = new Button("*" + name);
-        playButton.getStyleClass().add("play");
-        playButton.setStyle(StylesForAll.aliveTheme);
-        playButton.setOnAction(pickPic);
+        selectCharPic = new Button("*" + name);
+        selectCharPic.getStyleClass().add("play");
+        selectCharPic.setStyle(StylesForAll.aliveTheme);
+        selectCharPic.setOnAction(pickPic);
         // mainPane.setCenter(homePane);
-        HBox buttonPane = new HBox(12, playButton);
-        getChildren().add(playButton);
-        StackPane.setAlignment(playButton, Pos.BOTTOM_RIGHT);
+        HBox buttonPane = new HBox(12, selectCharPic);
+        getChildren().add(selectCharPic);
+        StackPane.setAlignment(selectCharPic, Pos.BOTTOM_RIGHT);
 
         Button addAllChars = new Button("Set All");
         addAllChars.setStyle(StylesForAll.aliveTheme);
@@ -498,7 +468,7 @@ Image image;
                 
                 imageView.setVisible(!imageView.isVisible());
                 chatMessage.setVisible(!chatMessage.isVisible());
-                playButton.setVisible(!playButton.isVisible());
+                selectCharPic.setVisible(!selectCharPic.isVisible());
 //                chatMessage.setText((String) thisCharcter.talk(otherCharcter, name).toArray()[0]);
             }
         };
@@ -672,7 +642,11 @@ Image image;
         data.put("CharacterPool", charlist);
         return data;
     }
-
+public void refresh(){
+     selectCharPic.setText(name);
+    chatMessage.setText("I am "+name+".\n");
+    
+}
     public void loadCharacterData(JSONObject data) {
         name = data.has("name") ? data.getString("name") : name;
         age = data.has("age") ? data.getString("age") : age;
@@ -689,7 +663,7 @@ Image image;
         }
 
         thisCharcter = createLife(name, ltf, getLines(SeedFile));
-        playButton.setText(name);
+        selectCharPic.setText(name);
 
         try {
             input = new FileInputStream(CharacterFile);

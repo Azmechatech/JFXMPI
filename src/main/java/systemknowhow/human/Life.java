@@ -130,14 +130,11 @@ public abstract class Life {
             sentenceObject.setGun(GUN);
             try {
                 sentenceObject.setSentenceTemplate(NERHelper.getMarked(sentence));
-            } catch (IOException ex) {
-                Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassCastException ex) {
-                Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
+                sentenceObject.setKey(GUN.toString()+"L"+TAG);
+            }  catch (Exception ex) {
                 Logger.getLogger(Life.class.getName()).log(Level.SEVERE, null, ex);
             }
-            sentenceObject.setKey(GUN.toString()+"L"+TAG);
+            
             if(sentence!=null)
             SentenceFactory.add(sentenceObject);
         }

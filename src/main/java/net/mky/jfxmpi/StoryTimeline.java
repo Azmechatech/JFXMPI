@@ -6,7 +6,10 @@
 package net.mky.jfxmpi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -20,6 +23,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
+import systemknowhow.human.Female;
+import systemknowhow.human.Life;
 
 /**
  *
@@ -32,6 +37,7 @@ public class StoryTimeline extends Pane {
     private List<Label> messages = new ArrayList<>();
     private ScrollPane container = new ScrollPane();
     private int index = 0;
+    public List<HashMap<String,String>> STORY=new LinkedList<>();
 
     public StoryTimeline() {
         setStyle(
@@ -45,9 +51,10 @@ public class StoryTimeline extends Pane {
        // getChildren().addAll(container, add);
        
         addNTimeLine(10, 800, 5);
+        getChildren().add(add);
     }
 
-    private void addNTimeLine(double startY, double endY, int intervals) {
+   public  void addNTimeLine(double startY, double endY, int intervals) {
         
         //Creating a line object
         Line line = new Line();
@@ -146,6 +153,124 @@ public class StoryTimeline extends Pane {
 
     }
 
+    public  HashMap<String,Life> addCustomTimeLine(double startY, double endY, List<HashMap<String,String>> story) {
+        this.STORY=story;
+        getChildren().clear();
+        HashMap<String,Life> result=new HashMap<>();
+        //Creating a line object
+        Line line = new Line();
+        //Setting the properties to a line 
+        line.setStartX(10.0);
+        line.setStartY(startY);
+        line.setEndX(10.0);
+        line.setEndY(endY);
+        getChildren().add(line);
+        double delta=5;
+        for (HashMap<String,String> elements: story) { 
+            if(elements.size()<2) continue;
+            Line lineH = new Line();
+            //Setting the properties to a line 
+            lineH.setStartX(10);
+            lineH.setStartY(delta);
+            lineH.setEndX(20.0);
+            lineH.setEndY(delta);
+            getChildren().add(lineH);
+            
+            VBox Plot = new VBox(5);
+            Plot.setStyle( "  -fx-min-height:450px;\n"
+                + "  -fx-min-width:200px; ");
+            Plot.setTranslateY(delta-12);
+            
+            
+            //Time
+            Label TimeLabel = new Label("\u2B24 \u2B24 \u2B24 \u2B24 ");
+            TimeLabel.setTranslateX(25);
+            Plot.getChildren().add(TimeLabel);
+            TimeLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (e.getButton() == MouseButton.SECONDARY) {
+                        showInputTextDialog(TimeLabel);
+                    } else {
+                        System.out.println("No right click");
+                    }
+                }
+            });
+            messages.add(TimeLabel);
+            //Location
+            Label LocationLabel = new Label("\u2B24 \u2B24 Location:\u2B24 \u2B24 " );
+            LocationLabel.setTranslateX(25);
+            Plot.getChildren().add(LocationLabel);
+            LocationLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (e.getButton() == MouseButton.SECONDARY) {
+                        showInputTextDialog(LocationLabel);
+                    } else {
+                        System.out.println("No right click");
+                    }
+                }
+            });
+            messages.add(LocationLabel);
+            //Characters
+            String characters="";
+            for (Map.Entry<String, String> entry : elements.entrySet())
+            {
+                if(entry.getValue().contentEquals("PERSON"))
+                {
+                    characters=characters+", "+entry.getKey();
+                    
+                    if(result.containsKey(entry.getKey())){
+                        Life l=result.get(entry.getKey());
+                        l.learnToSentence(new String[]{elements.get("sentence")});
+                    }else{
+                        Life l=new Female(entry.getKey(), 25, 165, null);
+                        result.put(entry.getKey(), l);
+                    }
+                }
+                //System.out.println(entry.getKey() + "/" + entry.getValue());
+            }
+            Label CharactersLabel = new Label("\u2B24 "+characters );
+            CharactersLabel.setTranslateX(25);
+            Plot.getChildren().add(CharactersLabel);
+            CharactersLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (e.getButton() == MouseButton.SECONDARY) {
+                        showInputTextDialog(CharactersLabel);
+                    } else {
+                        System.out.println("No right click");
+                    }
+                }
+            });
+            messages.add(CharactersLabel);
+            //Conflict
+            Label ConflictLabel = new Label("\u2B24 " +textReformat(elements.get("sentence")).toString() );
+            ConflictLabel.setFont(Font.loadFont(getClass().getResource("/fonts/mangati.ttf").toExternalForm(), 11));
+            ConflictLabel.setTranslateX(25);
+            Plot.getChildren().add(ConflictLabel);
+            ConflictLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (e.getButton() == MouseButton.SECONDARY) {
+                        showInputTextDialog(ConflictLabel);
+                    } else {
+                        System.out.println("No right click");
+                    }
+                }
+            });
+            messages.add(ConflictLabel);
+
+            
+            
+            getChildren().add(Plot);
+            
+            delta=delta+ 14*3+14*Math.sqrt(elements.get("sentence").length());
+        }
+        return result;
+    }
+
+    
     private void initChatBox() {
 
         container.setPrefSize(216, 400);

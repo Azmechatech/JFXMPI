@@ -12,13 +12,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -75,6 +78,7 @@ import systemknowhow.human.ConversationMaker;
 import systemknowhow.human.Life;
 import systemknowhow.humanactivity.SocialRelationTags;
 import systemknowhow.tools.HilbertCurvePatternDetect;
+import systemknowhow.tools.NERHelper;
 
 public class MainApp extends Application {
 
@@ -88,6 +92,7 @@ public class MainApp extends Application {
     CharacterPane characterC = new CharacterPane(width, height, false);
      GraphPane graphBoard=new GraphPane();
     StoryBoard StoryBoard = new StoryBoard(width, height);
+    StoryTimeline storyTimeline=new StoryTimeline();
     
     List<CharacterPane> charactersArray;
     List<TextBubble> textBubbleArray;
@@ -131,7 +136,9 @@ public class MainApp extends Application {
          charactersArray=new ArrayList<>();
          textBubbleArray=new ArrayList<>();
          HBox characters=new HBox();
-         characters.getChildren().add(new StoryTimeline());
+         characters.getChildren().add(storyTimeline);
+         pe.setTranslateX(0);
+         pe.setTranslateY(0);
         //int height = 25;
 
      
@@ -178,7 +185,7 @@ public class MainApp extends Application {
 //
 //        }
 
-        Button playButton = new Button("\u25b6 Change the Theme");
+        Button playButton = new Button("Background");
         playButton.getStyleClass().add("play");
 
         EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>() {
@@ -327,6 +334,8 @@ public class MainApp extends Application {
                         projData.put("character"+charPrefixes[i++], cp.getCharacterData());
                     }
                     
+                    projData.put("story", storyTimeline.STORY);
+                    
                     List<String> lines = Arrays.asList(projData.toString());
                     Path file = Paths.get(dirPath + "/game_" + System.currentTimeMillis() + ".JSON");
                     Files.write(file, lines, Charset.forName("UTF-8"));
@@ -459,6 +468,71 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
  //       StoryBoard.imageChar2.setImage(new Image(characterB.input,200,300,true,true));
  //       StoryBoard.imageChar3.setImage(new Image(characterC.input,200,300,true,true));
 
+        EventHandler<ActionEvent> createGameAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                //Set textPane data
+                FileChooser fileChooser = new FileChooser();
+
+                fileChooser.setTitle("Open Text File");
+                File file = fileChooser.showOpenDialog(new Stage());
+                //CharacterFile=file.getAbsolutePath();
+//                        if (file != null) {
+//                            SeedFile = file.getAbsolutePath();
+//                        }
+
+                FileInputStream fis = null;
+                try {
+                    fis = new FileInputStream(file);
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                byte[] data = new byte[(int) file.length()];
+                try {
+                    fis.read(data);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    fis.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                try {
+                    String str = new String(data, "UTF-8");
+
+                    HashMap<String, Life> peopleInStory = storyTimeline.addCustomTimeLine(0, 800, NERHelper.getStorySequence(str));
+                    //Generate Character Frames automatically
+                    for (Map.Entry<String, Life> entry : peopleInStory.entrySet()) {
+                        CharacterPane newCharacter = new CharacterPane(width, height, false);
+                        newCharacter.setName(entry.getKey());
+                        newCharacter.SeedFile=file.getAbsolutePath();
+                        newCharacter.thisCharcter=entry.getValue();
+                        newCharacter.refresh();
+                        charactersArray.add(newCharacter);
+                        characters.getChildren().add(newCharacter);
+                    }
+
+                    
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ClassCastException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
+        };
+
+        Button createGame = new Button("Create");
+         createGame.setOnAction(createGameAction);
+        createGame.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(createGame);
+        
         EventHandler<ActionEvent> playGameAction = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
