@@ -81,8 +81,8 @@ public class Environment {
      female2.relations.put(male2, SocialRelationTags.HUSBAND);
      
      //The text learn
-     male1.learnToSentence(getLines("G:/bkp/$AVG/baseDir/Imports/Sprites/CharOneLearn.txt"));
-     female1.learnToSentence(getLines("G:/bkp/$AVG/baseDir/Imports/Sprites/CharTwoLearn.txt"));
+     male1.learnToSentence(getLines("C:/$AVG/baseDir/Imports/Sprites/CharOneLearn.txt"));
+     female1.learnToSentence(getLines("C:/$AVG/baseDir/Imports/Sprites/CharTwoLearn.txt"));
      
      lives.add(male1);
      lives.add(female1);
@@ -104,14 +104,8 @@ public class Environment {
           System.out.println(male1.getName()+" #makeSecretDecision "+male1.makeSecretDecision(female1));
           System.out.println(female1.getName()+" #makeSecretDecision "+female1.makeSecretDecision(male1));
           
-          ConversationMaker.getConversation(male1, female1, "बुआजी बिस्तर पर आईं तो मुझे आवाज लगाई लेकिन","तुम यहाँ क्या कर रही हो? उस जानवर ने तुम्हारा क्या हाल बना दिया है कितनी कमजोर लग रही हो तुम");
-//          Set<Sentence> sentence=male1.talk(female1,"तुम यहाँ क्या कर रही हो? उस जानवर ने तुम्हारा क्या हाल बना दिया है कितनी कमजोर लग रही हो तुम");
-//          sentence.forEach(tp-> System.out.println(tp.getSentenceTemplate().replaceAll("##me##", male1.Name).replaceAll("##other##", female1.getName())));
-//          
-//          Set<Sentence> sentencef=female1.talk(male1,"तुम यहाँ क्या कर रही हो? उस जानवर ने तुम्हारा क्या हाल बना दिया है कितनी कमजोर लग रही हो तुम");
-//          sentencef.forEach(tp-> System.out.println( female1.getName()+" : "+tp.getSentenceTemplate().replaceAll("##me##", female1.getName()).replaceAll("##other##", male1.getName())));
-//          
-//System.out.println("#####"+);
+          ConversationMaker.getConversation(male1, female1, "बुआजी आईं तो मुझे आवाज लगाई लेकिन","तुम यहाँ क्या कर रही हो? ");
+
           
           System.out.println(male1.getName()+" #makeSecretDecision "+male1.makeIndoorDecision(female1));
           System.out.println(female1.getName()+" #makeSecretDecision "+female1.makeIndoorDecision(male1));
