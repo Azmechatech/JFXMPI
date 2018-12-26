@@ -199,6 +199,8 @@ public class MainApp extends Application {
                         FileInputStream input = new FileInputStream(file.getAbsolutePath());
                         pe.imageView.setImage(new Image(input, 1600, 1200, true, true));
                         pe.bgImageFile = file.getAbsolutePath();
+                        pe.setTranslateX(0);
+                        pe.setTranslateY(0);
                         
                         File existDirectory = file.getParentFile();
                         fileChooser.setInitialDirectory(existDirectory);
@@ -502,7 +504,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                 try {
                     String str = new String(data, "UTF-8");
 
-                    HashMap<String, Life> peopleInStory = storyTimeline.addCustomTimeLine(0, 800, NERHelper.getStorySequence(str));
+                    HashMap<String, Life> peopleInStory = storyTimeline.addCustomTimeLine(0, 800, NERHelper.getStorySequence(str), 3);
                     //Generate Character Frames automatically
                     for (Map.Entry<String, Life> entry : peopleInStory.entrySet()) {
                         CharacterPane newCharacter = new CharacterPane(width, height, false);
@@ -528,7 +530,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             }
         };
 
-        Button createGame = new Button("Create");
+        Button createGame = new Button("Manuscript");
          createGame.setOnAction(createGameAction);
         createGame.setStyle(StylesForAll.transparentAlive);
         buttonPane.getChildren().add(createGame);

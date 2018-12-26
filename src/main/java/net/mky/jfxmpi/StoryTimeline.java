@@ -21,6 +21,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import systemknowhow.human.Female;
@@ -41,7 +42,7 @@ public class StoryTimeline extends Pane {
 
     public StoryTimeline() {
         setStyle(
-                "-fx-background-color: rgba(255, 255, 255, 0.5);"
+                "-fx-background-color: rgba(255, 255, 255,0.1);"
                 + "-fx-background-insets: " + 1 + ";"
         );
 
@@ -153,27 +154,40 @@ public class StoryTimeline extends Pane {
 
     }
 
-    public  HashMap<String,Life> addCustomTimeLine(double startY, double endY, List<HashMap<String,String>> story) {
+   public  HashMap<String,Life> addCustomTimeLine(double startY, double endY, List<HashMap<String,String>> story, int mincharacterPerScene) {
         this.STORY=story;
+        double delta=100;
         getChildren().clear();
         HashMap<String,Life> result=new HashMap<>();
         //Creating a line object
+        
+        Line lineHb = new Line();
+        //Setting the properties to a line 
+        lineHb.setStartX(10);
+        lineHb.setStartY(delta);
+        lineHb.setEndX(100.0);
+        lineHb.setEndY(delta);
+        getChildren().add(lineHb);
+            
+            
         Line line = new Line();
         //Setting the properties to a line 
-        line.setStartX(10.0);
-        line.setStartY(startY);
+        line.setStartX(10);
+        line.setStartY(delta+startY);
         line.setEndX(10.0);
-        line.setEndY(endY);
+        line.setEndY(delta+endY);
+        line.setFill(Color.WHITESMOKE);
         getChildren().add(line);
-        double delta=5;
+        delta=delta+10;
         for (HashMap<String,String> elements: story) { 
-            if(elements.size()<2) continue;
+            if(elements.size()<mincharacterPerScene) continue; //Min 2 characters in a scene
             Line lineH = new Line();
             //Setting the properties to a line 
             lineH.setStartX(10);
             lineH.setStartY(delta);
             lineH.setEndX(20.0);
             lineH.setEndY(delta);
+            lineH.setFill(Color.WHITESMOKE);
             getChildren().add(lineH);
             
             VBox Plot = new VBox(5);
@@ -185,6 +199,7 @@ public class StoryTimeline extends Pane {
             //Time
             Label TimeLabel = new Label("\u2B24 \u2B24 \u2B24 \u2B24 ");
             TimeLabel.setTranslateX(25);
+            TimeLabel.setTextFill(Color.WHITE);
             Plot.getChildren().add(TimeLabel);
             TimeLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
@@ -200,6 +215,7 @@ public class StoryTimeline extends Pane {
             //Location
             Label LocationLabel = new Label("\u2B24 \u2B24 Location:\u2B24 \u2B24 " );
             LocationLabel.setTranslateX(25);
+            LocationLabel.setTextFill(Color.WHITE);
             Plot.getChildren().add(LocationLabel);
             LocationLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
@@ -232,6 +248,7 @@ public class StoryTimeline extends Pane {
             }
             Label CharactersLabel = new Label("\u2B24 "+characters );
             CharactersLabel.setTranslateX(25);
+            CharactersLabel.setTextFill(Color.WHITE);
             Plot.getChildren().add(CharactersLabel);
             CharactersLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
@@ -245,9 +262,10 @@ public class StoryTimeline extends Pane {
             });
             messages.add(CharactersLabel);
             //Conflict
-            Label ConflictLabel = new Label("\u2B24 " +textReformat(elements.get("sentence")).toString() );
+            Label ConflictLabel = new Label(textReformat(elements.get("sentence")).toString() );
             ConflictLabel.setFont(Font.loadFont(getClass().getResource("/fonts/mangati.ttf").toExternalForm(), 11));
             ConflictLabel.setTranslateX(25);
+            ConflictLabel.setTextFill(Color.WHITE);
             Plot.getChildren().add(ConflictLabel);
             ConflictLabel.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
@@ -267,6 +285,19 @@ public class StoryTimeline extends Pane {
             
             delta=delta+ 14*3+14*Math.sqrt(elements.get("sentence").length());
         }
+        //Heading
+        String allChars = "";
+        for (String key : result.keySet()) {
+            allChars = allChars + ", " + key;
+            //System.out.println( key );
+        }
+        Label summary = new Label("#" + result.size() + " Characters(s)\n" + textReformat(allChars).toString());
+        summary.setFont(Font.loadFont(getClass().getResource("/fonts/mangat.ttf").toExternalForm(), 14));
+        summary.setTranslateX(25);
+        summary.setTranslateY(5);
+        summary.setTextFill(Color.WHITE);
+        getChildren().add(summary);
+        
         return result;
     }
 
@@ -314,7 +345,7 @@ public class StoryTimeline extends Pane {
     public static int WORDS_IN_ROW=3;
     private void showInputTextDialog(Label chatMessage) {
  
-        TextInputDialog dialog = new TextInputDialog("Tran");
+        TextInputDialog dialog = new TextInputDialog(chatMessage.getText());
  
        // dialog.setTitle("o7planning");
         dialog.setHeaderText("Enter text:");
