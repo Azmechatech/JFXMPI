@@ -116,10 +116,11 @@ public class NERHelper {
     }
     
     public static List<HashMap<String,String>> getStorySequence(String fullStory) throws IOException, ClassCastException, ClassNotFoundException{
+        
         Pattern END_OF_SENTENCE = Pattern.compile("\\.\\s+");
         List<HashMap<String,String>> result=new LinkedList();
             //int jk=0;
-            for (String sentence : END_OF_SENTENCE.split(fullStory)) {
+            for (String sentence : END_OF_SENTENCE.split(fullStory.replaceAll("[\\t\\n\\r]+"," "))) {
                 result.add(getCharacterSpaceData(sentence));
                 //System.out.println(sentence);
                 //System.out.println(jk++ +">>" +Collections.singletonList(getCharacterSpaceData(sentence)));

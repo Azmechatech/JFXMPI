@@ -5,12 +5,31 @@
  */
 package net.mky.tools;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;   
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import net.mky.jfxmpi.CharacterPane;
+import systemknowhow.tools.HilbertCurvePatternDetect;
 
 /**
  *
@@ -18,34 +37,38 @@ import javax.imageio.ImageIO;
  */
 public class SubtractImage {
     public static void main(String[] args) throws Exception {
+        
+        testmakeImageBlack();
+                
+        // Subtract Test
         int[][][] ch = new int[4][4][4];
-        BufferedImage image2 = ImageIO.read(new File(args.length>0?args[0]:"G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317409970.jpg"));
-        BufferedImage image1 = ImageIO.read(new File(args.length>1?args[1]:"G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317391299.png"));
+        BufferedImage image2 = ImageIO.read(new File(args.length>0?args[0]:"G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317409970.jpg"));
+        BufferedImage image1 = ImageIO.read(new File(args.length>1?args[1]:"G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317391299.png"));
         BufferedImage image3 = getSubtracted(image1,image2);// new BufferedImage(image1.getWidth(), image1.getHeight(), image1.getType());
 
-        ImageIO.write(image3, "png",  new File(args.length>2?args[2]:"G:/bkp/$AVG/baseDir/Imports/Sprites/WOMEN/765324Milfs-_1515317409970.png"));
+        ImageIO.write(image3, "png",  new File(args.length>2?args[2]:"G:/bkp/$AVG/baseDir/Imports/Sprites/WOMEN/765324---_1515317409970.png"));
 
         
         String itemsToSubtract[]={
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317380863.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317391299.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317400871.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317409970.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317484083.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317496224.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317507138.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317513479.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317520991.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317531810.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317539665.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317548358.jpg"
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317380863.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317391299.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317400871.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317409970.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317484083.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317496224.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317507138.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317513479.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317520991.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317531810.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317539665.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317548358.jpg"
         ,
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317557820.jpg"
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317557820.jpg"
         ,
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317567532.jpg",
-        "G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317611576.jpg"};
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317567532.jpg",
+        "G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317611576.jpg"};
         
-        String from="G:/bkp/$AVG/baseDir/Imports/Game Series/Milfs/765324Milfs-_1515317391299.png";
+        String from="G:/bkp/$AVG/baseDir/Imports/Game Series/--/765324---_1515317391299.png";
         generateImages(from,itemsToSubtract,"G:/bkp/$AVG/baseDir/Imports/Sprites/WOMEN/");
 
     }
@@ -95,5 +118,199 @@ public class SubtractImage {
         
         return resulting;
         
+    }
+    
+    public static void testmakeImageBlack(){
+        Image image;
+        try {
+            FileInputStream input = new FileInputStream("C:/$AVG/baseDir/Imports/Sprites/MEN/521211-1505671144743.gif");
+             image = new Image(input);
+             BufferedImage bimg= makeImageBlack( image);
+             displayImage(bimg,"testmakeImageBlack" );
+             BufferedImage scaledDown=scale(bimg,bimg.getType(),bimg.getWidth()+10,bimg.getHeight()+10,0,0);
+             displayImage(scaledDown,"testmakeImageBlack::scaledDown" );
+             BufferedImage subtracted=getSubtracted(bimg,scaledDown);
+             displayImage(subtracted,"testmakeImageBlack::subtracted" );
+             
+             BufferedImage boundingCurve=FitPolygon.getCannyEdges(bimg);
+             
+             
+             displayImage(boundingCurve,"testmakeImageBlack::getCannyBinary");
+             
+             displayImage(getBoundingCurveXYImage(boundingCurve),"testmakeImageBlack::boundingCurve" );
+              
+        } catch (FileNotFoundException ex) {
+             image = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
+            Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * 
+     * @param image
+     * @return 
+     */
+    public static BufferedImage makeImageBlack(Image image){
+    
+        WritableImage writableImage = new WritableImage(image.getPixelReader(), (int) image.getWidth(), (int) image.getHeight());
+        PixelWriter pixelWriter = writableImage.getPixelWriter();
+        PixelReader pixelReader = writableImage.getPixelReader();
+        for (int i = 0; i < writableImage.getHeight(); i++) {
+            for (int j = 0; j < writableImage.getWidth(); j++) {
+                Color c = pixelReader.getColor(j, i);
+                if (c.getOpacity() < 1) {
+                    pixelWriter.setColor(j, i, Color.WHITE);
+                }
+                if (c.getRed() > 0 || c.getGreen() > 0 || c.getBlue() > 0) {
+                    pixelWriter.setColor(j, i, Color.BLACK);
+                }
+            }
+        }
+       return  SwingFXUtils.fromFXImage(writableImage, null);
+
+    }
+    /**
+     * scale image
+     *
+     * @param sbi image to scale
+     * @param imageType type of image
+     * @param dWidth width of destination image
+     * @param dHeight height of destination image
+     * @param fWidth x-factor for transformation / scaling
+     * @param fHeight y-factor for transformation / scaling
+     * @return scaled image
+     */
+    public static BufferedImage scale(BufferedImage sbi, int imageType, int dWidth, int dHeight, double fWidth, double fHeight) {
+
+        BufferedImage scaledImage = new BufferedImage(dWidth, dHeight, imageType);
+        Graphics2D graphics2D = scaledImage.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics2D.drawImage(sbi, 0, 0, dWidth, dHeight, null);
+        graphics2D.dispose();
+        return scaledImage;
+//    BufferedImage dbi = null;
+//    if(sbi != null) {
+//        dbi = new BufferedImage(dWidth, dHeight, imageType);
+//        Graphics2D g = dbi.createGraphics();
+//        AffineTransform at = AffineTransform.getScaleInstance(fWidth, fHeight);
+//        g.drawRenderedImage(sbi, at);
+//    }
+//    return dbi;
+    }
+    
+    public static BufferedImage getBoundingCurve(BufferedImage img) {
+        //get image width and height
+        int width = img.getWidth();
+        int height = img.getHeight();
+        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
+        Graphics2D graphics2D = result.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        long counter=0;
+        for (int i = 0; i < width; i++) {
+            boolean startSet=false;
+            boolean endSet=false;
+           Color lastColor=Color.WHITE;
+            for (int j = 0; j < height; j++) {
+
+                //get pixel value
+                int p = img.getRGB(i, j);
+                if(getColor(p).equals(java.awt.Color.BLACK)){continue;}//Only interested in black
+                //get alpha
+                int a = (p >> 24) & 0xff;
+
+                //get red
+                int r = (p >> 16) & 0xff;
+
+                //get green
+                int g = (p >> 8) & 0xff;
+
+                //get blue
+                int b = p & 0xff;
+
+                /**
+                 * to keep the project simple we will set the ARGB value to 255,
+                 * 100, 150 and 200 respectively.
+                 */
+                a = 255;
+                r = 100;
+                g = 150;
+                b = 200;
+
+               
+                    //set the pixel value
+                    p = (a << 24) | (r << 16) | (g << 8) | b;
+                    result.setRGB(i, j, p);
+                    counter++;
+                
+            }
+        }
+        System.out.println("#getBoundingCurve Pixels "+counter+" / "+width*height+ " % "+(100.0*counter/(width*height)));
+        
+        return result;
+    }
+    
+    
+    public static List<int[]> getBoundingCurveXY(BufferedImage img) {
+        //get image width and height
+        int width = img.getWidth();
+        int height = img.getHeight();
+        List<int[]> result = new ArrayList<>();
+
+        long counter = 0;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+
+                //get pixel value
+                int p = img.getRGB(i, j);
+                if (getColor(p).equals(java.awt.Color.BLACK)) {
+                    continue;
+                }//Only interested in black
+
+                result.add(new int[]{i, j});
+                counter++;
+
+            }
+        }
+        System.out.println("#getBoundingCurve Pixels " + counter + " / " + width * height + " % " + (100.0 * counter / (width * height)));
+
+        return result;
+    }
+    
+    public static BufferedImage getBoundingCurveXYImage(BufferedImage img) {
+        List<int[]> pixelLocations = getBoundingCurveXY(img);
+        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
+        Graphics2D graphics2D = result.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        for (int[] pixelLocation : pixelLocations) {
+            /**
+             * to keep the project simple we will set the ARGB value to 255,
+             * 100, 150 and 200 respectively.
+             */
+            int a = 255;
+            int r = 100;
+            int g = 150;
+            int b = 200;
+
+            //set the pixel value
+            int p = (a << 24) | (r << 16) | (g << 8) | b;
+            result.setRGB(pixelLocation[0], pixelLocation[1], p);
+        }
+        return result;
+    }
+    
+     public static void displayImage(BufferedImage bimage,String message ){
+        Icon icon = new ImageIcon(bimage);
+              JLabel picLabel = new JLabel(icon);
+              JOptionPane.showMessageDialog(null, picLabel,message, JOptionPane.PLAIN_MESSAGE, null);
+    }
+     
+     public static java.awt.Color getColor(int c) {
+
+        int red = (c & 0x00ff0000) >> 16;
+        int green = (c & 0x0000ff00) >> 8;
+        int blue = c & 0x000000ff;
+      //  System.out.println(red+" "+green+" "+blue);
+        return new java.awt.Color(red, blue, green);
+
     }
 }
