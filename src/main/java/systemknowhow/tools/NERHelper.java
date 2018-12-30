@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
 public class NERHelper {
     
     
-    static String serializedClassifier = "C:/NetBeansProjects/stanford-ner-2018-10-16/classifiers/english.all.3class.distsim.crf.ser.gz";
+    static String serializedClassifier = "english.all.3class.distsim.crf.ser.gz";
     static AbstractSequenceClassifier<CoreLabel> classifier;
 
     static {

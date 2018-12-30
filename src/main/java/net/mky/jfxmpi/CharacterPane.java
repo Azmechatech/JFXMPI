@@ -63,6 +63,7 @@ import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.mky.jfxmpi.DataHelpers.ImageFactory;
 import static net.mky.jfxmpi.TextBubble.WORDS_IN_ROW;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
@@ -150,17 +151,13 @@ Image image;
             input = new FileInputStream("C:/Users/Maneesh/Desktop/Emiko_1513270388079.png");
              image = new Image(input, 200, 300, true, true);
         } catch (FileNotFoundException ex) {
-             image = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
-            Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
+             //image = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getRandomImage(100, 500), null);
+             image=SwingFXUtils.toFXImage(ImageFactory.getRandomBufferedImage(), null); //Image from factory
+           // Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-//SwingFXUtils
-        //Image image = getImage();
+
         imageView = new ImageView(image);
-        //float scaleVal=image.getHeight()>image.getWidth()?(float) (image.getWidth()/width):(float) (image.getHeight()/height);
-        //Scale scale = new Scale(scaleVal,scaleVal); 
-        //imageView.getTransforms().add(scale); //rotate by 45 degrees
-       //getChildren().add(taxachatMessage);
+
         getChildren().add(imageView);
         getChildren().add(chatMessage);
         chatMessage.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
