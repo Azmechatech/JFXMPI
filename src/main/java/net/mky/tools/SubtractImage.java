@@ -45,9 +45,9 @@ public class SubtractImage {
         //testmakeImageBlack();
         
         
-       String generatedFile= runDataGenerationTask(args.length>0?args[0]:"C:/$AVG/baseDir/Imports/Sprites/WOMEN-III/");
+       String generatedFile= runDataGenerationTask(args.length>0?args[0]:"C:/$AVG/baseDir/Imports/Sprites/MULTIPLEHUMAN/");
         
-        testGeneratedData("C:/$AVG/baseDir/Imports/Sprites/WOMEN-III/JFMPIImageData.json");
+        testGeneratedData(generatedFile);
                 
         // Subtract Test
         int[][][] ch = new int[4][4][4];

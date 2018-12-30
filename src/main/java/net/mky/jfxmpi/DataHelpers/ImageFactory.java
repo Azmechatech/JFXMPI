@@ -12,6 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import net.mky.tools.SubtractImage;
 import static net.mky.tools.SubtractImage.displayImage;
 import static net.mky.tools.SubtractImage.getBoundingCurveXYImage;
 import org.json.JSONArray;
@@ -26,9 +28,9 @@ public class ImageFactory {
     
     public static void init()  {
         try {
-            init("JFMPIImageDataW.json");
+            init("JFMPIImageDataM.json");
         } catch (IOException ex) {
-            System.out.println("Check if \"JFMPIImageDataW.json\" is available in Application folder. ");
+            System.out.println("Check if \"JFMPIImageDataW/M.json\" is(are) available in Application folder. ");
             Logger.getLogger(ImageFactory.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -69,6 +71,26 @@ public class ImageFactory {
         double mean = jb_.getJSONObject("statistics").getDouble("mean");
         return getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type"));
 
+    }
+    
+    public static void visualTest() throws IOException {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+            SubtractImage.testGeneratedData(selectedFile.getAbsolutePath());
+        }
+
+    }
+    
+    public static void main(String... args){
+        try {
+            visualTest();
+        } catch (IOException ex) {
+            Logger.getLogger(ImageFactory.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     
