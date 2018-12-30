@@ -9,9 +9,11 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;   
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import net.mky.jfxmpi.CharacterPane;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import systemknowhow.tools.HilbertCurvePatternDetect;
 
 /**
@@ -37,8 +41,13 @@ import systemknowhow.tools.HilbertCurvePatternDetect;
  */
 public class SubtractImage {
     public static void main(String[] args) throws Exception {
+
+        //testmakeImageBlack();
         
-        testmakeImageBlack();
+        
+       String generatedFile= runDataGenerationTask(args.length>0?args[0]:"C:/$AVG/baseDir/Imports/Sprites/WOMEN-III/");
+        
+        testGeneratedData("C:/$AVG/baseDir/Imports/Sprites/WOMEN-III/JFMPIImageData.json");
                 
         // Subtract Test
         int[][][] ch = new int[4][4][4];
@@ -120,6 +129,92 @@ public class SubtractImage {
         
     }
     
+    public static String runDataGenerationTask(String pathToDirectory) {
+        long startTime=System.currentTimeMillis();
+        final File folderObjects = new File(pathToDirectory);
+        ArrayList<String> ObjectFiles = new ArrayList<>();
+        JSONArray result=new JSONArray();
+        for (final File fileEntry : folderObjects.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                // listFilesForFolder(fileEntry);
+            } else {
+                FileInputStream input = null;
+                try {
+                    ObjectFiles.add(fileEntry.getAbsolutePath());
+                    input = new FileInputStream(fileEntry.getAbsolutePath());
+                    Image image = new Image(input);
+                    BufferedImage bimg = makeImageBlack(image);
+                    BufferedImage boundingCurve=FitPolygon.getCannyEdges(bimg);
+                    //displayImage(getBoundingCurveXYImage(boundingCurve),"testmakeImageBlack::boundingCurve" );
+                    JSONObject resultToSave=new JSONObject();
+                    List<int[]> data=getBoundingCurveXY(boundingCurve);
+                    if(data.size()==0){data=getBoundingCurveXY(bimg);}//This is to make use of data with background as well.
+                    resultToSave.put("data", data);
+                    resultToSave.put("width", bimg.getWidth());
+                    resultToSave.put("height", bimg.getHeight());
+                    resultToSave.put("type", bimg.getType());
+                    resultToSave.put("statistics", FitPolygon.getImageStatistics(bimg).getJSONObject());
+                    resultToSave.put("statisticsBoundingCurve", FitPolygon.getImageStatistics(boundingCurve).getJSONObject());
+                    result.put(resultToSave);
+                    if(Math.random()>.98){
+                        System.out.println(result.length()+"/"+folderObjects.listFiles().length+" Files processed."  );
+                    }
+                    //System.out.println(result.toString(1));
+                } catch (Exception ex) {
+                   // Logger.getLogger(SubtractImage.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    try {
+                        input.close();
+                    } catch (Exception ex) {
+                       // Logger.getLogger(SubtractImage.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+            }
+        }
+        
+        BufferedWriter writer;
+        try {
+            
+            writer = new BufferedWriter(new FileWriter(pathToDirectory+"/JFMPIImageData.json"));
+            writer.write(result.toString());
+            writer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(SubtractImage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println(ObjectFiles.size()+" Files processed." );
+        System.out.println(result.toString().length()*8/1024 +"KB of Data saved to "+pathToDirectory+"/JFMPIImageData.json" );
+        System.out.println("Time taken: "+((System.currentTimeMillis()-startTime)/1000)+" sec" );
+        
+        return pathToDirectory+"/JFMPIImageData.json";
+    }
+    
+    public static void testGeneratedData(String dataFileFullPath) throws FileNotFoundException, IOException {
+        File file = new File(dataFileFullPath);
+        FileInputStream fis = new FileInputStream(file);
+        byte[] textdata = new byte[(int) file.length()];
+        fis.read(textdata);
+        fis.close();
+
+        String str = new String(textdata, "UTF-8");
+
+        JSONArray ja = new JSONArray(str);
+        double tempMean=0;
+        for (Object jb : ja) {
+            JSONObject jb_ = (JSONObject) jb;
+
+            JSONArray data = jb_.getJSONArray("data");
+            double mean=jb_.getJSONObject("statistics").getDouble("mean");
+           // double mean=jb_.getJSONObject("statisticsBoundingCurve").getDouble("mean");
+            
+            if (tempMean != mean) {
+                displayImage(getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type")), "testGeneratedData");
+                tempMean = mean;
+
+            }
+                
+        }
+    }
     public static void testmakeImageBlack(){
         Image image;
         try {
@@ -271,7 +366,7 @@ public class SubtractImage {
 
             }
         }
-        System.out.println("#getBoundingCurve Pixels " + counter + " / " + width * height + " % " + (100.0 * counter / (width * height)));
+        //System.out.println("#getBoundingCurve Pixels " + counter + " / " + width * height + " % " + (100.0 * counter / (width * height)));
 
         return result;
     }
@@ -294,6 +389,29 @@ public class SubtractImage {
             //set the pixel value
             int p = (a << 24) | (r << 16) | (g << 8) | b;
             result.setRGB(pixelLocation[0], pixelLocation[1], p);
+        }
+        return result;
+    }
+    
+    public static BufferedImage getBoundingCurveXYImage(JSONArray pixelLocations,int width, int height,int imageType) {
+        //List<int[]> pixelLocations = getBoundingCurveXY(img);
+        BufferedImage result = new BufferedImage(width, height, imageType);
+        Graphics2D graphics2D = result.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        for (Object pixelLocation : pixelLocations) {
+            JSONArray pixelLocation_=(JSONArray) pixelLocation;
+            /**
+             * to keep the project simple we will set the ARGB value to 255,
+             * 100, 150 and 200 respectively.
+             */
+            int a = 255;
+            int r = 100;
+            int g = 150;
+            int b = 200;
+
+            //set the pixel value
+            int p = (a << 24) | (r << 16) | (g << 8) | b;
+            result.setRGB(pixelLocation_.getInt(0),pixelLocation_.getInt(1), p);
         }
         return result;
     }

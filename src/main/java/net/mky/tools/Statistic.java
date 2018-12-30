@@ -1,0 +1,67 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package net.mky.tools;
+
+import org.json.JSONObject;
+
+/**
+ *
+ * @author mkfs
+ */
+public class Statistic {
+    public double getMean() {
+        return mean;
+    }
+
+    public void setMean(double mean) {
+        this.mean = mean;
+    }
+
+    public double getMedian() {
+        return median;
+    }
+
+    public void setMedian(double median) {
+        this.median = median;
+    }
+
+    public double getMode() {
+        return mode;
+    }
+
+    public void setMode(double mode) {
+        this.mode = mode;
+    }
+
+    public double getVariance() {
+        return variance;
+    }
+
+    public void setVariance(double variance) {
+        this.variance = variance;
+    }
+
+    public double getStandardDeviation() {
+        return standardDeviation;
+    }
+
+    public void setStandardDeviation(double standardDeviation) {
+        this.standardDeviation = standardDeviation;
+    }
+    double mean,median,mode,variance,standardDeviation;
+    
+    public JSONObject getJSONObject(){
+        JSONObject jb=new JSONObject();
+        jb.put("mean", mean);
+        jb.put("median", median);
+        jb.put("mode", mode);
+        jb.put("variance", variance);
+        jb.put("standardDeviation", standardDeviation);
+        
+        return jb;
+    
+    }
+}

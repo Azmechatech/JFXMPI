@@ -218,7 +218,7 @@ public class FitPolygon {
 
             for (EdgeSegment s : e.segments) {
                 // fit line segments to the point sequence.  Note that loop is false
-                List<PointIndex_I32> vertexes = ShapeFittingOps.fitPolygon(s.points, false, minSide, cornerPenalty, 5);
+                List<PointIndex_I32> vertexes = ShapeFittingOps.fitPolygon(s.points, false, minSide, cornerPenalty, 10);
 
                 VisualizeShapes.drawPolygon(vertexes, false, g2);
             }
@@ -230,8 +230,6 @@ public class FitPolygon {
     
     public static List<EdgeContour> getCannyEdgesXY(BufferedImage image) {
         ImageFloat32 input = ConvertBufferedImage.convertFromSingle(image, null, ImageFloat32.class);
-        BufferedImage displayImage = new BufferedImage(input.width, input.height, BufferedImage.TYPE_INT_RGB);
-
         // Finds edges inside the image
         CannyEdge<ImageFloat32, ImageFloat32> canny
                 = FactoryEdgeDetectors.canny(2, true, true, ImageFloat32.class, ImageFloat32.class);
@@ -240,6 +238,17 @@ public class FitPolygon {
         List<EdgeContour> contours = canny.getContours();
         return contours;
     }
+    
+    public static Statistic getImageStatistics( BufferedImage image ) {
+                ImageFloat32 input = ConvertBufferedImage.convertFromSingle(image, null, ImageFloat32.class);
+                Statistic statistic=new Statistic();
+                
+                statistic.setMean(ImageStatistics.mean(input));
+                statistic.setVariance(ImageStatistics.variance(input,ImageStatistics.mean(input)));
+                statistic.setStandardDeviation(Math.sqrt(statistic.getVariance()));
+
+		return  statistic;
+	}
     
     public static void main(String args[]) {
         // load and convert the image into a usable format
