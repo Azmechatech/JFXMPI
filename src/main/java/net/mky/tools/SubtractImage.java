@@ -208,7 +208,9 @@ public class SubtractImage {
            // double mean=jb_.getJSONObject("statisticsBoundingCurve").getDouble("mean");
             
             if (tempMean != mean) {
-                displayImage(getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type")), "testGeneratedData");
+               // displayImage(getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type")), "testGeneratedData");
+                displayImage(getBoundingCurveXYImage(data, jb_.getInt("type")), "testGeneratedData");
+                
                 tempMean = mean;
 
             }
@@ -415,7 +417,47 @@ public class SubtractImage {
         }
         return result;
     }
-    
+    /**
+     * This clips off the extra space.
+     * @param pixelLocations
+     * @param imageType
+     * @return 
+     */
+     public static BufferedImage getBoundingCurveXYImage(JSONArray pixelLocations,int imageType) {
+         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE;
+         for (Object pixelLocation : pixelLocations) {
+            JSONArray pixelLocation_=(JSONArray) pixelLocation;
+            minX=pixelLocation_.getInt(0)<minX?pixelLocation_.getInt(0):minX;
+            minY=pixelLocation_.getInt(1)<minY?pixelLocation_.getInt(1):minY;
+            
+            maxX=pixelLocation_.getInt(0)>maxX?pixelLocation_.getInt(0):maxX;
+            maxY=pixelLocation_.getInt(1)>maxY?pixelLocation_.getInt(1):maxY;
+            
+         }
+        //List<int[]> pixelLocations = getBoundingCurveXY(img);
+        BufferedImage result = new BufferedImage(maxX-minX+10, maxY-minY+10, imageType);
+        Graphics2D graphics2D = result.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        for (Object pixelLocation : pixelLocations) {
+            JSONArray pixelLocation_=(JSONArray) pixelLocation;
+            /**
+             * to keep the project simple we will set the ARGB value to 255,
+             * 100, 150 and 200 respectively.
+             */
+            int a = 255;
+            int r = 100;
+            int g = 150;
+            int b = 200;
+
+            //set the pixel value
+            int p = (a << 24) | (r << 16) | (g << 8) | b;
+            int xPos=pixelLocation_.getInt(0)-minX+5;
+            int yPos=pixelLocation_.getInt(1)-minY+5;
+            result.setRGB(xPos,yPos, p);
+        }
+        return result;
+    }
+     
      public static void displayImage(BufferedImage bimage,String message ){
         Icon icon = new ImageIcon(bimage);
               JLabel picLabel = new JLabel(icon);

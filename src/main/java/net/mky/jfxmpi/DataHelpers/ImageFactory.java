@@ -60,7 +60,7 @@ public class ImageFactory {
 
             JSONArray data = jb_.getJSONArray("data");
             double mean = jb_.getJSONObject("statistics").getDouble("mean");
-            return getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type"));
+            return getBoundingCurveXYImage(data, jb_.getInt("type"));
 
         }
 
@@ -69,7 +69,7 @@ public class ImageFactory {
 
         JSONArray data = jb_.getJSONArray("data");
         double mean = jb_.getJSONObject("statistics").getDouble("mean");
-        return getBoundingCurveXYImage(data, jb_.getInt("width"), jb_.getInt("height"), jb_.getInt("type"));
+        return getBoundingCurveXYImage(data, jb_.getInt("type"));
 
     }
     
