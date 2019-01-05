@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml>
+<!-- File: a_custom_entry.aiml -->
+<!-- Author: Dr. Richard S. Wallace -->
+<!-- Last modified: January 05, 2019 -->
+<!--  -->
+<!-- This AIML file is part of the SUPER 0.0.4 chat bot knowledge base. -->
+<!--  -->
+<!-- The SUPER brain is Copyright &copy; 2019 by ALICE AI Foundation. -->
+<!--  -->
+<!-- The SUPER brain is released under the terms of the GNU Lesser General -->
+<!-- Public License, as published by the Free Software Foundation. -->
+<!--  -->
+<!-- This file is distributed WITHOUT ANY WARRANTY; without even the  -->
+<!-- implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   -->
+<!--  -->
+<!-- For more information see http://www.alicebot.org -->
+<category><pattern>WHAT IS JAVA</pattern>
+<template>Java is a programming language.</template>
+</category>
+<category><pattern>WHAT IS CHAT BOT</pattern>
+<template>Chatbot is a computer program designed to simulate
+        conversation with human users, especially over the Internet.</template>
+</category>
+<category><pattern>WHAT IS INDIA</pattern>
+<template>wonderful country.</template>
+</category>
+</aiml>

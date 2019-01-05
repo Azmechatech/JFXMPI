@@ -41,6 +41,10 @@ public class StoryTimeline extends Pane {
     public List<HashMap<String,String>> STORY=new LinkedList<>();
 
     public StoryTimeline() {
+        
+        //Load resources
+        String speechBubble=getClass().getResource("/svgs/speechBubble").toExternalForm();
+        System.out.println(speechBubble);
         setStyle(
                 "-fx-background-color: rgba(255, 255, 255,0.1);"
                 + "-fx-background-insets: " + 1 + ";"
