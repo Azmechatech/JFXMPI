@@ -63,6 +63,7 @@ import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.mky.jfxmpi.DataHelpers.BotHelper;
 import net.mky.jfxmpi.DataHelpers.ImageFactory;
 import static net.mky.jfxmpi.TextBubble.WORDS_IN_ROW;
 import net.mky.tools.StylesForAll;
@@ -117,9 +118,10 @@ public class CharacterPane extends StackPane {
     TextArea taxachatMessage = new TextArea("Ready to play! ");
 
     FileChooser fileChooser = new FileChooser();
-
+    BotHelper botHelper;
     public CharacterPane(final int width, final int height, boolean border) {
         setMinSize(200, 200);
+        
         if (border) {
             setBorder(new Border(new BorderStroke(Color.GOLDENROD,
                     BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
@@ -640,8 +642,9 @@ Image image;
         return data;
     }
 public void refresh(){
+     botHelper=new BotHelper(name);
      selectCharPic.setText(name);
-    chatMessage.setText("I am "+name+".\n");
+     chatMessage.setText(botHelper.chatSession.multisentenceRespond("What is your name?"));
     
 }
     public void loadCharacterData(JSONObject data) {

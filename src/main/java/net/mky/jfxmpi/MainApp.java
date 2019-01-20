@@ -407,6 +407,9 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                         java.awt.Image image = getImageFromClipboard();
                         if (image != null) {
                             javafx.scene.image.Image fimage = awtImageToFX(image);
+                            pe.imageView.setFitHeight(800);
+                            pe.imageView.setX(0);
+                            pe.imageView.setY(0);
                             pe.imageView.setImage(fimage);
                         }
                     }

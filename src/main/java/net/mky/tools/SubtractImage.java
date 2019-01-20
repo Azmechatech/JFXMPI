@@ -445,9 +445,9 @@ public class SubtractImage {
              * 100, 150 and 200 respectively.
              */
             int a = 255;
-            int r = 100;
-            int g = 150;
-            int b = 200;
+            int r = 255;
+            int g = 255;
+            int b = 255;
 
             //set the pixel value
             int p = (a << 24) | (r << 16) | (g << 8) | b;

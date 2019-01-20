@@ -46,16 +46,16 @@ public class StoryTimeline extends Pane {
         String speechBubble=getClass().getResource("/svgs/speechBubble").toExternalForm();
         System.out.println(speechBubble);
         setStyle(
-                "-fx-background-color: rgba(255, 255, 255,0.1);"
+                "-fx-background-color: rgba(255, 255, 255,0.0);"
                 + "-fx-background-insets: " + 1 + ";"
         );
 
-        container.setStyle("-fx-background-color: rgba(255, 255, 255, 0.5);");
+        container.setStyle("-fx-background-color: rgba(255, 255, 255, 0.0);");
         initChatBox();
         // getStylesheets().add(getClass().getResource("Style.css").toExternalForm());
        // getChildren().addAll(container, add);
        
-        addNTimeLine(10, 800, 5);
+        addNTimeLine(10, 800, 2);
         getChildren().add(add);
     }
 
