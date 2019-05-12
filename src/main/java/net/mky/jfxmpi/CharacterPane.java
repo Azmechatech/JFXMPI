@@ -221,17 +221,13 @@ Image image;
                 GridPane.setConstraints(comment, 0, 2);
                 grid.getChildren().add(comment);
                 //Defining the Submit button
-                EventHandler<ActionEvent> pickSeedFile = new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        FileChooser fileChooser = new FileChooser();
-
-                        fileChooser.setTitle("Open Resource File");
-                        File file = fileChooser.showOpenDialog(new Stage());
-                        //CharacterFile=file.getAbsolutePath();
-                        if (file != null) {
-                            SeedFile = file.getAbsolutePath();
-                        }
+                EventHandler<ActionEvent> pickSeedFile = (ActionEvent event1) -> {
+                    FileChooser fileChooser1 = new FileChooser();
+                    fileChooser1.setTitle("Open Resource File");
+                    File file = fileChooser1.showOpenDialog(new Stage());
+                    //CharacterFile=file.getAbsolutePath();
+                    if (file != null) {
+                        SeedFile = file.getAbsolutePath();
                     }
                 };
                 Button submit = new Button("Seed File");
@@ -644,7 +640,7 @@ Image image;
 public void refresh(){
      botHelper=new BotHelper(name);
      selectCharPic.setText(name);
-     chatMessage.setText(botHelper.chatSession.multisentenceRespond("What is your name?"));
+     chatMessage.setText(StoryTimeline.textReformat(botHelper.chatSession.multisentenceRespond("What is your name?")+"\n"+"You will be glad to know that I can learn while I chat!").toString());
     
 }
     public void loadCharacterData(JSONObject data) {

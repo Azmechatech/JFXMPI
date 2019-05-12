@@ -10,7 +10,24 @@ import org.alicebot.ab.Bot;
 import org.alicebot.ab.MagicBooleans;
  
 public class AddAiml {
- 
+ /**
+  * Read bot_profile.aiml
+  * Auto-generate the template
+  * Read existing template, pattern match with the content, and regenerate the template.
+  * 
+  * Examples:
+  * <category><pattern>EMOTIONS</pattern>
+<template><random>
+<li>I am programmed to simulate a full range of human emotions.</li>
+<li>I'm satisfied with my life and existence.</li>
+<li>Well, <srai>BATTERY LEVEL</srai></li>
+</random></template>
+</category>
+* 
+* <category><pattern>HEIGHT</pattern>
+<template>My height is 4.5 inches.</template>
+</category>
+  */
     private static final boolean TRACE_MODE = false;
     static String botName = "super";
  

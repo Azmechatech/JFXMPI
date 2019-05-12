@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -90,6 +91,42 @@ public class NERHelper {
         return sentence;
     }
 
+    /**
+     *  <category><pattern>HEIGHT</pattern>
+        <template>My height is 4.5 inches.</template>
+        </category>
+     * @param sentence
+     * @return
+     * @throws IOException
+     * @throws ClassCastException
+     * @throws ClassNotFoundException 
+     */
+    public static String getAIMLMarked(String sentence) throws IOException, ClassCastException, ClassNotFoundException {
+        StringBuilder result = new StringBuilder();
+        if (sentence != null) {
+            List<Triple<String, Integer, Integer>> triples = classifier.classifyToCharacterOffsets(sentence);
+            int i = 0;
+            for (Triple<String, Integer, Integer> trip : triples) {
+                result.append(" <category><pattern>" + trip.first() + "</pattern>\n"
+                        + "        <template>" + sentence + "</template>\n"
+                        + "        </category>");
+            }
+            
+            //Process usual text processing
+            System.out.println("#getAIMLMarked\t"+Arrays.toString(TextHelper.getANVChain(sentence.split(" "))));
+            String[] anvChain=TextHelper.getANVChain(sentence.split(" ")); 
+            //for(){}
+            
+            
+//        for(int j=0;j<replaceTexts.length;j++){
+//            sentence=sentence.replaceAll(replaceTexts[j], "{{"+replaceTextsWith[j]+"}}");
+//        }
+            System.out.println(sentence);
+        }
+
+        return result.toString();
+    }
+    
     public static HashMap getCharacterSpaceData(String sentence) throws IOException, ClassCastException, ClassNotFoundException {
         HashMap<String, String> lHmap = new LinkedHashMap<>();
         if (sentence != null) {
@@ -122,6 +159,8 @@ public class NERHelper {
             //int jk=0;
             for (String sentence : END_OF_SENTENCE.split(fullStory.replaceAll("[\\t\\n\\r]+"," "))) {
                 result.add(getCharacterSpaceData(sentence));
+                System.out.println("#getAIMLMarked\t"+getAIMLMarked( sentence));
+                System.out.println("#getAIMLMarked\t"+Arrays.toString(TextHelper.getANVChain(sentence.split(" "))));
                 //System.out.println(sentence);
                 //System.out.println(jk++ +">>" +Collections.singletonList(getCharacterSpaceData(sentence)));
             }

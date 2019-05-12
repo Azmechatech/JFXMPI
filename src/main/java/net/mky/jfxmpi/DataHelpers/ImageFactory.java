@@ -53,7 +53,7 @@ public class ImageFactory {
         JSONArray ja = IMAGES_M_DATA;
         double tempMean = 0;
         for (Object jb : ja) {
-            if (Math.random() > .5) {
+            if (Math.random() > .1) {
                 continue;
             }
             JSONObject jb_ = (JSONObject) jb;

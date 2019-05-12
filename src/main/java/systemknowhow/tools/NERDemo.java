@@ -40,7 +40,7 @@ public class NERDemo {
 
   public static void main(String[] args) throws Exception {
 
-    String serializedClassifier = "G:/Softwares/JavaLibs/stanford-ner-2017-06-09/stanford-ner-2017-06-09/classifiers/english.all.3class.distsim.crf.ser.gz";
+    String serializedClassifier = "english.all.3class.distsim.crf.ser.gz";
 
     if (args.length > 0) {
       serializedClassifier = args[0];

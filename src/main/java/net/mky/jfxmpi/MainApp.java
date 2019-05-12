@@ -79,6 +79,7 @@ import systemknowhow.human.Life;
 import systemknowhow.humanactivity.SocialRelationTags;
 import systemknowhow.tools.HilbertCurvePatternDetect;
 import systemknowhow.tools.NERHelper;
+import systemknowhow.tools.TextHelper;
 
 public class MainApp extends Application {
 
@@ -109,6 +110,7 @@ public class MainApp extends Application {
 
     public static void main(String[] args) throws Exception {
         convMaker=new ConversationMaker();
+        TextHelper.init();
         launch(args);
     }
     
@@ -377,8 +379,8 @@ public class MainApp extends Application {
         EventHandler<ActionEvent> takeSnapshot = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                 WritableImage writableImage = 
-            new WritableImage((int)scene.getWidth(), (int)scene.getHeight());
+                
+                WritableImage writableImage = new WritableImage((int)scene.getWidth(), (int)scene.getHeight());
                 WritableImage image = scene.snapshot(writableImage);
 
                 // TODO: probably use a file chooser here
@@ -407,7 +409,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                         java.awt.Image image = getImageFromClipboard();
                         if (image != null) {
                             javafx.scene.image.Image fimage = awtImageToFX(image);
-                            pe.imageView.setFitHeight(800);
+                            pe.imageView.setFitHeight(scene.getHeight());
+                            pe.imageView.setFitWidth(scene.getWidth());
                             pe.imageView.setX(0);
                             pe.imageView.setY(0);
                             pe.imageView.setImage(fimage);
