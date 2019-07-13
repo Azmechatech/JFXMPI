@@ -96,7 +96,7 @@ public class MainApp extends Application {
     StoryTimeline storyTimeline=new StoryTimeline();
     
     List<CharacterPane> charactersArray;
-    List<TextBubble> textBubbleArray;
+    //List<TextBubble> textBubbleArray;
     String[] charPrefixes=new String[]{"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
     
     
@@ -136,7 +136,7 @@ public class MainApp extends Application {
          
          ToolBar toolBar = new ToolBar();
          charactersArray=new ArrayList<>();
-         textBubbleArray=new ArrayList<>();
+         //textBubbleArray=new ArrayList<>();
          HBox characters=new HBox();
          characters.getChildren().add(storyTimeline);
          pe.setTranslateX(0);
@@ -375,6 +375,44 @@ public class MainApp extends Application {
         buttonPane.getChildren().add(addCharPane);
         
         
+        //Show StoryMatrix
+        
+        EventHandler<ActionEvent> storyMatrixPaneAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                 //Set nameFiled and other properties
+                    final Stage dialog = new Stage();
+                    dialog.initModality(Modality.APPLICATION_MODAL);
+                    dialog.initOwner(null);
+                    VBox dialogVbox = new VBox(20);
+                    dialogVbox.getChildren().add(new Text("This is a Dialog"));
+                    
+                    //Show image gallery
+                    ScrollPane root = new ScrollPane();
+                    TilePane tile = new TilePane();
+                    root.setStyle("-fx-background-color: DAE6F3;");
+                    tile.setPadding(new Insets(15, 15, 15, 15));
+                    tile.setHgap(15);
+                    root.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Horizontal
+                    root.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Vertical scroll bar
+                    root.setFitToWidth(true);
+                    root.setContent(new StoryMatrix(charactersArray));
+//                    dialog.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
+//                    dialog.setHeight(Screen.getPrimary().getVisualBounds()
+//                            .getHeight());
+                    Scene dialogScene = new Scene(root, 400, 400);
+                    dialog.setScene(dialogScene);
+                    dialog.show();
+
+            }
+        };
+
+        Button storyMatrixPane = new Button("Story Matrix");
+        //addCharPane.getStyleClass().add("play");
+        storyMatrixPane.setOnAction(storyMatrixPaneAction);
+        storyMatrixPane.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(storyMatrixPane);
+        
         
         EventHandler<ActionEvent> takeSnapshot = new EventHandler<ActionEvent>() {
             @Override
@@ -428,7 +466,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
         bnTextBubble.setStyle(StylesForAll.transparentAlive);
         bnTextBubble.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-               characters.getChildren().add(new TextBubble(width, height, false));
+               characters.getChildren().add(new TextBubble( false));
                //characters.getChildren().add(new StoryTimeline());
             }
         });

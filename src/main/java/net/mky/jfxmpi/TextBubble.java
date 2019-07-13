@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,14 +17,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -34,6 +44,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
@@ -89,7 +100,7 @@ public class TextBubble  extends StackPane {
 
     FileChooser fileChooser = new FileChooser();
 
-    public TextBubble(final int width, final int height, boolean border) {
+    public TextBubble( boolean border) {
         setMinSize(200, 200);
         if (border) {
             setBorder(new Border(new BorderStroke(Color.GOLDENROD,
@@ -125,8 +136,11 @@ public class TextBubble  extends StackPane {
             @Override
             public void handle(MouseEvent e) {
                 if (e.getButton() == MouseButton.SECONDARY) {
-                    showInputTextDialog();
-                } else {
+                    showBubbleSelectionDialog();
+                   
+                } if (e.getButton() == MouseButton.MIDDLE) {
+                     showInputTextDialog();
+                }else {
                     System.out.println("No right click");
                 }
             }
@@ -300,4 +314,60 @@ public class TextBubble  extends StackPane {
             this.chatMessage.setText(sb.toString());
         });
     }
+    
+    private void showBubbleSelectionDialog() {
+        Dialog<ResultsOfDialog> dialog = new Dialog<>();
+        dialog.setTitle("Dialog Test");
+        dialog.setHeaderText("Please specify…");
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        //TextField textField = new TextField("Name");
+        TextArea taxachatMessage = new TextArea(this.chatMessage.getText());
+      
+        DatePicker datePicker = new DatePicker(LocalDate.now());
+        ObservableList<TextBubbleStyles.STYLES> options =
+            FXCollections.observableArrayList(TextBubbleStyles.STYLES.values());
+        ComboBox<TextBubbleStyles.STYLES> comboBox = new ComboBox<>(options);
+        comboBox.getSelectionModel().selectFirst();
+        dialogPane.setContent(new VBox(8, taxachatMessage, datePicker, comboBox));
+        Platform.runLater(taxachatMessage::requestFocus);
+        dialog.setResultConverter((ButtonType button) -> {
+            if (button == ButtonType.OK) {
+                return new ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue());
+            }
+            return null;
+        });
+        Optional<ResultsOfDialog> optionalResult = dialog.showAndWait();
+        optionalResult.ifPresent((ResultsOfDialog results) -> {
+            this.chatMessage.setText(results.SpeechText);
+            this.chatMessage.setStyle("-fx-shape: \""+results.TEXT_BUBBLE+"\";\n"
+                + "    -fx-background-color: black, white;\n"
+                + "    -fx-background-insets: 0,1;\n"
+                + "    -fx-font-family: \"Comic Sans MS\";\n"
+                + "    -fx-font-size: 20px;\n"
+                + "    -fx-font-weight: bold;\n"
+                + "    -fx-padding: 10 10 60 20;");
+            
+          //  System.out.println( results.SpeechText + " "  + " " + results.venue+ " " + results.TEXT_BUBBLE);
+        });
+    
+    }
+    
+    private static class ResultsOfDialog {
+
+        String SpeechText;
+
+        TextBubbleStyles.STYLES venue;
+        
+        String TEXT_BUBBLE="";
+
+        public ResultsOfDialog(String name,  TextBubbleStyles.STYLES venue) {
+            this.SpeechText = name;
+            this.venue = venue;
+            TEXT_BUBBLE=TextBubbleStyles.getTextBubbleStyles().get(venue.toString());
+            
+        }
+    }
 }
+
+
