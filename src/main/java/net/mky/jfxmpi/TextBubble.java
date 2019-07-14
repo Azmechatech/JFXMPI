@@ -12,9 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,7 +34,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -58,12 +55,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import net.mky.tools.StylesForAll;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import systemknowhow.human.Life;
 import systemknowhow.human.LifeTagFactory;
-import systemknowhow.human.Male;
-import systemknowhow.human.guns.CompositeGun;
 
 /**
  *
@@ -105,9 +98,11 @@ public class TextBubble extends StackPane {
 
     Color SHADOW_COLOR = Color.GRAY.brighter();
     Label chatMessage = new Label("Hello There! ");
-    TextArea taxachatMessage = new TextArea("Ready to play! ");boolean SHOW_TEXT_BUBBLE=true;
-    Circle cir2; boolean SHOW_IMG_BUBBLE=false;
-    
+    TextArea taxachatMessage = new TextArea("Ready to play! ");
+    boolean SHOW_TEXT_BUBBLE = true;
+    Circle cir2;
+    boolean SHOW_IMG_BUBBLE = false;
+
     FileChooser fileChooser = new FileChooser();
 
     public TextBubble(boolean border) {
@@ -138,7 +133,6 @@ public class TextBubble extends StackPane {
 
         chatMessage.setTextAlignment(TextAlignment.CENTER);
 
-        
         chatMessage.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
@@ -220,6 +214,10 @@ public class TextBubble extends StackPane {
         StackPane.setAlignment(chatMessage, Pos.TOP_LEFT);
         getChildren().add(chatMessage);
         
+        cir2.setVisible(SHOW_IMG_BUBBLE);
+        chatMessage.setVisible(SHOW_TEXT_BUBBLE);
+        
+
         Button showHideImg = new Button("[-]");
         showHideImg.setOnAction(showHide);
         showHideImg.setStyle(StylesForAll.transparentAlive);
@@ -289,18 +287,27 @@ public class TextBubble extends StackPane {
         dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         //TextField textField = new TextField("Name");
         TextArea taxachatMessage = new TextArea(this.chatMessage.getText());
-        ImageView imageView = new ImageView();;
+        ImageView imageView = new ImageView();
+        ImageView forCropiing=new ImageView();;
+        imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent e) -> {
+            System.out.println("showBubbleSelectionDialog#imageView#EventHandler");
+            Image cropped=ImageCropDialog.imageCropTool(forCropiing.getImage());
+            imageView.setImage(cropped);
+            cir2.setFill(new ImagePattern(cropped));
+            cir2.setEffect(new DropShadow(+25d, 0d, +2d, Color.DARKSEAGREEN));
+        });
 
         //Add check box
         // create a checkbox 
         CheckBox cText = new CheckBox("Show Text Bubble");
+        cText.setSelected(SHOW_TEXT_BUBBLE);
         // create a event handler 
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent e) {
-                
-                SHOW_TEXT_BUBBLE=cText.isSelected();
-              
+
+                SHOW_TEXT_BUBBLE = cText.isSelected();
+
             }
         };
 
@@ -308,11 +315,12 @@ public class TextBubble extends StackPane {
         cText.setOnAction(event);
 
         CheckBox cImage = new CheckBox("Show Image Bubble");
+        cImage.setSelected(SHOW_IMG_BUBBLE);
         // create a event handler 
         EventHandler<ActionEvent> eventImage = new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent e) {
-                    SHOW_IMG_BUBBLE=cImage.isSelected();
+                SHOW_IMG_BUBBLE = cImage.isSelected();
             }
         };
 
@@ -331,9 +339,11 @@ public class TextBubble extends StackPane {
                     if (file != null) {
                         FileInputStream input = new FileInputStream(file.getAbsolutePath());
                         imageView.setImage(new Image(input, 200, 200, true, true));
+                        
                         FileInputStream input2 = new FileInputStream(file.getAbsolutePath());
-                        cir2.setFill(new ImagePattern(new Image(input2, 200, 200, true, true)));
-                        cir2.setEffect(new DropShadow(+25d, 0d, +2d, Color.DARKSEAGREEN));
+                        forCropiing.setImage(new Image(input2, 800, 800, true, true));
+//                        cir2.setFill(new ImagePattern(new Image(input2, 200, 200, true, true)));
+//                        cir2.setEffect(new DropShadow(+25d, 0d, +2d, Color.DARKSEAGREEN));
 //                        pe.bgImageFile = file.getAbsolutePath();
 //                        pe.setTranslateX(0);
 //                        pe.setTranslateY(0);
@@ -375,8 +385,8 @@ public class TextBubble extends StackPane {
                     + "    -fx-font-size: 20px;\n"
                     + "    -fx-font-weight: bold;\n"
                     + "    -fx-padding: 10 10 60 20;");
-            
-             cir2.setVisible(SHOW_IMG_BUBBLE);
+
+            cir2.setVisible(SHOW_IMG_BUBBLE);
             chatMessage.setVisible(SHOW_TEXT_BUBBLE);
 
             //  System.out.println( results.SpeechText + " "  + " " + results.venue+ " " + results.TEXT_BUBBLE);
