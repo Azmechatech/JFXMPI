@@ -17,15 +17,19 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -33,13 +37,23 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -53,6 +67,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
@@ -419,8 +434,10 @@ public class MainApp extends Application {
             public void handle(ActionEvent event) {
                 
                 WritableImage writableImage = new WritableImage((int)scene.getWidth(), (int)scene.getHeight());
+                SnapshotParameters sParam=new SnapshotParameters();
                 WritableImage image = scene.snapshot(writableImage);
-
+                //WritableImage image = pe.snapshot(sParam, writableImage);
+                    
                 // TODO: probably use a file chooser here
                 File file = new File(dirPath + "/" + System.currentTimeMillis() + ".png");
 
@@ -429,6 +446,9 @@ public class MainApp extends Application {
                 } catch (IOException e) {
                     // TODO: handle exception here
                 }
+                
+                //Store text as well
+               
 
             }
         };
@@ -762,6 +782,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 characters.setVisible(!characters.isVisible());
+                
+                showBubbleSelectionDialog();
             }
         };
 
@@ -889,210 +911,53 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
 
             }
     
-    /*
- * Creates an HBox with two buttons for the top region
-     */
-    private HBox addHBox() {
+   //Controls
+    private void showBubbleSelectionDialog() {
+        Dialog<ResultsOfControlDialog> dialog = new Dialog<>();
+        dialog.setTitle("Dialog Test");
+        dialog.setHeaderText("Please specify…");
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
 
-        HBox hbox = new HBox();
-        hbox.setPadding(new Insets(15, 12, 15, 12));
-        hbox.setSpacing(10);   // Gap between nodes
-        hbox.setStyle("-fx-background-color: #336699;");
+        DatePicker datePicker = new DatePicker(LocalDate.now());
+        ObservableList<TextBubbleStyles.STYLES> options
+                = FXCollections.observableArrayList(TextBubbleStyles.STYLES.values());
+        ComboBox<TextBubbleStyles.STYLES> comboBox = new ComboBox<>(options);
+        //comboBox.getSelectionModel().selectFirst();
+        //comboBox.getSelectionModel().select(tbss);
+        dialogPane.setContent(new VBox(8,  comboBox));
+        Platform.runLater(comboBox::requestFocus);
+        dialog.setResultConverter((ButtonType button) -> {
+            if (button == ButtonType.OK) {
+                return new ResultsOfControlDialog("", comboBox.getValue());
+            }
+            return null;
+        });
+        Optional<ResultsOfControlDialog> optionalResult = dialog.showAndWait();
+        optionalResult.ifPresent((ResultsOfControlDialog results) -> {
+            
+        });
 
-        Button buttonCurrent = new Button("Current");
-        buttonCurrent.setPrefSize(100, 20);
-
-        Button buttonProjected = new Button("Projected");
-        buttonProjected.setPrefSize(100, 20);
-
-        hbox.getChildren().addAll(buttonCurrent, buttonProjected);
-
-        return hbox;
     }
 
-    /*
- * Creates a VBox with a list of links for the left region
-     */
-    private VBox addVBox() {
+    private static class ResultsOfControlDialog {
 
-        VBox vbox = new VBox();
-        vbox.setPadding(new Insets(10)); // Set all sides to 10
-        vbox.setSpacing(8);              // Gap between nodes
+        String SpeechText;
 
-        Text title = new Text("Data");
-        title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        vbox.getChildren().add(title);
+        TextBubbleStyles.STYLES venue;
 
-        Hyperlink options[] = new Hyperlink[]{
-            new Hyperlink("Sales"),
-            new Hyperlink("Marketing"),
-            new Hyperlink("Distribution"),
-            new Hyperlink("Costs")};
+        String TEXT_BUBBLE = "";
 
-        for (int i = 0; i < 4; i++) {
-            // Add offset to left side to indent from title
-            VBox.setMargin(options[i], new Insets(0, 0, 0, 8));
-            vbox.getChildren().add(options[i]);
+        public ResultsOfControlDialog(String name, TextBubbleStyles.STYLES venue) {
+            this.SpeechText = name;
+            this.venue = venue;
+            TEXT_BUBBLE = TextBubbleStyles.getTextBubbleStyles().get(venue.toString());
+
         }
-
-        return vbox;
-    }
-
-    /*
- * Uses a stack pane to create a help icon and adds it to the right side of an HBox
- * 
- * @param hb HBox to add the stack to
-     */
-    private void addStackPane(HBox hb) {
-
-        StackPane stack = new StackPane();
-        Rectangle helpIcon = new Rectangle(30.0, 25.0);
-        helpIcon.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                new Stop[]{
-                    new Stop(0, Color.web("#4977A3")),
-                    new Stop(0.5, Color.web("#B0C6DA")),
-                    new Stop(1, Color.web("#9CB6CF")),}));
-        helpIcon.setStroke(Color.web("#D0E6FA"));
-        helpIcon.setArcHeight(3.5);
-        helpIcon.setArcWidth(3.5);
-
-        Text helpText = new Text("?");
-        helpText.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
-        helpText.setFill(Color.WHITE);
-        helpText.setStroke(Color.web("#7080A0"));
-
-        stack.getChildren().addAll(helpIcon, helpText);
-        stack.setAlignment(Pos.CENTER_RIGHT);
-        // Add offset to right for question mark to compensate for RIGHT 
-        // alignment of all nodes
-        StackPane.setMargin(helpText, new Insets(0, 10, 0, 0));
-
-        hb.getChildren().add(stack);
-        HBox.setHgrow(stack, Priority.ALWAYS);
-
-    }
-
-    /*
- * Creates a grid for the center region with four columns and three rows
-     */
-    private GridPane addGridPane() {
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(0, 10, 0, 10));
-
-        // Category in column 2, row 1
-        Text category = new Text("Sales:");
-        category.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        grid.add(category, 1, 0);
-
-        // Title in column 3, row 1
-        Text chartTitle = new Text("Current Year");
-        chartTitle.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        grid.add(chartTitle, 2, 0);
-
-        // Subtitle in columns 2-3, row 2
-        Text chartSubtitle = new Text("Goods and Services");
-        grid.add(chartSubtitle, 1, 1, 2, 1);
-
-        // House icon in column 1, rows 1-2
-        ImageView imageHouse = new ImageView(
-                new Image(MainApp.class.getResourceAsStream("graphics/house.png")));
-        grid.add(imageHouse, 0, 0, 1, 2);
-
-        // Left label in column 1 (bottom), row 3
-        Text goodsPercent = new Text("Goods\n80%");
-        GridPane.setValignment(goodsPercent, VPos.BOTTOM);
-        grid.add(goodsPercent, 0, 2);
-
-        // Chart in columns 2-3, row 3
-        ImageView imageChart = new ImageView(
-                new Image(MainApp.class.getResourceAsStream("graphics/piechart.png")));
-        grid.add(imageChart, 1, 2, 2, 1);
-
-        // Right label in column 4 (top), row 3
-        Text servicesPercent = new Text("Services\n20%");
-        GridPane.setValignment(servicesPercent, VPos.TOP);
-        grid.add(servicesPercent, 3, 2);
-
-//        grid.setGridLinesVisible(true);
-        return grid;
-    }
-
-    /*
- * Creates a horizontal flow pane with eight icons in four rows
-     */
-    private FlowPane addFlowPane() {
-
-        FlowPane flow = new FlowPane();
-        flow.setPadding(new Insets(5, 0, 5, 0));
-        flow.setVgap(4);
-        flow.setHgap(4);
-        flow.setPrefWrapLength(170); // preferred width allows for two columns
-        flow.setStyle("-fx-background-color: DAE6F3;");
-
-        ImageView pages[] = new ImageView[8];
-        for (int i = 0; i < 8; i++) {
-            pages[i] = new ImageView(
-                    new Image(MainApp.class.getResourceAsStream(
-                            "graphics/chart_" + (i + 1) + ".png")));
-            flow.getChildren().add(pages[i]);
-        }
-
-        return flow;
-    }
-
-    /*
- * Creates a horizontal (default) tile pane with eight icons in four rows
-     */
-    private TilePane addTilePane() {
-
-        TilePane tile = new TilePane();
-        tile.setPadding(new Insets(5, 0, 5, 0));
-        tile.setVgap(4);
-        tile.setHgap(4);
-        tile.setPrefColumns(2);
-        tile.setStyle("-fx-background-color: DAE6F3;");
-
-        ImageView pages[] = new ImageView[8];
-        for (int i = 0; i < 8; i++) {
-            pages[i] = new ImageView(
-                    new Image(MainApp.class.getResourceAsStream(
-                            "graphics/chart_" + (i + 1) + ".png")));
-            tile.getChildren().add(pages[i]);
-        }
-
-        return tile;
-    }
-
-    /*
- * Creates an anchor pane using the provided grid and an HBox with buttons
- * 
- * @param grid Grid to anchor to the top of the anchor pane
-     */
-    private AnchorPane addAnchorPane(GridPane grid) {
-
-        AnchorPane anchorpane = new AnchorPane();
-
-        Button buttonSave = new Button("Save");
-        Button buttonCancel = new Button("Cancel");
-
-        HBox hb = new HBox();
-        hb.setPadding(new Insets(0, 10, 10, 10));
-        hb.setSpacing(10);
-        hb.getChildren().addAll(buttonSave, buttonCancel);
-
-        anchorpane.getChildren().addAll(grid, hb);
-        // Anchor buttons to bottom right, anchor grid to top
-        AnchorPane.setBottomAnchor(hb, 8.0);
-        AnchorPane.setRightAnchor(hb, 5.0);
-        AnchorPane.setTopAnchor(grid, 10.0);
-
-        return anchorpane;
     }
     
-     private java.awt.Image getImageFromClipboard() {
+     public static java.awt.Image getImageFromClipboard() {
             Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
             if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
                 try {
@@ -1104,7 +969,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             return null;
         }
 
-        private static javafx.scene.image.Image awtImageToFX(java.awt.Image image) throws Exception {
+        public  static javafx.scene.image.Image awtImageToFX(java.awt.Image image) throws Exception {
             if (!(image instanceof RenderedImage)) {
                 BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null),
                         BufferedImage.TYPE_INT_ARGB);

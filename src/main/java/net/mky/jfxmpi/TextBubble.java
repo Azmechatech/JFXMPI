@@ -102,6 +102,7 @@ public class TextBubble extends StackPane {
     boolean SHOW_TEXT_BUBBLE = true;
     Circle cir2;
     boolean SHOW_IMG_BUBBLE = false;
+    TextBubbleStyles.STYLES tbss=TextBubbleStyles.STYLES.PLAIN_PAPER;
 
     FileChooser fileChooser = new FileChooser();
 
@@ -147,6 +148,8 @@ public class TextBubble extends StackPane {
                 }
             }
         });;
+        
+       
 
         setOnMousePressed(new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
@@ -183,12 +186,13 @@ public class TextBubble extends StackPane {
                 // imageView.setVisible(!imageView.isVisible());
                 chatMessage.setVisible(!chatMessage.isVisible());
                 playButton.setVisible(!playButton.isVisible());
+                cir2.setVisible(!cir2.isVisible());
 //                chatMessage.setText((String) thisCharcter.talk(otherCharcter, name).toArray()[0]);
             }
         };
 
         ///Image bubble
-        cir2 = new Circle(250, 250, 100);
+        cir2 = new Circle(150, 150, 150);
         cir2.setStroke(Color.SEAGREEN);
         EventHandler<MouseEvent> imgMoveImg = new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
@@ -207,6 +211,22 @@ public class TextBubble extends StackPane {
                 event.consume();
             }
         };
+        
+         cir2.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent e) {
+                if (e.getButton() == MouseButton.SECONDARY) {
+                    showBubbleSelectionDialog();
+
+                }
+                if (e.getButton() == MouseButton.MIDDLE) {
+                    showInputTextDialog();
+                } else {
+                    System.out.println("No right click");
+                }
+            }
+        });;
+        
         cir2.setOnMouseClicked(imgMoveImg);
         cir2.setOnMouseDragged(imgMoveImg2);
         getChildren().add(cir2);
@@ -218,11 +238,34 @@ public class TextBubble extends StackPane {
         chatMessage.setVisible(SHOW_TEXT_BUBBLE);
         
 
+        
         Button showHideImg = new Button("[-]");
         showHideImg.setOnAction(showHide);
         showHideImg.setStyle(StylesForAll.transparentAlive);
         getChildren().add(showHideImg);
         StackPane.setAlignment(showHideImg, Pos.TOP_CENTER);
+        
+        EventHandler<ActionEvent> posResetAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                chatMessage.setTranslateX(0);
+                chatMessage.setTranslateY(0);
+                
+                cir2.setTranslateX(chatMessage.getWidth());
+                cir2.setTranslateY(chatMessage.getHeight());
+            }
+        };
+        
+        
+        Button posReset = new Button("[<]");
+        posReset.setOnAction(posResetAction);
+        posReset.setStyle(StylesForAll.transparentAlive);
+        
+        
+       // HBox controlButtons=new HBox(posReset,showHideImg);
+        
+        getChildren().add(posReset);
+        StackPane.setAlignment(posReset, Pos.TOP_LEFT);
 
     }
 
@@ -327,7 +370,32 @@ public class TextBubble extends StackPane {
         // set event to checkbox 
         cImage.setOnAction(eventImage);
 
-        Button playButton = new Button("Background");
+        //Bubble image section
+        Button pasteButton = new Button("Ctrl+V");
+        pasteButton.getStyleClass().add("play");
+        EventHandler<ActionEvent> pasteAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                 try {
+                        java.awt.Image image = MainApp.getImageFromClipboard();
+                        if (image != null) {
+                            javafx.scene.image.Image fimage = MainApp.awtImageToFX(image);
+                            forCropiing.setImage(fimage);
+                            imageView.setImage(fimage);
+
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+            }
+        };
+        pasteButton.setOnAction(pasteAction);
+        
+        
+        
+        Button playButton = new Button("Load Bubble Image");
         playButton.getStyleClass().add("play");
         EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>() {
             @Override
@@ -365,8 +433,9 @@ public class TextBubble extends StackPane {
         ObservableList<TextBubbleStyles.STYLES> options
                 = FXCollections.observableArrayList(TextBubbleStyles.STYLES.values());
         ComboBox<TextBubbleStyles.STYLES> comboBox = new ComboBox<>(options);
-        comboBox.getSelectionModel().selectFirst();
-        dialogPane.setContent(new VBox(8, taxachatMessage, comboBox, new HBox(new VBox(cText, cImage, playButton), imageView)));
+        //comboBox.getSelectionModel().selectFirst();
+        comboBox.getSelectionModel().select(tbss);
+        dialogPane.setContent(new VBox(8, taxachatMessage, comboBox, new HBox(new VBox(cText, cImage,pasteButton, playButton), imageView)));
         Platform.runLater(taxachatMessage::requestFocus);
         dialog.setResultConverter((ButtonType button) -> {
             if (button == ButtonType.OK) {
@@ -388,7 +457,7 @@ public class TextBubble extends StackPane {
 
             cir2.setVisible(SHOW_IMG_BUBBLE);
             chatMessage.setVisible(SHOW_TEXT_BUBBLE);
-
+            tbss=results.venue; //Save last state
             //  System.out.println( results.SpeechText + " "  + " " + results.venue+ " " + results.TEXT_BUBBLE);
         });
 
