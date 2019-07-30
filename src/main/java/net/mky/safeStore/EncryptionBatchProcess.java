@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.ArrayList;
@@ -40,8 +39,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import net.mky.tools.CryptoException;
-import net.mky.tools.CryptoUtils;
 import org.json.JSONObject;
 
 /**
@@ -49,45 +46,49 @@ import org.json.JSONObject;
  * @author mkfs
  */
 public class EncryptionBatchProcess {
-
+/**
+ * 
+ * @return 
+ */
     public static List<File> chooseFiles() {
 
-        try{
-        FileChooser fileChooser = new FileChooser();
+        try {
+            FileChooser fileChooser = new FileChooser();
 
-        fileChooser.setTitle("Select files");
+            fileChooser.setTitle("Select files");
 
-        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+            List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
 
-        return selectedFiles;}
-        catch (Exception ex){
-        
+            return selectedFiles;
+        } catch (Exception ex) {
+
             JFileChooser chooser = new JFileChooser();
             chooser.setMultiSelectionEnabled(true);
             chooser.showOpenDialog(null);
             File[] files = chooser.getSelectedFiles();
-            return  Arrays.stream(files).collect(Collectors.toList());
+            return Arrays.stream(files).collect(Collectors.toList());
 
         }
 
     }
-    
+
     private static List<String> readFileAsList(File file) throws IOException {
-    final List<String> ret = new ArrayList<String>();
-    final BufferedReader br = new BufferedReader(new FileReader(file));
-    try {
-        String strLine;
-        while ((strLine = br.readLine()) != null) {
-            ret.add(strLine);
+        final List<String> ret = new ArrayList<String>();
+        final BufferedReader br = new BufferedReader(new FileReader(file));
+        try {
+            String strLine;
+            while ((strLine = br.readLine()) != null) {
+                ret.add(strLine);
+            }
+            return ret;
+        } finally {
+            br.close();
         }
-        return ret;
-    } finally {
-        br.close();
     }
-}
-    
-    
-    
+/**
+ * 
+ * @return 
+ */
     public static File chooseFolder() {
         String choosertitle = "Select folder location";
         try {
@@ -112,7 +113,7 @@ public class EncryptionBatchProcess {
                         + chooser.getCurrentDirectory());
                 System.out.println("getSelectedFile() : "
                         + chooser.getSelectedFile());
-                
+
                 return chooser.getSelectedFile();
             } else {
                 System.out.println("No Selection ");
@@ -121,55 +122,87 @@ public class EncryptionBatchProcess {
         return null;
 
     }
-    public static String MKFS="mkfs";
-    public static String getEncryptionFolderMeta(File folder) throws IOException{
+    public static String MKFS = "mkfs";
+    
+    
+    public static boolean checkEncryptionFolder(File folder) {
+
+        File[] files = folder.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(MKFS + ".");
+            }
+        });
+
+        if (files.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+/**
+ * 
+ * @param folder
+ * @return
+ * @throws IOException 
+ */
+    
+    
+    
+    public static String getEncryptionFolderMeta(File folder) throws IOException {
         File dir = new File(".");
         File[] files = folder.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.startsWith(MKFS+".");
+                return name.startsWith(MKFS + ".");
             }
         });
-        
+
         //Case handeling for first time creation.
-         if(files.length==0){
-            JSONObject  firstVersion=new JSONObject();
+        if (files.length == 0) {
+            JSONObject firstVersion = new JSONObject();
             firstVersion.put(MKFS, System.currentTimeMillis());
             return firstVersion.toString();
         }
-        
-        //Find latest file
-        Long versions[]=new Long[files.length];
-        int counter=0;
-        for (File metaFiles : files) {
-                System.out.println(metaFiles);
-                String name=metaFiles.getName();
-                String[] splitText=name.split("\\.");
-                if(splitText.length>1){
-                    versions[counter]=Long.parseLong(splitText[1]);
-                    counter++;
-                }
-                
-            }
-        
-        long max = Collections.max(Arrays.asList(versions)); 
 
-        return new String(Files.readAllBytes(Paths.get(folder.getAbsolutePath()+"/"+MKFS+"."+max)));
+        //Find latest file
+        Long versions[] = new Long[files.length];
+        int counter = 0;
+        for (File metaFiles : files) {
+            //System.out.println(metaFiles);
+            String name = metaFiles.getName();
+            String[] splitText = name.split("\\.");
+            if (splitText.length > 1) {
+                versions[counter] = Long.parseLong(splitText[1]);
+                counter++;
+            }
+
+        }
+
+        long max = Collections.max(Arrays.asList(versions));
+
+        return new String(Files.readAllBytes(Paths.get(folder.getAbsolutePath() + "/" + MKFS + "." + max)));
     }
-    
-    public static String createEncryptionFolderMeta(File folder,HashMap<String,String> newContent) throws IOException{
-        String latestData=getEncryptionFolderMeta( folder);
-        JSONObject oldData=new JSONObject(latestData);//Latest is old now
-        String newTimeStamp=String.valueOf(System.currentTimeMillis());
+/**
+ * 
+ * @param folder
+ * @param newContent
+ * @return
+ * @throws IOException 
+ */
+    public static String createEncryptionFolderMeta(File folder, HashMap<String, String> newContent) throws IOException {
+        String latestData = getEncryptionFolderMeta(folder);
+        JSONObject oldData = new JSONObject(latestData);//Latest is old now
+        String newTimeStamp = String.valueOf(System.currentTimeMillis());
         oldData.put(MKFS, newTimeStamp);//Change the timeStamp
         for (Map.Entry<String, String> entry : newContent.entrySet()) {
             System.out.println("Key = " + entry.getKey()
                     + ", Value = " + entry.getValue());
-            
+
             oldData.put(entry.getKey(), entry.getValue());
         }
-        String newVersion=folder.getAbsolutePath()+"/"+MKFS+"."+newTimeStamp;
-        System.out.println("Saving meta>>"+newVersion);
+        String newVersion = folder.getAbsolutePath() + "/" + MKFS + "." + newTimeStamp;
+        System.out.println("Saving meta>>" + newVersion);
         File file = new File(newVersion);
         FileWriter fileWriter = new FileWriter(file);
         fileWriter.write(oldData.toString());
@@ -177,7 +210,12 @@ public class EncryptionBatchProcess {
         fileWriter.close();
         return newVersion;
     }
-    
+/**
+ * 
+ * @param raw
+ * @param key
+ * @return 
+ */
     public static String encryptString(String raw, String key) {
 
         StringBuilder finalString = new StringBuilder();
@@ -194,23 +232,57 @@ public class EncryptionBatchProcess {
            if not then append remainder of that string  
            to the final string */
         if (i != raw.length()) {
-           // finalString.append(raw.substring(i));
-            j=0;
+            // finalString.append(raw.substring(i));
+            j = 0;
             while (i < raw.length() && j < key.length()) {
 
-            finalString.append(raw.charAt(i++));
-            finalString.append(key.charAt(j++));
+                finalString.append(raw.charAt(i++));
+                finalString.append(key.charAt(j++));
+            }
+
         }
-            
+        if (j != key.length()) {
+            finalString.append(key.substring(j));
         }
-        if (j != key.length()) { 
-            finalString.append(key.substring(j)); 
-        }
-        
+
         return finalString.toString();
 
     }
+    
+    public static String decryptString(String encryptedString) {
 
+        StringBuilder finalString = new StringBuilder();
+
+        /*append character to final string from the two strings */
+        int i = 0, j = 0;
+        while (i < encryptedString.length() ) {
+
+            finalString.append(encryptedString.charAt(i++));
+            
+        }
+
+        /* check if both the strings are traversed and 
+           if not then append remainder of that string  
+           to the final string */
+        if (i != encryptedString.length()) {
+            // finalString.append(raw.substring(i));
+            j = 0;
+            while (i < encryptedString.length() ) {
+
+                finalString.append(encryptedString.charAt(i++));
+               
+            }
+
+        }
+
+
+        return finalString.toString();
+
+    }
+/**
+ * 
+ * @return 
+ */
     public static String askForPasswordSwing() {
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter a password:");
@@ -229,8 +301,12 @@ public class EncryptionBatchProcess {
         }
         return null;
     }
+/**
+ * 
+ * @return 
+ */
     public static String askForPassword() {
-        
+
         try {
             Dialog<String> dialog = new Dialog<>();
             dialog.setTitle("16 Byte key");
@@ -263,59 +339,63 @@ public class EncryptionBatchProcess {
         }
         return null;
     }
-    
-    public static int doInteractiveEncryption() throws IOException{
+/**
+ * 
+ * @return
+ * @throws IOException 
+ */
+    public static int doInteractiveEncryption() throws IOException {
         //Choose the files to be encrypted
-        List<File> filesToEncrypt=chooseFiles();
+        List<File> filesToEncrypt = chooseFiles();
         //Choose a passcode for encryption
-        String passKey=askForPasswordSwing();//askForPassword();
+        String passKey = askForPasswordSwing();//askForPassword();
         //Choose a location to save
-        File folderToSave= chooseFolder();
-        int counter=0;
-        HashMap<String,String> fileNameMapping=new HashMap<>();
-        
+        File folderToSave = chooseFolder();
+        int counter = 0;
+        HashMap<String, String> fileNameMapping = new HashMap<>();
+
         //Perform encryption operation
-        for(File file:filesToEncrypt){
-            String newFileName=String.valueOf(System.nanoTime());
-            String encrypted=encryptString(file.getName(), passKey);
+        for (File file : filesToEncrypt) {
+            String newFileName = String.valueOf(System.nanoTime());
+            String encrypted = CryptoUtils.encode(file.getName(), passKey.length());
             fileNameMapping.put(newFileName, encrypted);
-            File encryptedFile = new File(folderToSave.getAbsolutePath()+"/"+newFileName);
-            System.out.println("Saving>>"+encryptedFile.getAbsolutePath());
+            File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
+            System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
             try {
                 CryptoUtils.encrypt(passKey, file, encryptedFile);
             } catch (CryptoException ex) {
                 Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
             }
-        counter++;
+            counter++;
         }
-        
+
         //Create meta file
-        createEncryptionFolderMeta(folderToSave,fileNameMapping);
+        createEncryptionFolderMeta(folderToSave, fileNameMapping);
 
         //Return number of files encrypted.
         return counter;
     }
 
     public static void main(String[] args) {
-        
+
         try {
             doInteractiveEncryption();
         } catch (IOException ex) {
             Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
         }
-                
-        String key = "1234567893695248";
-        File inputFile = new File("Downloads\\TestEncrypt.mp4");
-        File encryptedFile = new File("Downloads\\document.encrypted");
-        File decryptedFile = new File("Downloads\\document.decrypted");
 
-        try {
-            CryptoUtils.encrypt(key, inputFile, encryptedFile);
-            CryptoUtils.decrypt(key, encryptedFile, decryptedFile);
-        } catch (CryptoException ex) {
-            System.out.println(ex.getMessage());
-            ex.printStackTrace();
-        }
+//        String key = "1234567893695248";
+//        File inputFile = new File("Downloads\\TestEncrypt.mp4");
+//        File encryptedFile = new File("Downloads\\document.encrypted");
+//        File decryptedFile = new File("Downloads\\document.decrypted");
+//
+//        try {
+//            CryptoUtils.encrypt(key, inputFile, encryptedFile);
+//            CryptoUtils.decrypt(key, encryptedFile, decryptedFile);
+//        } catch (CryptoException ex) {
+//            System.out.println(ex.getMessage());
+//            ex.printStackTrace();
+//        }
     }
 
 }
