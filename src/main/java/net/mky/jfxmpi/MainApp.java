@@ -35,44 +35,25 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -82,6 +63,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javax.imageio.ImageIO;
 import net.mky.graphUI.ImagePool;
+import net.mky.safeStore.MediaCryptoHelper;
 import net.mky.tools.AnimatedGif;
 import net.mky.tools.Animation;
 import net.mky.tools.BruteForceRenderer;
@@ -99,6 +81,8 @@ import systemknowhow.tools.TextHelper;
 public class MainApp extends Application {
 
     String dirPath = "";
+    File selectedDirectory;
+    String secrteKey="1234567893695412";
     String scenesFiles[];int sceneCounter=0;
     JSONObject projData;
     int width = 200;
@@ -443,6 +427,8 @@ public class MainApp extends Application {
 
                 try {
                     ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+                    MediaCryptoHelper.saveCryptoMedia(secrteKey,SwingFXUtils.fromFXImage(image, null), selectedDirectory);
+   
                 } catch (IOException e) {
                     // TODO: handle exception here
                 }
@@ -760,7 +746,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
-                File selectedDirectory
+                selectedDirectory
                         = directoryChooser.showDialog(stage);
 
                 if (selectedDirectory == null) {

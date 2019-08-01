@@ -46,84 +46,9 @@ import org.json.JSONObject;
  * @author mkfs
  */
 public class EncryptionBatchProcess {
-/**
- * 
- * @return 
- */
-    public static List<File> chooseFiles() {
 
-        try {
-            FileChooser fileChooser = new FileChooser();
-
-            fileChooser.setTitle("Select files");
-
-            List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
-
-            return selectedFiles;
-        } catch (Exception ex) {
-
-            JFileChooser chooser = new JFileChooser();
-            chooser.setMultiSelectionEnabled(true);
-            chooser.showOpenDialog(null);
-            File[] files = chooser.getSelectedFiles();
-            return Arrays.stream(files).collect(Collectors.toList());
-
-        }
-
-    }
-
-    private static List<String> readFileAsList(File file) throws IOException {
-        final List<String> ret = new ArrayList<String>();
-        final BufferedReader br = new BufferedReader(new FileReader(file));
-        try {
-            String strLine;
-            while ((strLine = br.readLine()) != null) {
-                ret.add(strLine);
-            }
-            return ret;
-        } finally {
-            br.close();
-        }
-    }
-/**
- * 
- * @return 
- */
-    public static File chooseFolder() {
-        String choosertitle = "Select folder location";
-        try {
-            DirectoryChooser chooser = new DirectoryChooser();
-            chooser.setTitle(choosertitle);
-            //File defaultDirectory = new File("c:/dev/javafx");
-            //chooser.setInitialDirectory(defaultDirectory);
-            return chooser.showDialog(null);
-        } catch (Exception ex) {
-            JFileChooser chooser;
-            chooser = new JFileChooser();
-            chooser.setCurrentDirectory(new java.io.File("."));
-            chooser.setDialogTitle(choosertitle);
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            //
-            // disable the "All files" option.
-            //
-            chooser.setAcceptAllFileFilterUsed(false);
-            //    
-            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                System.out.println("getCurrentDirectory(): "
-                        + chooser.getCurrentDirectory());
-                System.out.println("getSelectedFile() : "
-                        + chooser.getSelectedFile());
-
-                return chooser.getSelectedFile();
-            } else {
-                System.out.println("No Selection ");
-            }
-        }
-        return null;
-
-    }
     public static String MKFS = "mkfs";
-    
+    public static String STORE = "STORE";
     
     public static boolean checkEncryptionFolder(File folder) {
 
@@ -140,6 +65,56 @@ public class EncryptionBatchProcess {
             return false;
         }
     }
+    
+    /**
+     * Manages the folder structure.
+     * @param folder
+     * @return 
+     */
+    public static File createEncryptionFolder(File folder) {
+
+        File file = folder;
+        File[] directories = file.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+
+                return new File(current, name).isDirectory() && name.startsWith(STORE + ".");
+            }
+        });
+
+        //Find latest file
+        Long versions[] = new Long[directories.length];
+        int counter = 0;
+        for (File metaFiles : directories) {
+            //System.out.println(metaFiles);
+            String name = metaFiles.getName();
+            String[] splitText = name.split("\\.");
+            if (splitText.length > 1) {
+                versions[counter] = Long.parseLong(splitText[1]);
+                counter++;
+            }
+
+        }
+
+        long max = Collections.max(Arrays.asList(versions));
+
+        File dir = new File(folder.getAbsolutePath() + "/" + STORE + "." + (1 + max));
+
+        // attempt to create the directory here
+        boolean successful = dir.mkdir();
+        if (successful) {
+            // creating the directory succeeded
+            System.out.println("directory was created successfully");
+            return dir;
+        } else {
+            // creating the directory failed
+            System.out.println("failed trying to create the directory");
+            return null;
+        }
+
+        //System.out.println(Arrays.toString(directories));
+    }
+    
 /**
  * 
  * @param folder
@@ -201,6 +176,46 @@ public class EncryptionBatchProcess {
 
             oldData.put(entry.getKey(), entry.getValue());
         }
+        String newVersion = folder.getAbsolutePath() + "/" + MKFS + "." + newTimeStamp;
+        System.out.println("Saving meta>>" + newVersion);
+        File file = new File(newVersion);
+        FileWriter fileWriter = new FileWriter(file);
+        fileWriter.write(oldData.toString());
+        fileWriter.flush();
+        fileWriter.close();
+        return newVersion;
+    }
+    
+    public static String createEncryptionFolderMeta(File folder, String contentTag, HashMap<String, String> newContent) throws IOException {
+        String latestData = getEncryptionFolderMeta(folder);
+        JSONObject oldData = new JSONObject(latestData);//Latest is old now
+        String newTimeStamp = String.valueOf(System.currentTimeMillis());
+        
+        if(contentTag==null){
+            return createEncryptionFolderMeta( folder, newContent);
+        }
+        
+        if (oldData.has(contentTag)) {
+
+            for (Map.Entry<String, String> entry : newContent.entrySet()) {
+                System.out.println("Key = " + entry.getKey()
+                        + ", Value = " + entry.getValue());
+
+                oldData.getJSONObject(contentTag).put(entry.getKey(), entry.getValue());
+            }
+
+        } else {
+            oldData.put(contentTag, new JSONObject());
+
+            for (Map.Entry<String, String> entry : newContent.entrySet()) {
+                System.out.println("Key = " + entry.getKey()
+                        + ", Value = " + entry.getValue());
+
+                oldData.getJSONObject(contentTag).put(entry.getKey(), entry.getValue());
+            }
+        }
+        oldData.put(MKFS, newTimeStamp);//Change the timeStamp
+        
         String newVersion = folder.getAbsolutePath() + "/" + MKFS + "." + newTimeStamp;
         System.out.println("Saving meta>>" + newVersion);
         File file = new File(newVersion);
@@ -345,12 +360,62 @@ public class EncryptionBatchProcess {
  * @throws IOException 
  */
     public static int doInteractiveEncryption() throws IOException {
+        int input = JOptionPane.showConfirmDialog(null, "Pick Yes for file encryption & No for all files in a folder.");
+        // 0=yes, 1=no, 2=cancel
+        System.out.println(input);
+        
         //Choose the files to be encrypted
-        List<File> filesToEncrypt = chooseFiles();
+        List<File> filesToEncrypt = new ArrayList<>();
+        if(input==0){
+            filesToEncrypt = FileReadOperations.chooseFiles();
+        }
+        
+        if(input==1){
+            filesToEncrypt = FileReadOperations.chooseAllFilesInFolder();
+        }
+        
+        if(input==2){
+            return 0;
+        }
         //Choose a passcode for encryption
         String passKey = askForPasswordSwing();//askForPassword();
         //Choose a location to save
-        File folderToSave = chooseFolder();
+        File folderToSave = FileReadOperations.chooseFolder();
+        if(input==1){ //Do folder management by itself
+            folderToSave=createEncryptionFolder(folderToSave);
+        }
+        int counter = 0;
+        HashMap<String, String> fileNameMapping = new HashMap<>();
+
+        //Perform encryption operation
+        for (File file : filesToEncrypt) {
+            String newFileName = String.valueOf(System.nanoTime());
+            String encrypted = CryptoUtils.encode(file.getName(), passKey.length());
+            fileNameMapping.put(newFileName, encrypted);
+            File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
+            System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
+            try {
+                CryptoUtils.encrypt(passKey, file, encryptedFile);
+            } catch (CryptoException ex) {
+                Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            counter++;
+        }
+
+        //Create meta file
+        createEncryptionFolderMeta(folderToSave, fileNameMapping);
+
+        //Return number of files encrypted.
+        return counter;
+    }
+    
+    public static int doEncryption(List<File> filesToEncrypt,String passKey,File folderToSave ) throws IOException {
+        //Choose the files to be encrypted
+       // List<File> filesToEncrypt = chooseFiles();
+        //Choose a passcode for encryption
+        //String passKey = askForPasswordSwing();//askForPassword();
+        //Choose a location to save
+        //File folderToSave = chooseFolder();
         int counter = 0;
         HashMap<String, String> fileNameMapping = new HashMap<>();
 
@@ -376,6 +441,60 @@ public class EncryptionBatchProcess {
         return counter;
     }
 
+    
+    public static int doEncryption(List<File> filesToEncrypt,String passKey,File folderToSave,String tag ) throws IOException {
+        int counter = 0;
+        HashMap<String, String> fileNameMapping = new HashMap<>();
+
+        //Perform encryption operation
+        for (File file : filesToEncrypt) {
+            String newFileName = String.valueOf(System.nanoTime());
+            String encrypted = CryptoUtils.encode(file.getName(), passKey.length());
+            fileNameMapping.put(newFileName, encrypted);
+            File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
+            System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
+            try {
+                CryptoUtils.encrypt(passKey, file, encryptedFile);
+            } catch (CryptoException ex) {
+                Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            counter++;
+        }
+
+        //Create meta file
+        createEncryptionFolderMeta(folderToSave,tag, fileNameMapping);
+
+        //Return number of files encrypted.
+        return counter;
+    }
+    
+    
+    public static int doEncryption(byte[] inputByte,String passKey,File folderToSave,String name,String tag ) throws IOException {
+        int counter = 0;
+        HashMap<String, String> fileNameMapping = new HashMap<>();
+
+        //Perform encryption operation
+       
+            String newFileName = String.valueOf(System.nanoTime());
+            String encrypted = CryptoUtils.encode(name, passKey.length());
+            fileNameMapping.put(newFileName, encrypted);
+            File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
+            System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
+            try {
+                CryptoUtils.encrypt(passKey, inputByte, encryptedFile);
+            } catch (CryptoException ex) {
+                Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            counter++;
+       
+
+        //Create meta file
+        createEncryptionFolderMeta(folderToSave,tag, fileNameMapping);
+
+        //Return number of files encrypted.
+        return counter;
+    }
+    
     public static void main(String[] args) {
 
         try {

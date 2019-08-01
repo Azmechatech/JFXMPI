@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static net.mky.safeStore.EncryptionBatchProcess.askForPasswordSwing;
-import static net.mky.safeStore.EncryptionBatchProcess.chooseFiles;
-import static net.mky.safeStore.EncryptionBatchProcess.chooseFolder;
 import static net.mky.safeStore.EncryptionBatchProcess.getEncryptionFolderMeta;
 import org.json.JSONObject;
 
@@ -60,17 +58,19 @@ public class OpenEncryptedFile {
     
     public static void doInteractive(){
         //Choose the files to be encrypted
-        List<File> filesToEncrypt = chooseFiles();
+        List<File> filesToEncrypt = FileReadOperations.chooseFiles();
         //Choose a passcode for encryption
         String passKey = askForPasswordSwing();//askForPassword();
         //Choose a location to save
-        File folderToSave = chooseFolder();
+        File folderToSave = FileReadOperations.chooseFolder();
         int counter = 0;
         
         for (File file : filesToEncrypt) {
             
             try {
+                System.out.println("decrypt>>"+file.getName());
                 decrypt(folderToSave, file, passKey);
+                
             } catch (IOException ex) {
                 Logger.getLogger(OpenEncryptedFile.class.getName()).log(Level.SEVERE, null, ex);
             }

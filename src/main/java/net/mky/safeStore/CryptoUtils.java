@@ -36,6 +36,12 @@ public class CryptoUtils {
         doCrypto(Cipher.ENCRYPT_MODE, key, inputFile, outputFile);
     }
 
+    
+    public static void encrypt(String key, byte[] inputByte, File outputFile)
+            throws CryptoException {
+        doCrypto(Cipher.ENCRYPT_MODE, key, inputByte, outputFile);
+    }
+    
     public static void decrypt(String key, File inputFile, File outputFile)
             throws CryptoException {
         doCrypto(Cipher.DECRYPT_MODE, key, inputFile, outputFile);
@@ -67,6 +73,63 @@ public class CryptoUtils {
         }
     }
 
+    private static void doCrypto(int cipherMode, String key, byte[] inputBytes,
+            File outputFile) throws CryptoException {
+        try {
+            Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(cipherMode, secretKey);
+
+            
+
+            byte[] outputBytes = cipher.doFinal(inputBytes);
+
+            FileOutputStream outputStream = new FileOutputStream(outputFile);
+            outputStream.write(outputBytes);
+            outputStream.close();
+
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException
+                | InvalidKeyException | BadPaddingException
+                | IllegalBlockSizeException | IOException ex) {
+            throw new CryptoException("Error encrypting/decrypting file", ex);
+        }
+    }
+    
+    private static byte[] doCrypto(int cipherMode, String key, File inputFile) throws CryptoException {
+        try {
+            Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(cipherMode, secretKey);
+
+            FileInputStream inputStream = new FileInputStream(inputFile);
+            byte[] inputBytes = new byte[(int) inputFile.length()];
+            inputStream.read(inputBytes);
+            inputStream.close();
+            
+            return cipher.doFinal(inputBytes);
+
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException
+                | InvalidKeyException | BadPaddingException
+                | IllegalBlockSizeException | IOException ex) {
+            throw new CryptoException("Error encrypting/decrypting file", ex);
+        }
+    }
+    
+    
+    private static byte[] doCrypto(int cipherMode, String key, byte[] inputBytes) throws CryptoException {
+        try {
+            Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(cipherMode, secretKey);
+            return cipher.doFinal(inputBytes);
+
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException
+                | InvalidKeyException | BadPaddingException
+                | IllegalBlockSizeException  ex) {
+            throw new CryptoException("Error encrypting/decrypting file", ex);
+        }
+    }
+    
     public static String encryptString(String strClearText, String strKey) {
         String strData = "";
 
