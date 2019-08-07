@@ -69,6 +69,7 @@ public class CryptoUtils {
         } catch (NoSuchPaddingException | NoSuchAlgorithmException
                 | InvalidKeyException | BadPaddingException
                 | IllegalBlockSizeException | IOException ex) {
+            ex.printStackTrace();
             throw new CryptoException("Error encrypting/decrypting file", ex);
         }
     }
@@ -91,7 +92,7 @@ public class CryptoUtils {
         } catch (NoSuchPaddingException | NoSuchAlgorithmException
                 | InvalidKeyException | BadPaddingException
                 | IllegalBlockSizeException | IOException ex) {
-            throw new CryptoException("Error encrypting/decrypting file", ex);
+            ex.printStackTrace();
         }
     }
     

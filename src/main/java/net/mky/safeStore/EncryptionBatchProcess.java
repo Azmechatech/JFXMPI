@@ -96,7 +96,7 @@ public class EncryptionBatchProcess {
 
         }
 
-        long max = Collections.max(Arrays.asList(versions));
+        long max =directories.length>0? Collections.max(Arrays.asList(versions)):0;
 
         File dir = new File(folder.getAbsolutePath() + "/" + STORE + "." + (1 + max));
 

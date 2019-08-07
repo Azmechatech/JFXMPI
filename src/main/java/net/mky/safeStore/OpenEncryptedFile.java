@@ -41,10 +41,11 @@ public class OpenEncryptedFile {
             File decryptedFile = new File(originalFileName);
             try {
                 CryptoUtils.decrypt(key, fileToDecrypt, decryptedFile);
-
+                System.out.println("decrypted>>"+decryptedFile);
                 return decryptedFile;
             } catch (CryptoException ex) {
                 Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
 
         }
