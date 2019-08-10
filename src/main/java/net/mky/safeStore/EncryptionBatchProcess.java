@@ -42,7 +42,7 @@ import javax.swing.JPasswordField;
 import org.json.JSONObject;
 
 /**
- *
+ * java -Xms2048m -Xmx4096m -cp JFXMPI-1.0-SNAPSHOT.jar net.mky.safeStore.EncryptionBatchProcess
  * @author mkfs
  */
 public class EncryptionBatchProcess {
@@ -363,47 +363,65 @@ public class EncryptionBatchProcess {
         int input = JOptionPane.showConfirmDialog(null, "Pick Yes for file encryption & No for all files in a folder.");
         // 0=yes, 1=no, 2=cancel
         System.out.println(input);
-        
+
         //Choose the files to be encrypted
         List<File> filesToEncrypt = new ArrayList<>();
-        if(input==0){
+        if (input == 0) {
             filesToEncrypt = FileReadOperations.chooseFiles();
         }
-        
-        if(input==1){
-            filesToEncrypt = FileReadOperations.chooseAllFilesInFolder();
+
+        if (input == 1) {
+            // filesToEncrypt = FileReadOperations.chooseAllFilesInFolder();
+            filesToEncrypt = FileReadOperations.chooseAllFoldersInFolder(true);
         }
-        
-        if(input==2){
+
+        if (input == 2) {
             return 0;
         }
         //Choose a passcode for encryption
         String passKey = askForPasswordSwing();//askForPassword();
         //Choose a location to save
-        File folderToSave = FileReadOperations.chooseFolder();
-        if(input==1){ //Do folder management by itself
-            folderToSave=createEncryptionFolder(folderToSave);
+        File folderToSaveMaster = FileReadOperations.chooseFolder();
+        if (input == 1) { //Do folder management by itself
+            folderToSaveMaster = createEncryptionFolder(folderToSaveMaster);
         }
         int counter = 0;
         HashMap<String, String> fileNameMapping = new HashMap<>();
 
-        //Perform encryption operation
-        for (File file : filesToEncrypt) {
-            String newFileName = String.valueOf(System.nanoTime());
-            String encrypted = CryptoUtils.encode(file.getName(), passKey.length());
-            fileNameMapping.put(newFileName, encrypted);
-            File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
-            System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
-            try {
-                CryptoUtils.encrypt(passKey, file, encryptedFile);
-            } catch (CryptoException ex) {
-                Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            counter++;
+        if (input == 0) {
+            return doEncryption(filesToEncrypt, passKey, folderToSaveMaster);
+
         }
 
-        //Create meta file
-        createEncryptionFolderMeta(folderToSave, fileNameMapping);
+        //Perform encryption operation
+        for (File folder : filesToEncrypt) {
+            String encryptedFolderName = CryptoUtils.encode(folder.getParentFile().getName() + "__" + folder.getName(), passKey.length());
+            File folderToSave = new File(folderToSaveMaster.getAbsolutePath() + "/" + encryptedFolderName);
+
+            // attempt to create the directory here
+            if (folderToSave.mkdir()) //Proceed if folder creation was successful
+            // folderToSave=createEncryptionFolder(folderToSave);
+            {
+                for (File file : FileReadOperations.listfiles(folder)) {
+
+                    String newFileName = String.valueOf(System.nanoTime());
+                    String encrypted = CryptoUtils.encode(file.getName(), passKey.length());
+                    fileNameMapping.put(newFileName, encrypted);
+                    File encryptedFile = new File(folderToSave.getAbsolutePath() + "/" + newFileName);
+                    System.out.println("Saving>>" + encryptedFile.getAbsolutePath());
+                    try {
+                        CryptoUtils.encrypt(passKey, file, encryptedFile);
+                    } catch (CryptoException ex) {
+                        Logger.getLogger(EncryptionBatchProcess.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    counter++;
+
+                }
+            }
+
+            //Create meta file
+            createEncryptionFolderMeta(folderToSave, fileNameMapping);
+        }
 
         //Return number of files encrypted.
         return counter;

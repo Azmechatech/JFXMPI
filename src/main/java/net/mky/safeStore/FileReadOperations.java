@@ -23,7 +23,11 @@ import javax.swing.JFileChooser;
  */
 public class FileReadOperations {
 
-    
+    /**
+     * Recursively
+     * @param directory
+     * @param files 
+     */
     public static void listf(File directory, List<File> files) {
     //File directory = new File(directoryName);
 
@@ -38,7 +42,50 @@ public class FileReadOperations {
             }
         }
     }
+    /**
+     * Files in that folder only
+     * @param directory
+     * @return 
+     */
+    public static List<File> listfiles(File directory) {
+        //File directory = new File(directoryName);
+        List<File> files = new ArrayList<>();
+        // Get all files from a directory.
+        File[] fList = directory.listFiles();
+        if (fList != null) {
+            for (File file : fList) {
+                if (file.isFile()) {
+                    files.add(file);
+                } else if (file.isDirectory()) {
+                    // listf(file, files);
+                }
+            }
+        }
 
+        return files;
+    }
+
+    /**
+     * Recursively
+     * @param directory
+     * @param files 
+     */
+    
+    public static void listfolders(File directory, List<File> files) {
+    //File directory = new File(directoryName);
+
+    // Get all files from a directory.
+    File[] fList = directory.listFiles();
+    if(fList != null)
+        for (File file : fList) {      
+            if (file.isFile()) {
+                //files.add(file);
+            } else if (file.isDirectory()) {
+                files.add(file);
+                listfolders(file, files);
+            }
+        }
+    }
 
     public static void dirTree(File dir) {
         File[] subdirs = dir.listFiles();
@@ -171,4 +218,49 @@ public class FileReadOperations {
 
     }
 
+    
+    public static List<File> chooseAllFoldersInFolder(boolean includeSelf) {
+        String choosertitle = "Select folder location";
+        List<File> listOfFiles=new ArrayList<>();
+        
+        try {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle(choosertitle);
+            //File defaultDirectory = new File("c:/dev/javafx");
+            //chooser.setInitialDirectory(defaultDirectory);
+            listfolders(chooser.showDialog(null), listOfFiles);
+            return listOfFiles;
+        } catch (Exception ex) {
+            JFileChooser chooser;
+            chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new java.io.File("."));
+            chooser.setDialogTitle(choosertitle);
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setMultiSelectionEnabled(true);
+            //
+            // disable the "All files" option.
+            //
+            chooser.setAcceptAllFileFilterUsed(false);
+            //    
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                System.out.println("getCurrentDirectory(): "
+                        + chooser.getCurrentDirectory());
+                System.out.println("getSelectedFile() : "
+                        + chooser.getSelectedFile());
+
+                for (File folder : chooser.getSelectedFiles()) {
+                    if (includeSelf) {
+                        listOfFiles.add(folder);
+                    }
+                    listfolders(folder, listOfFiles);
+                }
+                
+                return listOfFiles;
+            } else {
+                System.out.println("No Selection ");
+            }
+        }
+        return null;
+
+    }
 }
