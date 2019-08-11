@@ -333,6 +333,24 @@
             <artifactId>stanford-sutime-models</artifactId>
             <version>1.3.5</version>
         </dependency>
+       
+      <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.2</version>
+            <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>snakeyaml</artifactId>
+                    <groupId>org.yaml</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.rapidoid</groupId>
+            <artifactId>rapidoid-quick</artifactId>
+            <version>5.5.5</version>
+        </dependency>
     </dependencies>
 
 
