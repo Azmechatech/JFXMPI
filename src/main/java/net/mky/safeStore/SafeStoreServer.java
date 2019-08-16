@@ -17,8 +17,10 @@ import org.rapidoid.setup.On;
 public class SafeStoreServer {
 
     public static void main(String... args) {
+        APIContextHandler apiContextHandler=new APIContextHandler();
         // On GET /size return the length of the "msg" parameter
         On.get("/size").json((String msg) -> msg.length());
+        On.get("/SafeStore/browse").json((String key) -> apiContextHandler.browse(key));
 
     }
 }

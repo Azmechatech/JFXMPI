@@ -5,9 +5,7 @@
  */
 package net.mky.safeStore;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -32,9 +29,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,6 +43,7 @@ public class EncryptionBatchProcess {
 
     public static String MKFS = "mkfs";
     public static String STORE = "STORE";
+    public static String DUMP = "dump";
     
     public static boolean checkEncryptionFolder(File folder) {
 

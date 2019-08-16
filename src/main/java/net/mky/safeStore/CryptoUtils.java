@@ -96,7 +96,7 @@ public class CryptoUtils {
         }
     }
     
-    private static byte[] doCrypto(int cipherMode, String key, File inputFile) throws CryptoException {
+    public static byte[] doCrypto(int cipherMode, String key, File inputFile) throws CryptoException {
         try {
             Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
@@ -117,7 +117,7 @@ public class CryptoUtils {
     }
     
     
-    private static byte[] doCrypto(int cipherMode, String key, byte[] inputBytes) throws CryptoException {
+    public static byte[] doCrypto(int cipherMode, String key, byte[] inputBytes) throws CryptoException {
         try {
             Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
