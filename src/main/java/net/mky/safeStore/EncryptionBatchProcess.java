@@ -390,6 +390,7 @@ public class EncryptionBatchProcess {
 
         //Perform encryption operation
         for (File folder : filesToEncrypt) {
+             fileNameMapping = new HashMap<>();
             String encryptedFolderName = CryptoUtils.encode(folder.getParentFile().getName() + "__" + folder.getName(), passKey.length());
             File folderToSave = new File(folderToSaveMaster.getAbsolutePath() + "/" + encryptedFolderName);
 

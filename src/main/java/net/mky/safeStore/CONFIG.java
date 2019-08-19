@@ -5,6 +5,8 @@
  */
 package net.mky.safeStore;
 
+import java.util.HashSet;
+
 /**
  *
  * @author mkfs
@@ -33,7 +35,19 @@ public class CONFIG {
     
     
     
-    enum IMAGES{  jpg,png,PNG,JPEG,Jpeg; } 
+   static enum IMAGES{  jpg,png,PNG,JPEG,Jpeg; } 
+   static enum TEXTS {text, txt,TEXT,Text,Txt};
     enum VIDS{  mp4,MP4,flv,wmv,mpg,mpeg; } 
+    
+    public static final HashSet<String> Images=new HashSet<>();
+     public static final HashSet<String> Texts=new HashSet<>();
+    
+    static{
+        for(IMAGES img:IMAGES.values())
+            Images.add(img.toString());
+        
+        for(TEXTS txt:TEXTS.values())
+            Texts.add(txt.toString());
+    }
 
 }

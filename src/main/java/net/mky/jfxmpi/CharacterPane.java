@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,8 +19,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,13 +34,19 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -56,6 +66,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -90,6 +102,12 @@ public class CharacterPane extends StackPane {
     public String CharacterFile = "";
     Life thisCharcter;//=""
     Life otherCharcter;//=""
+    
+    //Copied from text bubble
+    boolean SHOW_TEXT_BUBBLE = true;
+    Circle cir2;
+    boolean SHOW_IMG_BUBBLE = false;
+    TextBubbleStyles.STYLES tbss=TextBubbleStyles.STYLES.PLAIN_PAPER;
 
     public void setOtherCharcter(Life otherCharcter) {
         this.otherCharcter = otherCharcter;
@@ -165,7 +183,11 @@ Image image;
         chatMessage.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
-                if (e.getButton() == MouseButton.SECONDARY) {
+              if (e.getButton() == MouseButton.SECONDARY) {
+                    showBubbleSelectionDialog();
+
+                }
+                if (e.getButton() == MouseButton.MIDDLE) {
                     showInputTextDialog();
                 } else {
                     System.out.println("No right click");
@@ -180,6 +202,27 @@ Image image;
                 pressedY = event.getY();
             }
         });
+        
+         EventHandler<MouseEvent> imgMove = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent event) {
+                pressedX = event.getX() + chatMessage.getLayoutX();
+                pressedY = event.getY() + chatMessage.getLayoutY();
+            }
+        };
+
+        EventHandler<MouseEvent> imgMove2 = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent event) {
+                // imageView.setTranslateX(imageView.getTranslateX() + event.getX() - pressedX);
+                //  imageView.setTranslateY(imageView.getTranslateY() + event.getY() - pressedY);
+
+                chatMessage.setTranslateX(chatMessage.getTranslateX() + event.getX() - pressedX);
+                chatMessage.setTranslateY(chatMessage.getTranslateY() + event.getY() - pressedY);
+                event.consume();
+            }
+        };
+
+        chatMessage.setOnMouseClicked(imgMove);
+        chatMessage.setOnMouseDragged(imgMove2);
 
         EventHandler<ActionEvent> pickPic = new EventHandler<ActionEvent>() {
             @Override
@@ -391,14 +434,14 @@ Image image;
         //changeImage( image,false);
         StackPane.setAlignment(addAllChars, Pos.TOP_RIGHT);
 
-        EventHandler<MouseEvent> imgMove = new EventHandler<MouseEvent>() {
+        EventHandler<MouseEvent> imgMove3 = new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
                 pressedX = event.getX() + imageView.getX();
                 pressedY = event.getY() + imageView.getY();
             }
         };
 
-        EventHandler<MouseEvent> imgMove2 = new EventHandler<MouseEvent>() {
+        EventHandler<MouseEvent> imgMove4 = new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
                 imageView.setTranslateX(imageView.getTranslateX() + event.getX() - pressedX);
                 imageView.setTranslateY(imageView.getTranslateY() + event.getY() - pressedY);
@@ -409,8 +452,8 @@ Image image;
             }
         };
 
-        imageView.setOnMouseClicked(imgMove);
-        imageView.setOnMouseDragged(imgMove2);
+        imageView.setOnMouseClicked(imgMove3);
+        imageView.setOnMouseDragged(imgMove4);
 
         //Image resizing
         EventHandler<ActionEvent> inc = new EventHandler<ActionEvent>() {
@@ -473,6 +516,52 @@ Image image;
         showHideImg.setStyle(StylesForAll.transparentAlive);
         getChildren().add(showHideImg);
         StackPane.setAlignment(showHideImg, Pos.TOP_CENTER);
+        
+        ///Image bubble
+        cir2 = new Circle(150, 150, 150);
+        cir2.setStroke(Color.SEAGREEN);
+        EventHandler<MouseEvent> imgMoveImg = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent event) {
+                pressedX = event.getX() + cir2.getLayoutX();
+                pressedY = event.getY() + cir2.getLayoutY();
+            }
+        };
+
+        EventHandler<MouseEvent> imgMoveImg2 = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent event) {
+                // imageView.setTranslateX(imageView.getTranslateX() + event.getX() - pressedX);
+                //  imageView.setTranslateY(imageView.getTranslateY() + event.getY() - pressedY);
+
+                cir2.setTranslateX(cir2.getTranslateX() + event.getX() - pressedX);
+                cir2.setTranslateY(cir2.getTranslateY() + event.getY() - pressedY);
+                event.consume();
+            }
+        };
+        
+         cir2.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent e) {
+                if (e.getButton() == MouseButton.SECONDARY) {
+                    showBubbleSelectionDialog();
+
+                }
+                if (e.getButton() == MouseButton.MIDDLE) {
+                    showInputTextDialog();
+                } else {
+                    System.out.println("No right click");
+                }
+            }
+        });;
+        
+        cir2.setOnMouseClicked(imgMoveImg);
+        cir2.setOnMouseDragged(imgMoveImg2);
+        getChildren().add(cir2);
+        //getChildren().add(taxachatMessage);
+        StackPane.setAlignment(chatMessage, Pos.TOP_LEFT);
+//        getChildren().add(chatMessage);
+        
+        cir2.setVisible(SHOW_IMG_BUBBLE);
+        chatMessage.setVisible(SHOW_TEXT_BUBBLE);
 
     }
 
@@ -722,4 +811,146 @@ public void refresh(){
             this.chatMessage.setText(sb.toString());
         });
     }
+  
+   private void showBubbleSelectionDialog() {
+        Dialog<TextBubble.ResultsOfDialog> dialog = new Dialog<>();
+        dialog.setTitle("Dialog Test");
+        dialog.setHeaderText("Please specify…");
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        //TextField textField = new TextField("Name");
+        TextArea taxachatMessage = new TextArea(this.chatMessage.getText());
+        ImageView imageView = new ImageView();
+        ImageView forCropiing=new ImageView();;
+        imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent e) -> {
+            System.out.println("showBubbleSelectionDialog#imageView#EventHandler");
+            Image cropped=ImageCropDialog.imageCropTool(forCropiing.getImage());
+            imageView.setImage(cropped);
+            cir2.setFill(new ImagePattern(cropped));
+            cir2.setEffect(new DropShadow(+25d, 0d, +2d, Color.DARKSEAGREEN));
+        });
+
+        //Add check box
+        // create a checkbox 
+        CheckBox cText = new CheckBox("Show Text Bubble");
+        cText.setSelected(SHOW_TEXT_BUBBLE);
+        // create a event handler 
+        EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
+
+            public void handle(ActionEvent e) {
+
+                SHOW_TEXT_BUBBLE = cText.isSelected();
+
+            }
+        };
+
+        // set event to checkbox 
+        cText.setOnAction(event);
+
+        CheckBox cImage = new CheckBox("Show Image Bubble");
+        cImage.setSelected(SHOW_IMG_BUBBLE);
+        // create a event handler 
+        EventHandler<ActionEvent> eventImage = new EventHandler<ActionEvent>() {
+
+            public void handle(ActionEvent e) {
+                SHOW_IMG_BUBBLE = cImage.isSelected();
+            }
+        };
+
+        // set event to checkbox 
+        cImage.setOnAction(eventImage);
+
+        //Bubble image section
+        Button pasteButton = new Button("Ctrl+V");
+        pasteButton.getStyleClass().add("play");
+        EventHandler<ActionEvent> pasteAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                 try {
+                        java.awt.Image image = MainApp.getImageFromClipboard();
+                        if (image != null) {
+                            javafx.scene.image.Image fimage = MainApp.awtImageToFX(image);
+                            forCropiing.setImage(fimage);
+                            imageView.setImage(fimage);
+
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+            }
+        };
+        pasteButton.setOnAction(pasteAction);
+        
+        
+        
+        Button playButton = new Button("Load Bubble Image");
+        playButton.getStyleClass().add("play");
+        EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+
+                    File file = fileChooser.showOpenDialog(null);
+
+                    if (file != null) {
+                        FileInputStream input = new FileInputStream(file.getAbsolutePath());
+                        imageView.setImage(new Image(input, 200, 200, true, true));
+                        
+                        FileInputStream input2 = new FileInputStream(file.getAbsolutePath());
+                        forCropiing.setImage(new Image(input2, 800, 800, true, true));
+//                        cir2.setFill(new ImagePattern(new Image(input2, 200, 200, true, true)));
+//                        cir2.setEffect(new DropShadow(+25d, 0d, +2d, Color.DARKSEAGREEN));
+//                        pe.bgImageFile = file.getAbsolutePath();
+//                        pe.setTranslateX(0);
+//                        pe.setTranslateY(0);
+
+                        File existDirectory = file.getParentFile();
+                        fileChooser.setInitialDirectory(existDirectory);
+
+                    }
+
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
+        };
+        playButton.setOnAction(goAction);
+
+        DatePicker datePicker = new DatePicker(LocalDate.now());
+        ObservableList<TextBubbleStyles.STYLES> options
+                = FXCollections.observableArrayList(TextBubbleStyles.STYLES.values());
+        ComboBox<TextBubbleStyles.STYLES> comboBox = new ComboBox<>(options);
+        //comboBox.getSelectionModel().selectFirst();
+        comboBox.getSelectionModel().select(tbss);
+        dialogPane.setContent(new VBox(8, taxachatMessage, comboBox, new HBox(new VBox(cText, cImage,pasteButton, playButton), imageView)));
+        Platform.runLater(taxachatMessage::requestFocus);
+        dialog.setResultConverter((ButtonType button) -> {
+            if (button == ButtonType.OK) {
+                return new TextBubble.ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue());
+            }
+            return null;
+        });
+        Optional<TextBubble.ResultsOfDialog> optionalResult = dialog.showAndWait();
+        optionalResult.ifPresent((TextBubble.ResultsOfDialog results) -> {
+            this.chatMessage.setText(results.SpeechText);
+            this.chatMessage.setEffect(new DropShadow(+25d, 0d, +2d, Color.BLANCHEDALMOND));
+            this.chatMessage.setStyle("-fx-shape: \"" + results.TEXT_BUBBLE + "\";\n"
+                    + "    -fx-background-color: black, white;\n"
+                    + "    -fx-background-insets: 0,1;\n"
+                    + "    -fx-font-family: \"Comic Sans MS\";\n"
+                    + "    -fx-font-size: 20px;\n"
+                    + "    -fx-font-weight: bold;\n"
+                    + "    -fx-padding: 10 10 60 20;");
+
+            cir2.setVisible(SHOW_IMG_BUBBLE);
+            chatMessage.setVisible(SHOW_TEXT_BUBBLE);
+            tbss=results.venue; //Save last state
+            //  System.out.println( results.SpeechText + " "  + " " + results.venue+ " " + results.TEXT_BUBBLE);
+        });
+
+    }
+
 }

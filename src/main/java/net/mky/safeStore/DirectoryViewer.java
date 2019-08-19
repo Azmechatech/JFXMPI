@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,9 +51,10 @@ public class DirectoryViewer extends Application {
     Map<String, String> MKFSData = new HashMap<>();
     TreeView<String> a = new TreeView<String>();
     String key="";
+    DirectoryChooser dc = new DirectoryChooser();
     @Override
     public void start(Stage primaryStage) {
-        
+       // dc.setInitialDirectory(new File(System.getProperty("user.home")));
         // create a text input dialog 
         TextInputDialog td = new TextInputDialog("enter any text"); 
   
@@ -72,8 +74,7 @@ public class DirectoryViewer extends Application {
         c.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                DirectoryChooser dc = new DirectoryChooser();
-                dc.setInitialDirectory(new File(System.getProperty("user.home")));
+
                 File choice = dc.showDialog(primaryStage);
                 if (choice == null || !choice.isDirectory()) {
                     Alert alert = new Alert(AlertType.ERROR);
@@ -83,6 +84,7 @@ public class DirectoryViewer extends Application {
                     alert.showAndWait();
                 } else {
                     a.setRoot(getNodesForDirectory(choice, false));
+                    dc.setInitialDirectory(choice);
                 }
             }
         });
@@ -100,21 +102,30 @@ public class DirectoryViewer extends Application {
         if (node instanceof Text || (node instanceof TreeCell && ((TreeCell) node).getText() != null)) {
             String name = (String) ((TreeItem) a.getSelectionModel().getSelectedItem()).getValue();
             System.out.println("Node click: " + MKFSData.get(name));
-            System.out.println(key);
+            //System.out.println(key);
             try {
                 //byte[] data = CryptoUtils.doCrypto(Cipher.DECRYPT_MODE, key, Files.readAllBytes(Paths.get( MKFSData.get(name))));
                 File outputFile = new File("temp");
                 CryptoUtils.decrypt(key, new File(MKFSData.get(name)), outputFile);
+                String[] tempSplit=name.split("\\.");
 
-                Image image = new Image(new FileInputStream(outputFile.getAbsolutePath()), 200, 300, true, true);
-                ImageView imageView = new ImageView(image);
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Error", ButtonType.OK);
-                alert.setGraphic(imageView);
+                
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Display", ButtonType.OK);
+                if (CONFIG.Images.contains(tempSplit[tempSplit.length - 1])) {
+                    Image image = new Image(new FileInputStream(outputFile.getAbsolutePath()), 200, 300, true, true);
+                    ImageView imageView = new ImageView(image);
+                    alert.setGraphic(imageView);
+                } else if (CONFIG.Texts.contains(tempSplit[tempSplit.length - 1])) {
+                     String entireFileText = FileReadOperations.readFileAsString(outputFile).toString();
+                     alert.setContentText(entireFileText);
+                }
                 alert.showAndWait();
 
             } catch (CryptoException ex) {
                 Logger.getLogger(DirectoryViewer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (FileNotFoundException ex) {
+                Logger.getLogger(DirectoryViewer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
                 Logger.getLogger(DirectoryViewer.class.getName()).log(Level.SEVERE, null, ex);
             }
             
@@ -123,7 +134,7 @@ public class DirectoryViewer extends Application {
    
 
     public TreeItem<String> getNodesForDirectory(File directory, boolean isMKFSFolder) { //Returns a TreeItem representation of the specified directory
-        TreeItem<String> root = new TreeItem<String>(directory.getName());
+        TreeItem<String> root = new TreeItem<String>(directory.getName().contains(EncryptionBatchProcess.STORE)?directory.getName():CryptoUtils.decode(directory.getName(), 16));
         for (File f : directory.listFiles()) {
 
             if (isMKFSFolder | f.getName().contains(EncryptionBatchProcess.DUMP) | f.getName().contains(EncryptionBatchProcess.STORE)
@@ -132,7 +143,7 @@ public class DirectoryViewer extends Application {
                     | f.getName().contains(EncryptionBatchProcess.MKFS)) {
 
                 if (f.isDirectory()) { //Then we call the function recursively
-                    root.getChildren().add(new TreeItem<String>(f.getAbsolutePath()));
+                    root.getChildren().add(new TreeItem<String>(CryptoUtils.decode(f.getName(), 16)));
                     // root.getChildren().add(getNodesForDirectory(f, true));
                 } else {
                     if (f.getName().contains(EncryptionBatchProcess.MKFS)) {

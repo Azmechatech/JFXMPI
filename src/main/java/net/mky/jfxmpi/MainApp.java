@@ -63,7 +63,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javax.imageio.ImageIO;
 import net.mky.graphUI.ImagePool;
+import net.mky.safeStore.EncryptionBatchProcess;
 import net.mky.safeStore.MediaCryptoHelper;
+import net.mky.safeStore.OpenEncryptedFile;
 import net.mky.tools.AnimatedGif;
 import net.mky.tools.Animation;
 import net.mky.tools.BruteForceRenderer;
@@ -93,6 +95,7 @@ public class MainApp extends Application {
      GraphPane graphBoard=new GraphPane();
     StoryBoard StoryBoard = new StoryBoard(width, height);
     StoryTimeline storyTimeline=new StoryTimeline();
+    boolean IS_MKFS_DIRECTORY=false;
     
     List<CharacterPane> charactersArray;
     //List<TextBubble> textBubbleArray;
@@ -746,12 +749,24 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
-                selectedDirectory
-                        = directoryChooser.showDialog(stage);
+                selectedDirectory = directoryChooser.showDialog(stage);
 
                 if (selectedDirectory == null) {
                     dirPath = "No Directory selected";
                 } else {
+                    //Check if mkfs file is present
+                    //
+                    IS_MKFS_DIRECTORY=EncryptionBatchProcess.checkEncryptionFolder(selectedDirectory);
+                    secrteKey=EncryptionBatchProcess.askForPassword();
+                    String[] folderNames=OpenEncryptedFile.getDecryptedFolderNames(selectedDirectory, secrteKey);
+                    System.out.println(Arrays.toString(folderNames));
+                    
+                    try {
+                        HashMap<String,String> folderContent=OpenEncryptedFile.getMKFSFolderContent(selectedDirectory, secrteKey);
+                        
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                     dirPath = selectedDirectory.getAbsolutePath();
                 }
 

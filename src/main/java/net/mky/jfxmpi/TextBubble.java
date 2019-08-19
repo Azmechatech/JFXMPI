@@ -463,7 +463,7 @@ public class TextBubble extends StackPane {
 
     }
 
-    private static class ResultsOfDialog {
+    public static class ResultsOfDialog {
 
         String SpeechText;
 

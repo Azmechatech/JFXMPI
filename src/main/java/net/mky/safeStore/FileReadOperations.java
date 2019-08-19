@@ -7,8 +7,10 @@ package net.mky.safeStore;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -141,6 +143,30 @@ public class FileReadOperations {
             br.close();
         }
     }
+    /**
+     * Read UTF8 encoding
+     * @param file
+     * @return
+     * @throws IOException 
+     */
+    public static StringBuilder readFileAsString(File file) throws IOException {
+        StringBuilder sb=new StringBuilder();
+      //  final BufferedReader br = new BufferedReader(new FileReader(file));
+        
+        BufferedReader br = new BufferedReader(
+		   new InputStreamReader(
+                      new FileInputStream(file), "UTF8"));
+        try {
+            String strLine;
+            while ((strLine = br.readLine()) != null) {
+                sb.append(strLine);
+            }
+            return sb;
+        } finally {
+            br.close();
+        }
+    }
+    
 /**
  * 
  * @return 

@@ -6,10 +6,14 @@
 package net.mky.safeStore;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import static net.mky.safeStore.EncryptionBatchProcess.askForPasswordSwing;
 import static net.mky.safeStore.EncryptionBatchProcess.getEncryptionFolderMeta;
 import org.json.JSONObject;
@@ -19,6 +23,52 @@ import org.json.JSONObject;
  * @author mkfs
  */
 public class OpenEncryptedFile {
+    
+    public static String[] getDecryptedFolderNames(File directory,String key) {
+
+        String[] directories = directory.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+                return new File(current, name).isDirectory();
+            }
+        });
+        for(int i=0;i<directories.length;i++){
+            directories[i]=CryptoUtils.decode(directories[i], key.length());
+        }
+       // System.out.println(Arrays.toString(directories));
+       return directories;  
+    }
+    
+    /**
+     * 
+     * @param directory
+     * @param key
+     * @return
+     * @throws IOException 
+     */
+    public static HashMap<String, String> getMKFSFolderContent(File directory, String key) throws IOException {
+        JSONObject folderContent = new JSONObject(EncryptionBatchProcess.getEncryptionFolderMeta(directory));
+        HashMap<String, String> MKFSData = new HashMap<>();
+        for (String file : folderContent.keySet()) {
+            MKFSData.put(CryptoUtils.decode(folderContent.getString(file), 16), directory.getAbsolutePath() + "/" + file);
+        }
+        return MKFSData;
+    }
+    
+    class DirFilter implements FilenameFilter {
+
+        private Pattern pattern;
+
+        public DirFilter(String reg) {
+            pattern = Pattern.compile(reg);
+        }
+
+        @Override
+        public boolean accept(File dir, String name) {
+            // Strip path information, search for regex:
+            return pattern.matcher(new File(name).getName()).matches();
+        }
+    }
     
     public static File decrypt(File tempWorkSpace, File fileToDecrypt, String key) throws IOException {
         //Find the meta file
