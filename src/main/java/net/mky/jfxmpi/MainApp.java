@@ -698,10 +698,15 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                                 charactersArray.add(characterThis);
                                 characters.getChildren().add(characterThis);
 
-                                Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile), 75, 75), null);
-                                ImagePool.pool.put(characterThis.getLife().getName(), SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile),null));
-                                LifePool.pool.put(characterThis.getLife().getName(), characterThis.getLife());
-                                StoryBoard.addCharacter(new ImageView(imageFA), characterThis.name);
+                                
+                                try {
+                                    Image imageFA = SwingFXUtils.toFXImage(HilbertCurvePatternDetect.resizeImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile), 75, 75), null);
+                                    ImagePool.pool.put(characterThis.getLife().getName(), SwingFXUtils.toFXImage(HilbertCurvePatternDetect.getMatchedRegion("C:/$AVG/baseDir/Imports/Sprites/OBJECTS/face.png", characterThis.CharacterFile), null));
+                                    LifePool.pool.put(characterThis.getLife().getName(), characterThis.getLife());
+                                    StoryBoard.addCharacter(new ImageView(imageFA), characterThis.name);
+                                } catch (Exception ex) {
+                                    System.err.println("Face pattern image not found");
+                                }
                             }
                         }
                         

@@ -722,7 +722,7 @@ Image image;
         data.put("cpane", CharacterFile);
         data.put("SeedFile", SeedFile);
         data.put("currentText", chatMessage.getText());
-        JSONArray charlist = new JSONArray(CharacterPool);
+        JSONArray charlist = new JSONArray(CharacterPool!=null?CharacterPool:new String[]{} );
         data.put("CharacterPool", charlist);
         return data;
     }
