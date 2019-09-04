@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -22,6 +23,8 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -178,6 +181,16 @@ public class EncryptionBatchProcess {
         fileWriter.write(oldData.toString());
         fileWriter.flush();
         fileWriter.close();
+        
+        //Create one direct mkfs file
+        newVersion = folder.getAbsolutePath() + "/" + MKFS;
+        System.out.println("Saving MKFS>>" + newVersion);
+        file = new File(newVersion);
+        fileWriter = new FileWriter(file);
+        fileWriter.write(oldData.toString());
+        fileWriter.flush();
+        fileWriter.close();
+        
         return newVersion;
     }
     
@@ -212,12 +225,23 @@ public class EncryptionBatchProcess {
         oldData.put(MKFS, newTimeStamp);//Change the timeStamp
         
         String newVersion = folder.getAbsolutePath() + "/" + MKFS + "." + newTimeStamp;
-        System.out.println("Saving meta>>" + newVersion);
+        System.out.println("Saving MKFS Version>>" + newVersion);
         File file = new File(newVersion);
         FileWriter fileWriter = new FileWriter(file);
         fileWriter.write(oldData.toString());
         fileWriter.flush();
         fileWriter.close();
+        
+        //Create one direct mkfs file
+        newVersion = folder.getAbsolutePath() + "/" + MKFS;
+        System.out.println("Saving MKFS>>" + newVersion);
+        file = new File(newVersion);
+        fileWriter = new FileWriter(file);
+        fileWriter.write(oldData.toString());
+        fileWriter.flush();
+        fileWriter.close();
+        
+        
         return newVersion;
     }
 /**
@@ -319,7 +343,7 @@ public class EncryptionBatchProcess {
 
         try {
             Dialog<String> dialog = new Dialog<>();
-            dialog.setTitle("16 Byte key");
+            dialog.setTitle("MKFS Directory Access");
             dialog.setHeaderText("Give 16 Byte key ");
             dialog.setGraphic(new Circle(15, Color.RED)); // Custom graphic
             dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -348,6 +372,34 @@ public class EncryptionBatchProcess {
 
         }
         return null;
+    }
+    
+    /**
+     * 
+     * @param directory
+     * @return
+     * @throws IOException 
+     */
+    public static boolean askAndMakeMKFSFolder(File directory) throws IOException {
+
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Make an MKFS Folder");
+        alert.setHeaderText("Accepting this will create new files in this folder. The new files will be encrypted.");
+        alert.setContentText("Are you ok with this?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            String secretKey = askForPassword();
+            String crackText = secretKey;
+
+            String filePath = EncryptionBatchProcess.doEncryption(crackText.getBytes(), secretKey, directory, "CRACK.txt", null);
+
+            return filePath.length() > 0;
+            // ... user chose OK
+        } else {
+            return false;
+        }
+
     }
 /**
  * 
@@ -482,8 +534,17 @@ public class EncryptionBatchProcess {
         return counter;
     }
     
-    
-    public static int doEncryption(byte[] inputByte,String passKey,File folderToSave,String name,String tag ) throws IOException {
+    /**
+     * This takes care of mkfs meta file entries as well.
+     * @param inputByte
+     * @param passKey
+     * @param folderToSave
+     * @param name
+     * @param tag
+     * @return
+     * @throws IOException 
+     */
+    public static String doEncryption(byte[] inputByte,String passKey,File folderToSave,String name,String tag ) throws IOException {
         int counter = 0;
         HashMap<String, String> fileNameMapping = new HashMap<>();
 
@@ -506,7 +567,7 @@ public class EncryptionBatchProcess {
         createEncryptionFolderMeta(folderToSave,tag, fileNameMapping);
 
         //Return number of files encrypted.
-        return counter;
+        return encryptedFile.getAbsolutePath();
     }
     
     public static void main(String[] args) {

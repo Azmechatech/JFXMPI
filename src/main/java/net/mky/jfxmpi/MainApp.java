@@ -39,6 +39,7 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
@@ -95,7 +96,7 @@ public class MainApp extends Application {
      GraphPane graphBoard=new GraphPane();
     StoryBoard StoryBoard = new StoryBoard(width, height);
     StoryTimeline storyTimeline=new StoryTimeline();
-    boolean IS_MKFS_DIRECTORY=false;
+    public static boolean IS_MKFS_DIRECTORY=false;
     
     List<CharacterPane> charactersArray;
     //List<TextBubble> textBubbleArray;
@@ -341,10 +342,20 @@ public class MainApp extends Application {
                     }
                     
                     projData.put("story", storyTimeline.STORY);
+
+                    if (IS_MKFS_DIRECTORY) {//If the selected working directory is encrypted directory
+                        String name = "game_" + System.currentTimeMillis() + ".JSON";
+                        //selectedDirectory
+                        MediaCryptoHelper.saveCryptoText(secrteKey, projData.toString(), selectedDirectory, name);
+
+                    } else {
+                        List<String> lines = Arrays.asList(projData.toString());
+                        Path file = Paths.get(dirPath + "/game_" + System.currentTimeMillis() + ".JSON");
+                        Files.write(file, lines, Charset.forName("UTF-8"));
+
+                    }
                     
-                    List<String> lines = Arrays.asList(projData.toString());
-                    Path file = Paths.get(dirPath + "/game_" + System.currentTimeMillis() + ".JSON");
-                    Files.write(file, lines, Charset.forName("UTF-8"));
+                    
                 } catch (IOException ex) {
                     Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -613,17 +624,51 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
 
                 try {
 
+                    fileChooser.setInitialDirectory(selectedDirectory);
                     File file = fileChooser.showOpenDialog(stage);
-
+                       FileInputStream input;
+                       String str = null;  
+                    
+                    
+                    
                     if (file != null) {
-                        FileInputStream input = new FileInputStream(file.getAbsolutePath());
+                        
+                        if(IS_MKFS_DIRECTORY){
+                       HashMap<String,String> availableGames= MediaCryptoHelper.getAvailableFiles(file, "game");
+                        
+                        ChoiceDialog<String> dialog = new ChoiceDialog<>("b", availableGames.keySet());
+                        dialog.setTitle("Choice Dialog");
+                        dialog.setHeaderText("Look, a Choice Dialog");
+                        dialog.setContentText("Choose your letter:");
+                        Optional<String> result = dialog.showAndWait();
+                         if(result.isPresent()){
+                            System.out.println("Your choice: " + availableGames.get(result.get()));
+                            file=new File( availableGames.get(result.get()));
+                            str =new String( MediaCryptoHelper.readCryptoText(secrteKey, file).getBytes(), "UTF-8");//new String(data, "UTF-8");
+                        }
+                        
+                        }
+                       //  result.ifPresent(letter -> System.out.println("Your choice: " + letter));
+                      
+                       else{
+                        
+                            input = new FileInputStream(file.getAbsolutePath());
 
-                        byte[] data = new byte[(int) file.length()];
-                        input.read(data);
-                        input.close();
+                            byte[] data = new byte[(int) file.length()];
+                            input.read(data);
+                            input.close();
 
-                        String str = new String(data, "UTF-8");
+                             str = new String(data, "UTF-8");
+                             
+                        }
+                        
+                        
                         projData = new JSONObject(str);
+                        
+                        //Assuming MKFS file is loaded 
+                        //Show available game files for selection.
+                        
+                        
 
                         //Set all
                         dirPath = projData.getString("dirPath");
@@ -761,17 +806,26 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                 } else {
                     //Check if mkfs file is present
                     //
-                    IS_MKFS_DIRECTORY=EncryptionBatchProcess.checkEncryptionFolder(selectedDirectory);
-                    secrteKey=EncryptionBatchProcess.askForPassword();
-                    String[] folderNames=OpenEncryptedFile.getDecryptedFolderNames(selectedDirectory, secrteKey);
-                    System.out.println(Arrays.toString(folderNames));
-                    
-                    try {
-                        HashMap<String,String> folderContent=OpenEncryptedFile.getMKFSFolderContent(selectedDirectory, secrteKey);
-                        
-                    } catch (IOException ex) {
-                        Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                    IS_MKFS_DIRECTORY = EncryptionBatchProcess.checkEncryptionFolder(selectedDirectory);
+                    if (IS_MKFS_DIRECTORY)
+                        secrteKey = EncryptionBatchProcess.askForPassword();
+                    else {
+                        try {
+                            IS_MKFS_DIRECTORY = EncryptionBatchProcess.askAndMakeMKFSFolder(selectedDirectory);
+                        } catch (IOException ex) {
+                            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
                     }
+//                    String[] folderNames=OpenEncryptedFile.getDecryptedFolderNames(selectedDirectory, secrteKey);
+//                    System.out.println(Arrays.toString(folderNames));
+//                    
+//                    try {
+//                        HashMap<String,String> folderContent=OpenEncryptedFile.getMKFSFolderContent(selectedDirectory, secrteKey);
+//                        
+//                    } catch (IOException ex) {
+//                        Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
                     dirPath = selectedDirectory.getAbsolutePath();
                 }
 

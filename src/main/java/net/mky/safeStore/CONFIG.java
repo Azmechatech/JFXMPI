@@ -36,7 +36,7 @@ public class CONFIG {
     
     
    static enum IMAGES{  jpg,png,PNG,JPEG,Jpeg; } 
-   static enum TEXTS {text, txt,TEXT,Text,Txt};
+   static enum TEXTS {text, txt,TEXT,Text,Txt,JSON,Json,json};
     enum VIDS{  mp4,MP4,flv,wmv,mpg,mpeg; } 
     
     public static final HashSet<String> Images=new HashSet<>();

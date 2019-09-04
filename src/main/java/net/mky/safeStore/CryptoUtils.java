@@ -46,6 +46,11 @@ public class CryptoUtils {
             throws CryptoException {
         doCrypto(Cipher.DECRYPT_MODE, key, inputFile, outputFile);
     }
+    
+     public static String decrypt(String key, File inputFile)
+            throws CryptoException {
+      return new String( doCrypto(Cipher.DECRYPT_MODE, key, inputFile));
+    }
 
     private static void doCrypto(int cipherMode, String key, File inputFile,
             File outputFile) throws CryptoException {

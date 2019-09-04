@@ -380,6 +380,11 @@ Image image;
         EventHandler<ActionEvent> addMultipleFilesAction = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                
+                
+                if(MainApp.IS_MKFS_DIRECTORY){
+                
+                }
 
                 List<File> list = fileChooser.showOpenMultipleDialog(new Stage());
                 if (list != null) {

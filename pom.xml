@@ -351,6 +351,28 @@
             <artifactId>rapidoid-quick</artifactId>
             <version>5.5.5</version>
         </dependency>
+        
+        
+<dependency>
+	<groupId>com.google.zxing</groupId>
+	<artifactId>core</artifactId>
+	<version>3.3.2</version>
+</dependency>
+        <dependency>
+            <groupId>org.jfxtras</groupId>
+            <artifactId>jfxtras-window</artifactId>
+            <version>10.0-r1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfxtras</groupId>
+            <artifactId>jfxtras-all</artifactId>
+            <version>10.0-r1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.jsoup</artifactId>
+            <version>1.5.2_2</version>
+        </dependency>
     </dependencies>
 
 
