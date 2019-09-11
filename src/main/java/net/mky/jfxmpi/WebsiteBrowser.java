@@ -45,6 +45,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -243,12 +245,18 @@ public class WebsiteBrowser extends Application {
                 // Retrieve all direct image URLs
                 /****************************/
                // webContent= getWebContent();
-                String[] allImages=imageURLS(webContent,_element.getText(), _attribute.getText(), true);
-                for(String url:allImages){
-                    if(url.endsWith(fileExt.getText()))
-                    downloadqueue.add(url);
-                  
+                String[] allImages = imageURLS(webContent, _element.getText(), _attribute.getText(), true);
+                if (allImages.length == 0) {
+                    imageURLS2(webContent, _element.getText(), _attribute.getText()).toArray(allImages);
                 }
+                for (String url : allImages) {
+                    if (url.endsWith(fileExt.getText())) {
+                        downloadqueue.add(url);
+                    }
+
+                }
+                
+                
                  stateLabel.setText("Automatically added: " + downloadqueue.size() +" files for download . Ext: "+fileExt.getText());
             }
         });
@@ -445,8 +453,12 @@ public class WebsiteBrowser extends Application {
         //CREATE THE INPUT BOXES
         Label label1 = new Label("STRING:");
         Label label2 = new Label("REPLACEMENT:");
+        Label label3 = new Label("PREFFIX:");
+        Label label4 = new Label("SUFFIX:");
         TextField STRING = new TextField();
         TextField REPLACEMENT = new TextField();
+        TextField PREFFIX = new TextField();
+        TextField SUFFIX = new TextField();
         Button goReplace = new Button("Append");
         
         goReplace.setOnAction(new EventHandler<ActionEvent>() {
@@ -454,7 +466,7 @@ public class WebsiteBrowser extends Application {
             @Override
             public void handle(ActionEvent event) {
                 for (String url : urlList) {
-                    downloadqueue.add(url.replace(STRING.getText(), REPLACEMENT.getText()));
+                    downloadqueue.add(PREFFIX.getText()+url.replace(STRING.getText(), REPLACEMENT.getText())+SUFFIX.getText());
                 }
                 
                 /*******************************
@@ -479,7 +491,7 @@ public class WebsiteBrowser extends Application {
             }
         });
         
-        VBox content=new VBox(label1,STRING,label2,REPLACEMENT,goReplace,urls);
+        VBox content=new VBox(label1,STRING,label2,REPLACEMENT,label3,PREFFIX,label4,SUFFIX,goReplace,urls);
         dialog.getDialogPane().setContent(content);
         ButtonType buttonTypeOk = new ButtonType("Okay", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
@@ -505,7 +517,7 @@ public class WebsiteBrowser extends Application {
                 System.out.println("executeDownloadQueue>> "+urlToDnld);
                 saveImage(urlToDnld, directory, stateLabel);
             } catch (Exception ex) {
-                Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+              //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
@@ -694,6 +706,32 @@ public class WebsiteBrowser extends Application {
         }
 
         return null;
+    }
+    
+    
+    /*******************Find Image URLs Via pattern match**********************
+     * 
+     * @param html
+     * @param _element
+     * @param _attribute
+     * @return 
+     */
+    static List<String> imageURLS2(String html, String _element, String _attribute) {
+
+        Pattern p = null;
+        Matcher m = null;
+        String word0 = null;
+        String word1 = null;
+        List<String> result = new ArrayList<>();
+        p = Pattern.compile(".*<img[^>]*src=\"([^\"]*)", Pattern.CASE_INSENSITIVE);
+        m = p.matcher(html);
+        while (m.find()) {
+            word0 = m.group();
+            System.out.println(word0.toString());
+            result.add(word0);
+
+        }
+        return result;
     }
     
   

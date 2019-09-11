@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -25,6 +26,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import net.mky.clustering.Cluster;
+import net.mky.clustering.KMeans;
+import net.mky.clustering.Point;
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.HilbertCurveRenderer;
 import org.davidmoten.hilbert.HilbertCurveRenderer.Option;
@@ -304,6 +308,10 @@ public class HilbertCurvePatternDetect {
     }
 
     public static BufferedImage resizeImage(Image image, int width, int height) {
+        
+        Dimension newDim=getScaledDimension(new Dimension(image.getWidth(null),image.getHeight(null)), new Dimension(width, height));
+        width=newDim.width;
+        height=newDim.height;
         BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = bufferedImage.createGraphics();
 
@@ -360,6 +368,93 @@ public class HilbertCurvePatternDetect {
         Icon icon = new ImageIcon(bimage);
         JLabel picLabel = new JLabel(icon);
         JOptionPane.showMessageDialog(null, picLabel, message, JOptionPane.PLAIN_MESSAGE, null);
+    }
+    
+    /************************Color wheel for region mapping*********************
+     * 
+     * @param rad
+     * @return 
+     */
+     public static BufferedImage getColourWheel(int rad) {
+      //  int rad = 1024;
+        BufferedImage img = new BufferedImage(rad, rad, BufferedImage.TYPE_INT_RGB);
+
+        // Center Point (MIDDLE, MIDDLE)
+        int centerX = img.getWidth() / 2;
+        int centerY = img.getHeight() / 2;
+        int radius = (img.getWidth() / 2) * (img.getWidth() / 2);
+
+        // Red Source is (RIGHT, MIDDLE)
+        int redX = img.getWidth();
+        int redY = img.getHeight() / 2;
+        int redRad = img.getWidth() * img.getWidth();
+
+        // Green Source is (LEFT, MIDDLE)
+        int greenX = 0;
+        int greenY = img.getHeight() / 2;
+        int greenRad = img.getWidth() * img.getWidth();
+
+        // Blue Source is (MIDDLE, BOTTOM)
+        int blueX = img.getWidth() / 2;
+        int blueY = img.getHeight();
+        int blueRad = img.getWidth() * img.getWidth();
+
+        for (int i = 0; i < img.getWidth(); i++) {
+            for (int j = 0; j < img.getHeight(); j++) {
+                int a = i - centerX;
+                int b = j - centerY;
+
+                int distance = a * a + b * b;
+                if (distance < radius) {
+                    int rdx = i - redX;
+                    int rdy = j - redY;
+                    int redDist = (rdx * rdx + rdy * rdy);
+                    int redVal = (int) (255 - ((redDist / (float) redRad) * 256));
+
+                    int gdx = i - greenX;
+                    int gdy = j - greenY;
+                    int greenDist = (gdx * gdx + gdy * gdy);
+                    int greenVal = (int) (255 - ((greenDist / (float) greenRad) * 256));
+
+                    int bdx = i - blueX;
+                    int bdy = j - blueY;
+                    int blueDist = (bdx * bdx + bdy * bdy);
+                    int blueVal = (int) (255 - ((blueDist / (float) blueRad) * 256));
+
+                    Color c = new Color(redVal, greenVal, blueVal);
+
+                    float hsbVals[] = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+
+                    Color highlight = Color.getHSBColor(hsbVals[0], hsbVals[1], 1);
+
+                    img.setRGB(i, j, RGBtoHEX(highlight));
+                } else {
+                    img.setRGB(i, j, 0xFFFFFF);
+                }
+            }
+        }
+
+//        try {
+//            ImageIO.write(img, "png", new File("wheel.png"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        
+        return img;
+    }
+
+    public static int RGBtoHEX(Color color) {
+        String hex = Integer.toHexString(color.getRGB() & 0xffffff);
+        if (hex.length() < 6) {
+            if (hex.length() == 5)
+                hex = "0" + hex;
+            if (hex.length() == 4)
+                hex = "00" + hex;
+            if (hex.length() == 3)
+                hex = "000" + hex;
+        }
+        hex = "#" + hex;
+        return Integer.decode(hex);
     }
 
     public static Color getColor(int c) {
@@ -445,6 +540,122 @@ public class HilbertCurvePatternDetect {
         }
 
         return true;
+    }
+    /***********************Find Exactly matching pixel***************
+     * 
+     * @param imageOne
+     * @param pixelValue
+     * @return 
+     */
+    public static int exactMatchingRGB(BufferedImage imageOne, int pixelValue,int errorMargin) {
+        int bitsToMatch = 63;//Max allowed
+        HilbertCurve cForpattern = HilbertCurve.bits(bitsToMatch).dimensions(2);
+        int pointsToTravese = bitsToMatch * bitsToMatch;
+        for (int traverseStartp = 0; traverseStartp < pointsToTravese; traverseStartp++) {
+            //Get the XY in images to match
+            long[] pointP = cForpattern.point(traverseStartp);
+            pointP[0] = (long) (pointP[0] * imageOne.getWidth() / Math.sqrt(pointsToTravese));
+            pointP[1] = (long) (pointP[1] * imageOne.getHeight() / Math.sqrt(pointsToTravese));
+
+            //get pixel value
+            try {
+                //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
+                int p = imageOne.getRGB((int) (long) pointP[0], (int) (long) pointP[1]);
+
+                // errorArray[traverseStartp] =p-pT;
+                if (p == pixelValue || (errorMargin+p>pixelValue && p-errorMargin<pixelValue) ){
+               
+                    return traverseStartp;
+                }
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+
+        return -1;
+    }
+    
+    /*******************Feature Extraction From Image*******************
+     * 
+     * @param imageOne
+     * @param bitsToMatch
+     * @return 
+     */
+    public static List<BufferedImage> getFeaturesInImage(BufferedImage imageOne) {
+        int bitsToMatch=63;
+        BufferedImage colourWheelForRegionMAP=getColourWheel(1024);
+        HilbertCurve cForpattern = HilbertCurve.bits(bitsToMatch).dimensions(2);
+        List<BufferedImage> result = new ArrayList<>();
+        KMeans kmeans = new KMeans();
+        TrackingParameters trackingParameters = new TrackingParameters(); //use later
+        int pointsToTravese = bitsToMatch * bitsToMatch;
+        int[] errorArray = new int[pointsToTravese];//use later
+        long minX = 0;
+        long maxX = pointsToTravese;
+        long minY = Integer.MAX_VALUE;
+        long maxY = Integer.MIN_VALUE;
+        int xUnitPerHelbertPoint=imageOne.getWidth()/bitsToMatch;
+        int yUnitPerHelbertPoint=imageOne.getHeight() / bitsToMatch;
+        for (int traverseStartp = 0; traverseStartp < pointsToTravese; traverseStartp++) {
+            //Get the XY in images to match
+            long[] pointP = cForpattern.point(traverseStartp);
+            pointP[0] = xUnitPerHelbertPoint/2+(long) (pointP[0] * imageOne.getWidth() / Math.sqrt(pointsToTravese));
+            pointP[1] = yUnitPerHelbertPoint/2+(long) (pointP[1] * imageOne.getHeight() / Math.sqrt(pointsToTravese));
+
+            //get pixel value
+            try {
+                //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
+                int p = imageOne.getRGB((int) (long) pointP[0], (int) (long) pointP[1]);
+                minY = p < minY ? p : minY;
+                maxY = p > maxY ? p : maxY;
+                //kmeans.points.add(new Point(traverseStartp, exactMatchingRGB(colourWheelForRegionMAP, p, 1000)));
+                kmeans.points.add(new Point(traverseStartp, p));
+
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+
+        kmeans.init(minX, maxX, minY, maxY,5);//5 Features for now
+        kmeans.calculate();
+
+        for (Cluster cluster : kmeans.clusters) {
+            BufferedImage bimg = new BufferedImage(imageOne.getWidth(), imageOne.getHeight(), imageOne.getType());
+            minX = Integer.MAX_VALUE;
+            maxX = Integer.MIN_VALUE;
+            minY = Integer.MAX_VALUE;
+            maxY = Integer.MIN_VALUE;
+
+            for (Point point : cluster.points) {
+
+                long[] pointP = cForpattern.point((int) point.getX());
+                pointP[0] = (long) (pointP[0] * imageOne.getWidth() / Math.sqrt(pointsToTravese));
+                pointP[1] = (long) (pointP[1] * imageOne.getHeight() / Math.sqrt(pointsToTravese));
+
+                minX = pointP[0] < minX ? pointP[0] : minX;
+                maxX = pointP[0] > maxX ? pointP[0] : maxX;
+
+                minY = pointP[1] < minY ? pointP[1] : minY;
+                maxY = pointP[1] > maxY ? pointP[1] : maxY;
+
+                //get pixel value
+                try {
+                    //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
+                    int p = (int) point.getY();
+                    
+                    for(int x=-xUnitPerHelbertPoint/2;x<xUnitPerHelbertPoint/2;x++)
+                        for(int y=-yUnitPerHelbertPoint/2;y<yUnitPerHelbertPoint/2;y++)
+                            bimg.setRGB(x+(int) pointP[0], y+(int) pointP[1],imageOne.getRGB(x+(int) pointP[0], y+(int) pointP[1]));
+                } catch (Exception ex) {
+                    //ex.printStackTrace();
+                }
+            }
+
+            // BufferedImage bimg=new BufferedImage((int)(maxX-minX), (int)(maxY-minY), imageOne.getType());
+            result.add(bimg);
+        }
+
+        return result;
     }
 
 }
