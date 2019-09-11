@@ -5,12 +5,16 @@
  */
 package systemknowhow.tools;
 
+import boofcv.alg.feature.detect.edge.EdgeContour;
+import boofcv.alg.feature.detect.edge.EdgeSegment;
+import georegression.struct.point.Point2D_I32;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import net.mky.tools.FitPolygon;
 
 /**
  *
@@ -38,6 +42,7 @@ public class HilberCurvePatternDetectTests {
 
                 HilbertCurvePatternDetect.displayImage(img, "getClusterPointsInteractiveTest >> baseImage");
                 List< BufferedImage> result = HilbertCurvePatternDetect.getFeaturesInImage(img);
+                List<EdgeContour> edges= FitPolygon.getCannyEdgesXY(img);
                 
                 //PREPARE FOR RESULT DISPLAY
                 BufferedImage BIG_IMAGE = new BufferedImage(
@@ -47,6 +52,14 @@ public class HilberCurvePatternDetectTests {
 
                 int x = 0, y = 0;
                 for (BufferedImage resultImage : result) {
+                    
+                    //Draw edges
+                    Graphics gr = resultImage.getGraphics();
+                    for( EdgeContour edgeContour:edges){
+                        for(EdgeSegment edgeSegment:edgeContour.segments)
+                            for(Point2D_I32 p2d: edgeSegment.points)
+                                gr.drawOval(p2d.x, p2d.y,2, 2);
+                    }
 
                     g.drawImage(HilbertCurvePatternDetect.resizeImage(resultImage, 500, 500), x, y, null);
                     x += 500;
@@ -54,6 +67,8 @@ public class HilberCurvePatternDetectTests {
                         x = 0;
                         y += 500;
                     }
+                    
+                    
 
                     HilbertCurvePatternDetect.displayImage(resultImage, "getClusterPointsInteractiveTest");
                 }

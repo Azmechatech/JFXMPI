@@ -67,7 +67,7 @@ public class FaceDetectionTool {
         // and must be placed in same directory of the source java file
         CascadeClassifier faceDetector = new CascadeClassifier();
         faceDetector.load("G:/delete/JFXMPI/src/main/resources/haar/haarcascade_frontalface_alt.xml");
-        String inputImage=args[0]!=null?args[0]:"G:/bkp/$AVG/baseDir/Imports/Yugkatha/ShortOnes/StrokesInFamily/jrjy3f9i0uf37uhzg48y.jpg";
+        String inputImage=args[0]!=null?args[0]:"G:/*********.jpg";
         // Input image
         Mat image = Imgcodecs.imread(inputImage);
  
@@ -80,7 +80,7 @@ public class FaceDetectionTool {
         
          BufferedImage bimage;
           // Saving the output image
-        String filename = "G:/bkp/$AVG/baseDir/Imports/Yugkatha/ShortOnes/StrokesInFamily/preview_Ouput.jpg";
+        String filename = "G:/**********preview_Ouput.jpg";
          try {
              bimage = ImageIO.read(new File(inputImage));
              //new BufferedImage(200, 200, BufferedImage.TYPE_BYTE_INDEXED);

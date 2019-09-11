@@ -605,9 +605,18 @@ public class HilbertCurvePatternDetect {
             //get pixel value
             try {
                 //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
-                int p = imageOne.getRGB((int) (long) pointP[0], (int) (long) pointP[1]);
-                minY = p < minY ? p : minY;
-                maxY = p > maxY ? p : maxY;
+                //Look at the select region, this can be put in parallel executor.
+                int p =-1,p1=-1,p2=-1,p3=-1;
+                
+                for (int x = -xUnitPerHelbertPoint / 2; x < xUnitPerHelbertPoint / 2; x++)
+                    for (int y = -yUnitPerHelbertPoint / 2; y < yUnitPerHelbertPoint / 2; y++) {
+                        p = (p1+p2+p3+imageOne.getRGB((int) (long) pointP[0]+x, (int) (long) pointP[1]+y))/4;//Moving average
+                        p3=p2;p2=p1;p1=p;
+                        
+                        minY = p < minY ? p : minY;
+                        maxY = p > maxY ? p : maxY;
+                    }
+                            
                 //kmeans.points.add(new Point(traverseStartp, exactMatchingRGB(colourWheelForRegionMAP, p, 1000)));
                 kmeans.points.add(new Point(traverseStartp, p));
 
