@@ -24,6 +24,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +73,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.davidmoten.hilbert.HilbertCurve;
-import systemknowhow.tools.HilbertCurvePatternDetect;
+import net.mky.clustering.HilbertCurvePatternDetect;
+import systemknowhow.Tools;
 
 public class WebsiteBrowser extends Application {
 
@@ -83,8 +85,8 @@ public class WebsiteBrowser extends Application {
     private File captureFile = new File("cap.png");
     static DirectoryChooser dc = new DirectoryChooser();
     static File directory = null;
-    static Queue<String> downloadqueue = new LinkedList<>(); 
-    String webContent="";
+    static Queue<String> downloadqueue = new LinkedList<>();
+    String webContent = "";
 
     public static void main(String[] args) {
         Application.launch(WebsiteBrowser.class);
@@ -94,38 +96,36 @@ public class WebsiteBrowser extends Application {
     public void start(Stage stage) throws Exception {
         webView = new WebView();
         webView.setPrefSize(1500, 900);
-      
+
         HBox browserControls = new HBox(10);
         final TextField prefWidth = new TextField("1000");
         final TextField prefHeight = new TextField("8000");
         //"img[src]","src",true
-        final TextField _element= new TextField("img[src]");
+        final TextField _element = new TextField("img[src]");
         final TextField _attribute = new TextField("src");
-        final TextField fileExt = new TextField(".jpg");
-        Label labelForImgs=new Label("HTML element & attribute: ");
-        
-          webView.getEngine().getLoadWorker().stateProperty()
-        .addListener((obs, oldValue, newValue) -> {
-          if (newValue == State.SUCCEEDED) {
-            System.out.println("finished loading");
-             try {
-                  TransformerFactory transformerFactory = TransformerFactory
-                      .newInstance();
-                  Transformer transformer = transformerFactory.newTransformer();
-                  StringWriter stringWriter = new StringWriter();
-                  transformer.transform(new DOMSource(webView.getEngine().getDocument()),
-                      new StreamResult(stringWriter));
-                  webContent = stringWriter.getBuffer().toString();
-                 
-                 // System.out.println(webContent);
-                  
-                  imageURLS(webContent,_element.getText(), _attribute.getText(), true);
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-          }
-        });
-          
+        final TextField fileExt = new TextField(".jpg;.jpeg");
+        Label labelForImgs = new Label("HTML element & attribute: ");
+
+        webView.getEngine().getLoadWorker().stateProperty()
+                .addListener((obs, oldValue, newValue) -> {
+                    if (newValue == State.SUCCEEDED) {
+                        System.out.println("finished loading");
+                        try {
+                            TransformerFactory transformerFactory = TransformerFactory
+                                    .newInstance();
+                            Transformer transformer = transformerFactory.newTransformer();
+                            StringWriter stringWriter = new StringWriter();
+                            transformer.transform(new DOMSource(webView.getEngine().getDocument()),
+                                    new StreamResult(stringWriter));
+                            webContent = stringWriter.getBuffer().toString();
+
+                            // System.out.println(webContent);
+                            imageURLS(webContent, _element.getText(), _attribute.getText(), true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
 
         final TextField location = new TextField();
         location.setOnAction(new EventHandler<ActionEvent>() {
@@ -135,16 +135,20 @@ public class WebsiteBrowser extends Application {
                     location.setText("http://" + location.getText());
                 }
                 webView.getEngine().load(location.getText());
-                /****************************/
+                /**
+                 * *************************
+                 */
                 // Retrieve all direct image URLs
-                /****************************/
+                /**
+                 * *************************
+                 */
                 try {
                     URL url;
                     url = new URL(location.getText());
                     URLConnection urlc = url.openConnection();
                     urlc.setRequestProperty("User-Agent", webView.getEngine().getUserAgent());
-                    imageURLS(urlc,_element.getText(), _attribute.getText(), true);
-                    
+                    imageURLS(urlc, _element.getText(), _attribute.getText(), true);
+
                 } catch (MalformedURLException ex) {
                     Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
@@ -193,16 +197,16 @@ public class WebsiteBrowser extends Application {
                 directory = dc.showDialog(null);
             }
         });
-        
-         goBack.setOnAction(new EventHandler<ActionEvent>() {
+
+        goBack.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
                 goBack();
             }
         });
-         
-          goForward.setOnAction(new EventHandler<ActionEvent>() {
+
+        goForward.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
@@ -210,15 +214,15 @@ public class WebsiteBrowser extends Application {
             }
         });
 
-          goDownload.setOnAction(new EventHandler<ActionEvent>() {
+        goDownload.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
                 executeDownloadQueue(stateLabel);
             }
         });
-                  
-          goEditURLs.setOnAction(new EventHandler<ActionEvent>() {
+
+        goEditURLs.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
@@ -241,43 +245,52 @@ public class WebsiteBrowser extends Application {
 
             @Override
             public void handle(ActionEvent event) {
-                /****************************/
+                /**
+                 * *************************
+                 */
                 // Retrieve all direct image URLs
-                /****************************/
-               // webContent= getWebContent();
+                /**
+                 * *************************
+                 */
+                // webContent= getWebContent();
                 String[] allImages = imageURLS(webContent, _element.getText(), _attribute.getText(), true);
                 if (allImages.length == 0) {
                     imageURLS2(webContent, _element.getText(), _attribute.getText()).toArray(allImages);
                 }
                 for (String url : allImages) {
-                    if (url.endsWith(fileExt.getText())) {
-                        downloadqueue.add(url);
+                    String[] fileExtelements = fileExt.getText().split(";");
+                    for (String fileExtelement : fileExtelements) {
+                        if (url.endsWith(fileExtelement)) {
+                            downloadqueue.add(url);
+                        }
                     }
 
                 }
-                
-                
-                 stateLabel.setText("Automatically added: " + downloadqueue.size() +" files for download . Ext: "+fileExt.getText());
+
+                stateLabel.setText("Automatically added: " + downloadqueue.size() + " files for download . Ext: " + fileExt.getText());
             }
         });
-        
-         showPageSource.setOnAction(new EventHandler<ActionEvent>() {
+
+        showPageSource.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
-                /****************************/
+                /**
+                 * *************************
+                 */
                 // VIEW CONTENT
-                /****************************/
-                viewWebContent();  }
+                /**
+                 * *************************
+                 */
+                viewWebContent();
+            }
         });
 //
         final ProgressIndicator progress = new ProgressIndicator();
         progress.setVisible(false);
 
-        
-
         HBox controls = new HBox(10);
-        controls.getChildren().addAll(capture, progress, prefWidth, prefHeight,labelForImgs,_element,_attribute,fileExt,getImageList,showPageSource);
+        controls.getChildren().addAll(capture, progress, prefWidth, prefHeight, labelForImgs, _element, _attribute, fileExt, getImageList, showPageSource);
 
         final ImageView imageView = new ImageView();
         ScrollPane imageViewScroll = makeScrollable(imageView);
@@ -289,14 +302,16 @@ public class WebsiteBrowser extends Application {
             @Override
             public void handle(ActionEvent actionEvent) {
                 WritableImage image = webView.snapshot(null, null);
-                 if (directory == null) {directory = dc.showDialog(null);}
-                captureFile=new File(directory.getAbsolutePath()+"/"+"WEBCAPTURE"+System.currentTimeMillis()+".png");
+                if (directory == null) {
+                    directory = dc.showDialog(null);
+                }
+                captureFile = new File(directory.getAbsolutePath() + "/" + "WEBCAPTURE" + System.currentTimeMillis() + ".png");
                 BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
                 try {
                     ImageIO.write(bufferedImage, "png", captureFile);
                     imageView.setImage(new Image(captureFile.toURI().toURL().toExternalForm()));
                     System.out.println("Captured WebView to: " + captureFile.getAbsoluteFile());
-                   stateLabel.setText("Captured WebView to: " + captureFile.getAbsoluteFile());
+                    stateLabel.setText("Captured WebView to: " + captureFile.getAbsoluteFile());
                     progress.setVisible(false);
                     capture.setDisable(false);
                 } catch (IOException e) {
@@ -342,19 +357,19 @@ public class WebsiteBrowser extends Application {
             }
         });
 
-        createContextMenu(webView,stateLabel); //Creating a custom context menu works
+        createContextMenu(webView, stateLabel); //Creating a custom context menu works
         webView.getEngine().load(HOME_LOC);
-        browserControls.getChildren().addAll(stateLabel,progressBar, goButton,goBack,goForward,goEditURLs,goDownload);
+        browserControls.getChildren().addAll(stateLabel, progressBar, goButton, goBack, goForward, goEditURLs, goDownload);
 // VBox root = new VBox();
         //      root.getChildren().addAll(addressBar, goButton, stateLabel, progressBar, browser);
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 10; -fx-background-color: cornsilk;");
         layout.getChildren().setAll(
-                location,browserControls,
+                location, browserControls,
                 webViewScroll,
                 controls//,
-              //  imageViewScroll, //Dont display captured one
-              //  new Label("Capture File: " + captureFile.getAbsolutePath() )
+        //  imageViewScroll, //Dont display captured one
+        //  new Label("Capture File: " + captureFile.getAbsolutePath() )
         );
         VBox.setVgrow(imageViewScroll, Priority.ALWAYS);
 
@@ -362,7 +377,7 @@ public class WebsiteBrowser extends Application {
         stage.show();
     }
 
-    private static void createContextMenu(WebView webView,Label stateLabel) {
+    private static void createContextMenu(WebView webView, Label stateLabel) {
 
         MenuItem reload = new MenuItem("reload");
         reload.setOnAction(e -> {
@@ -371,7 +386,7 @@ public class WebsiteBrowser extends Application {
         );
         ContextMenu contextMenu = new ContextMenu(reload);
         webView.setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.SECONDARY ) {
+            if (e.getButton() == MouseButton.SECONDARY) {
 //                System.out.println(webView.getEngine().executeScript("document.elementFromPoint("
 //                        + e.getX()
 //                        + "," + e.getY() + ").tagName;"));
@@ -388,7 +403,7 @@ public class WebsiteBrowser extends Application {
 //                JSONObject object = (JSONObject) webView.getEngine().executeScript("document.elementFromPoint("
 //                        +e.getX()
 //                        +"," +  e.getY()+");");
-            //    contextMenu.show(webView, e.getScreenX(), e.getScreenY()); //No display needed
+                //    contextMenu.show(webView, e.getScreenX(), e.getScreenY()); //No display needed
 
                 if (directory != null) {
                     downloadqueue.add(imgURL);
@@ -398,39 +413,45 @@ public class WebsiteBrowser extends Application {
                     downloadqueue.add(imgURL);
 
                 }
-                    
-                   stateLabel.setText("Download >> "+downloadqueue.size()+" files.");
-               
+
+                stateLabel.setText("Download >> " + downloadqueue.size() + " files.");
+
             } else {
                 contextMenu.hide();
             }
         });
     }
-    
-      public String goBack()
-  {    
-    final WebHistory history=webView.getEngine().getHistory();
-    ObservableList<WebHistory.Entry> entryList=history.getEntries();
-    int currentIndex=history.getCurrentIndex();
+
+    public String goBack() {
+        final WebHistory history = webView.getEngine().getHistory();
+        ObservableList<WebHistory.Entry> entryList = history.getEntries();
+        int currentIndex = history.getCurrentIndex();
 //    Out("currentIndex = "+currentIndex);
 //    Out(entryList.toString().replace("],","]\n"));
 
-    Platform.runLater(new Runnable() { public void run() { history.go(-1); } });
-    return entryList.get(currentIndex>0?currentIndex-1:currentIndex).getUrl();
-  }
+        Platform.runLater(new Runnable() {
+            public void run() {
+                history.go(-1);
+            }
+        });
+        return entryList.get(currentIndex > 0 ? currentIndex - 1 : currentIndex).getUrl();
+    }
 
-  public String goForward()
-  {    
-    final WebHistory history=webView.getEngine().getHistory();
-    ObservableList<WebHistory.Entry> entryList=history.getEntries();
-    int currentIndex=history.getCurrentIndex();
+    public String goForward() {
+        final WebHistory history = webView.getEngine().getHistory();
+        ObservableList<WebHistory.Entry> entryList = history.getEntries();
+        int currentIndex = history.getCurrentIndex();
 //    Out("currentIndex = "+currentIndex);
 //    Out(entryList.toString().replace("],","]\n"));
 
-    Platform.runLater(new Runnable() { public void run() { history.go(1); } });
-    return entryList.get(currentIndex<entryList.size()-1?currentIndex+1:currentIndex).getUrl();
-  }
-  
+        Platform.runLater(new Runnable() {
+            public void run() {
+                history.go(1);
+            }
+        });
+        return entryList.get(currentIndex < entryList.size() - 1 ? currentIndex + 1 : currentIndex).getUrl();
+    }
+
     public static void openURLEditor() {
         String[] arrayData = {"First", "Second", "Third", "Fourth"};
 
@@ -448,8 +469,7 @@ public class WebsiteBrowser extends Application {
 // Create the ListView for the fruits
         ListView<String> urls = new ListView<String>();
         urls.getItems().addAll(urlList);
-        
-        
+
         //CREATE THE INPUT BOXES
         Label label1 = new Label("STRING:");
         Label label2 = new Label("REPLACEMENT:");
@@ -460,19 +480,20 @@ public class WebsiteBrowser extends Application {
         TextField PREFFIX = new TextField();
         TextField SUFFIX = new TextField();
         Button goReplace = new Button("Append");
-        
+
         goReplace.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
                 for (String url : urlList) {
-                    downloadqueue.add(PREFFIX.getText()+url.replace(STRING.getText(), REPLACEMENT.getText())+SUFFIX.getText());
+                    downloadqueue.add(PREFFIX.getText() + url.replace(STRING.getText(), REPLACEMENT.getText()) + SUFFIX.getText());
                 }
-                
-                /*******************************
+
+                /**
+                 * *****************************
                  * Copy from clipboard as well
                  */
-                 Clipboard clipboard = Clipboard.getSystemClipboard();
+                Clipboard clipboard = Clipboard.getSystemClipboard();
                 ClipboardContent cc = new ClipboardContent();
 
                 String content = clipboard.getString();
@@ -490,8 +511,8 @@ public class WebsiteBrowser extends Application {
                 STRING.setText(urls.getSelectionModel().getSelectedItem());
             }
         });
-        
-        VBox content=new VBox(label1,STRING,label2,REPLACEMENT,label3,PREFFIX,label4,SUFFIX,goReplace,urls);
+
+        VBox content = new VBox(label1, STRING, label2, REPLACEMENT, label3, PREFFIX, label4, SUFFIX, goReplace, urls);
         dialog.getDialogPane().setContent(content);
         ButtonType buttonTypeOk = new ButtonType("Okay", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
@@ -501,31 +522,38 @@ public class WebsiteBrowser extends Application {
 
         if (result.isPresent()) {
 
-         //   selected = result.get();
+            //   selected = result.get();
         }
 
 //actionStatus.setText("Selection: " + selected);
     }
-  
+
     public void executeDownloadQueue(Label stateLabel) {
         Iterator itr = downloadqueue.iterator();
-        while (itr.hasNext()) {
-            try {
+        Queue<String> removeQueue = new LinkedList<>();
+        String urlToDnld="" ;
+        try {
+            while (itr.hasNext()) {
+
                 // System.out.println(itr.next());
-                String urlToDnld=itr.next().toString();
-                urlToDnld=urlToDnld.startsWith("http")?urlToDnld:"https:" +urlToDnld;
-                System.out.println("executeDownloadQueue>> "+urlToDnld);
+                 urlToDnld = itr.next().toString();
+                urlToDnld = urlToDnld.startsWith("http") ? urlToDnld : "https:" + urlToDnld;
+                System.out.println("executeDownloadQueue>> " + urlToDnld);
                 saveImage(urlToDnld, directory, stateLabel);
-            } catch (Exception ex) {
-              //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+               removeQueue.add(urlToDnld);
+
             }
+        } catch (Exception ex) {
+            System.out.println("executeDownloadQueue>> Issue with "+urlToDnld+">>"+ex.getMessage());
+            removeQueue.add(urlToDnld);
+            //ex.printStackTrace();
+           // return;//return on exceptions
+            //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        downloadqueue.clear();
+
+       downloadqueue.removeAll(removeQueue);
     }
 
-   
-    
     private ScrollPane makeScrollable(final ImageView imageView) {
         final ScrollPane scroll = new ScrollPane();
         final StackPane centeredImageView = new StackPane();
@@ -545,7 +573,6 @@ public class WebsiteBrowser extends Application {
         return scroll;
     }
 
-    
     public String getWebContent() {
         try {
             TransformerFactory transformerFactory = TransformerFactory
@@ -563,122 +590,155 @@ public class WebsiteBrowser extends Application {
         }
         return null;
     }
-    
-    /*************************************
+
+    /**
+     * ***********************************
      * WEB CONTENT
      */
-    public void viewWebContent(){
-        
+    public void viewWebContent() {
+
         Dialog dialog = new Dialog();
         dialog.setTitle("EDIT URLS");
         dialog.setHeaderText("Select your choice");
-        TextArea ta=new TextArea(webContent);
-        
+        TextArea ta = new TextArea(webContent);
+
         dialog.getDialogPane().setContent(ta);
         ButtonType buttonTypeOk = new ButtonType("Okay", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
-       
-        
+
         Optional<TextArea> result = dialog.showAndWait();
-        webContent=ta.getText();
-            System.out.println(webContent);
-             webView.getEngine().loadContent(webContent);
-    
-    
+        webContent = ta.getText();
+        System.out.println(webContent);
+        webView.getEngine().loadContent(webContent);
+
     }
-    /**********************SAVE IMAGES****************************************
-     * 
+
+    /**
+     * ********************SAVE IMAGES****************************************
+     *
      * @param imageUrl
      * @param folderLocation
      * @param stateLabel
-     * @throws IOException 
+     * @throws IOException
      */
-    public static void saveImage(String imageUrl, File folderLocation,Label stateLabel) throws IOException {
-        URL url = new URL(imageUrl);
-        URLConnection urlc = url.openConnection();
+    public static void saveImage(String imageUrl, File folderLocation, Label stateLabel) {
+        URL url = null;
+        try {
+            url = new URL(imageUrl);
+        } catch (MalformedURLException ex) {
+           // Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        URLConnection urlc = null;
+        try {
+            urlc = url.openConnection();
+        } catch (IOException ex) {
+           // Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+        }
         urlc.setRequestProperty("User-Agent", webView.getEngine().getUserAgent());
         String fileName = url.getFile();
-        String destName = folderLocation.getAbsolutePath()+ fileName.substring(fileName.lastIndexOf("/"));
-        System.out.println(destName);
-        BufferedImage bi=null;
-        File testFile=new File(destName);
-        if(testFile.exists())
-        { 
-            bi=HilbertCurvePatternDetect.getTheImage(destName, false);
-            destName = folderLocation.getAbsolutePath()+"/"+System.currentTimeMillis()+ fileName.substring(fileName.lastIndexOf("/")+1);
+        String destName = folderLocation.getAbsolutePath() + fileName.substring(fileName.lastIndexOf("/"));
+        if(destName.length()>100){
+            destName = folderLocation.getAbsolutePath() +"/"+ Tools.getMD5(imageUrl) + fileName.substring(fileName.lastIndexOf("."));
         }
-        InputStream is = urlc.getInputStream();;//url.openStream();
-        OutputStream os = new FileOutputStream(destName);
+        System.out.println(destName);
+        BufferedImage bi = null;
+        File testFile = new File(destName);
+        if (testFile.exists()) {
+            bi = HilbertCurvePatternDetect.getTheImage(destName, false);
+            destName = folderLocation.getAbsolutePath() + "/" + System.currentTimeMillis() + fileName.substring(fileName.lastIndexOf("/") + 1);
+        }
+        
+        if(destName.length()>100){
+            destName = folderLocation.getAbsolutePath() +"/"+ System.currentTimeMillis()+ Tools.getMD5(imageUrl) + fileName.substring(fileName.lastIndexOf("."));
+        }
+        
+        InputStream is = null;
+        try {
+            is = urlc.getInputStream();
+        } catch (IOException ex) {
+           // Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        ;//url.openStream();
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(destName);
+        } catch (FileNotFoundException ex) {
+            //Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         byte[] b = new byte[2048];
         int length;
+        try {
+            while ((length = is.read(b)) != -1) {
+                os.write(b, 0, length);
+            }
 
-        while ((length = is.read(b)) != -1) {
-            os.write(b, 0, length);
+            is.close();
+            os.close();
+        } catch (IOException ex) {
+          //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        is.close();
-        os.close();
-        
         if (bi != null) { //Delete duplicate file
             if (HilbertCurvePatternDetect.match2ImagesExactly(bi, HilbertCurvePatternDetect.getTheImage(destName, false), 10)) {
-                File newFile=new File(destName);
+                File newFile = new File(destName);
                 if (newFile.delete()) {
-                    System.out.println(destName+ "  File deleted");
+                    System.out.println(destName + " Duplicate File deleted");
                 } else {
-                    System.out.println(destName+"File doesn't exist");
+                    System.out.println(destName + " Duplicate File doesn't exist");
                 }
             }
 
         }
-        
-        stateLabel.setText("Saved"+fileName);
+
+        stateLabel.setText("Saved" + fileName);
     }
-    
-    /************************************************************************
-     * 
+
+    /**
+     * ************************imageURLS*************************************
+     *
      * @param connection
      * @param _element
      * @param _attribute
      * @param attrVale
-     * @return 
+     * @return
      */
-    
-    static String[] imageURLS(URLConnection connection,String _element, String _attribute, boolean attrVale) {
+    static String[] imageURLS(URLConnection connection, String _element, String _attribute, boolean attrVale) {
 
         try {
 
             connection.connect();
 
-           // URL oracle = new URL(_URL);
+            // URL oracle = new URL(_URL);
             //BufferedReader in = new BufferedReader(  new InputStreamReader(oracle.openStream()));
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charset.forName("UTF-8")));
 
             String inputLine;
             StringBuilder html = new StringBuilder();
-           // System.out.println("#_URL " + _URL);
+            // System.out.println("#_URL " + _URL);
             while ((inputLine = in.readLine()) != null) {
                 html.append(inputLine);
                 //System.out.println(inputLine);
             }
             in.close();
 
-            return  imageURLS( html.toString() , _element,  _attribute,  attrVale);
+            return imageURLS(html.toString(), _element, _attribute, attrVale);
         } catch (Exception ex) {
             Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return null;
     }
-/***************************************************************************************
- * 
- * @param html
- * @param _element
- * @param _attribute
- * @param attrVale
- * @return 
- */
-    static String[] imageURLS(String html ,String _element, String _attribute, boolean attrVale) {
+
+    /**
+     * *****************************imageURLS**********************************************
+     *
+     * @param html
+     * @param _element
+     * @param _attribute
+     * @param attrVale
+     * @return
+     */
+    static String[] imageURLS(String html, String _element, String _attribute, boolean attrVale) {
 
         try {
             System.out.println(html);
@@ -690,7 +750,7 @@ public class WebsiteBrowser extends Application {
             for (Element element : elements) {
                 // result[counter++]=element.attr(_attribute);
                 // Do something with your links here ...
-                 System.out.println(element.attr(_attribute));
+                System.out.println(element.attr(_attribute));
 
                 if (attrVale) {
                     result[counter++] = element.attr(_attribute);
@@ -707,14 +767,14 @@ public class WebsiteBrowser extends Application {
 
         return null;
     }
-    
-    
-    /*******************Find Image URLs Via pattern match**********************
-     * 
+
+    /**
+     * *****************Find Image URLs Via pattern match**********************
+     *
      * @param html
      * @param _element
      * @param _attribute
-     * @return 
+     * @return
      */
     static List<String> imageURLS2(String html, String _element, String _attribute) {
 
@@ -733,9 +793,5 @@ public class WebsiteBrowser extends Application {
         }
         return result;
     }
-    
-  
 
 }
-
-

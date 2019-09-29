@@ -77,7 +77,7 @@ import systemknowhow.LifePool;
 import systemknowhow.human.ConversationMaker;
 import systemknowhow.human.Life;
 import systemknowhow.humanactivity.SocialRelationTags;
-import systemknowhow.tools.HilbertCurvePatternDetect;
+import net.mky.clustering.HilbertCurvePatternDetect;
 import systemknowhow.tools.NERHelper;
 import systemknowhow.tools.TextHelper;
 

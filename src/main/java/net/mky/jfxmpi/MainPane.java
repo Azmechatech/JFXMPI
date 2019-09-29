@@ -46,7 +46,7 @@ import net.mky.graphUI.Graph;
 import net.mky.tools.MediaControl;
 import net.mky.tools.Model;
 import net.mky.tools.StylesForAll;
-import systemknowhow.tools.HilbertCurvePatternDetect;
+import net.mky.clustering.HilbertCurvePatternDetect;
 
 /**
  *

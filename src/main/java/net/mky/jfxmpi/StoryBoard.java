@@ -61,7 +61,7 @@ import javafx.util.StringConverter;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import systemknowhow.human.*;
-import systemknowhow.tools.HilbertCurvePatternDetect;
+import net.mky.clustering.HilbertCurvePatternDetect;
 
 /**
  *

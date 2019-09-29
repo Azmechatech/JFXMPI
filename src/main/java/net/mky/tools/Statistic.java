@@ -51,6 +51,28 @@ public class Statistic {
     public void setStandardDeviation(double standardDeviation) {
         this.standardDeviation = standardDeviation;
     }
+    
+        private double similarityScore;
+
+    /**
+     * Get the value of similarityScore
+     *
+     * @return the value of similarityScore
+     */
+    public double getSimilarityScore() {
+        return similarityScore;
+    }
+
+    /**
+     * Set the value of similarityScore
+     *
+     * @param similarityScore new value of similarityScore
+     */
+    public void setSimilarityScore(double similarityScore) {
+        this.similarityScore = similarityScore;
+    }
+
+    
     double mean,median,mode,variance,standardDeviation;
     
     public JSONObject getJSONObject(){

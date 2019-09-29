@@ -33,7 +33,7 @@ import javax.swing.JOptionPane;
 import net.mky.jfxmpi.CharacterPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import systemknowhow.tools.HilbertCurvePatternDetect;
+import net.mky.clustering.HilbertCurvePatternDetect;
 
 /**
  *

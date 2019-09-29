@@ -3,10 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package systemknowhow.tools;
+package net.mky.clustering;
 
+import boofcv.alg.feature.detect.edge.EdgeContour;
+import boofcv.alg.feature.detect.edge.EdgeSegment;
+import georegression.struct.point.Point2D_I32;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -29,6 +33,13 @@ import javax.swing.JOptionPane;
 import net.mky.clustering.Cluster;
 import net.mky.clustering.KMeans;
 import net.mky.clustering.Point;
+import net.mky.clustering.PolynomialRegression;
+import net.mky.tools.Statistic;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
+import org.apache.commons.math3.fitting.PolynomialCurveFitter;
+import org.apache.commons.math3.fitting.WeightedObservedPoints;
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.HilbertCurveRenderer;
 import org.davidmoten.hilbert.HilbertCurveRenderer.Option;
@@ -370,6 +381,40 @@ public class HilbertCurvePatternDetect {
         JOptionPane.showMessageDialog(null, picLabel, message, JOptionPane.PLAIN_MESSAGE, null);
     }
     
+    
+    public static void displayImage(BufferedImage[] bimage,int scaledTo, String message) {
+        
+        //PREPARE FOR RESULT DISPLAY
+                BufferedImage BIG_IMAGE = new BufferedImage(
+                        scaledTo * bimage.length , scaledTo * bimage.length , //work these out
+                        BufferedImage.TYPE_INT_RGB);
+                Graphics g = BIG_IMAGE.getGraphics();
+
+                int x = 0, y = 0;
+                for (BufferedImage resultImage : bimage) {
+                    
+        
+
+                    g.drawImage(HilbertCurvePatternDetect.resizeImage(resultImage, scaledTo, scaledTo), x, y, null);
+                    x += scaledTo;
+                    if (x > resultImage.getWidth()) {
+                        x = 0;
+                        y += scaledTo;
+                    }
+                    
+                    
+
+                   // HilbertCurvePatternDetect.displayImage(resultImage, "getClusterPointsInteractiveTest");
+                }
+
+               //  g.drawImage(HilbertCurvePatternDetect.resizeImage(img, scaledTo, scaledTo), x, y, null);
+                 
+                 
+        Icon icon = new ImageIcon(BIG_IMAGE);
+        JLabel picLabel = new JLabel(icon);
+        JOptionPane.showMessageDialog(null, picLabel, message, JOptionPane.PLAIN_MESSAGE, null);
+    }
+    
     /************************Color wheel for region mapping*********************
      * 
      * @param rad
@@ -541,6 +586,146 @@ public class HilbertCurvePatternDetect {
 
         return true;
     }
+    
+    /********************Image given as array of Hilbert Curve data
+     * 
+     * @param imageOne
+     * @param bitsToMatch
+     * @return 
+     */
+    public static long[][] image2HC(BufferedImage imageOne, int bitsToMatch) {
+
+        HilbertCurve cForpattern = HilbertCurve.bits(bitsToMatch).dimensions(2);
+        TrackingParameters trackingParameters = new TrackingParameters(); //use later
+        int pointsToTravese = bitsToMatch * bitsToMatch;
+        long[][] result = new long[pointsToTravese][2];
+        for (int traverseStartp = 0; traverseStartp < pointsToTravese; traverseStartp++) {
+            //Get the XY in images to match
+            long[] pointP = cForpattern.point(traverseStartp);
+            pointP[0] = (long) (pointP[0] * imageOne.getWidth() / Math.sqrt(pointsToTravese));
+            pointP[1] = (long) (pointP[1] * imageOne.getHeight() / Math.sqrt(pointsToTravese));
+
+            //get pixel value
+            try {
+                //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
+                int p = imageOne.getRGB((int) (long) pointP[0], (int) (long) pointP[1]);
+                result[traverseStartp][0] = traverseStartp;
+                result[traverseStartp][1] = p;
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+    
+    /************Represent the image as a polynomial function
+     * 
+     * @param imageOne
+     * @param bitsToMatch
+     * @return 
+     */
+    public static double[] getImageEquation(BufferedImage imageOne, int bitsToMatch) {
+        long[][] image2HC = image2HC(imageOne, bitsToMatch);
+//         List<List<Double>> pointlist=new ArrayList<>();
+//         for(long[] row:image2HC){
+//             List<Double> rowData=new ArrayList<>();
+//             rowData.add(new Double(row[0]));
+//             rowData.add(new Double(row[1]));
+//             pointlist.add(rowData);
+//         }
+
+        final WeightedObservedPoints obs = new WeightedObservedPoints();
+        for (long[] row : image2HC) {
+            if(row[0]==0 && row[1]==0){continue;}
+            obs.add(1,new Double(row[0]), new Double(row[1]));
+           
+        }
+
+        final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(4);
+        final double[] coeff = fitter.fit(obs.toList());
+
+        return coeff;
+
+    }
+    
+    public static BufferedImage getEquationToImage(double[] coeffs, int bitsToMatch) {
+        PolynomialFunction polynomial = new PolynomialFunction(coeffs);
+
+        int pointsToTravese = bitsToMatch * bitsToMatch;
+
+        HilbertCurve cForpattern = HilbertCurve.bits(bitsToMatch).dimensions(2);
+
+        //PREPARE FOR RESULT DISPLAY
+        BufferedImage BIG_IMAGE = new BufferedImage(
+                bitsToMatch,  bitsToMatch, //work these out
+                BufferedImage.TYPE_INT_RGB);
+        Graphics g = BIG_IMAGE.getGraphics();
+
+        for (int traverseStartp = 0; traverseStartp < pointsToTravese; traverseStartp++) {
+
+            double p = polynomial.value(traverseStartp);
+
+            Color c = getColor((int) p);
+
+            long[] pointP = cForpattern.point(traverseStartp);
+            g.setColor(c);
+            g.drawRect((int) pointP[0], (int) pointP[1], 1, 1);
+
+        }
+
+        return BIG_IMAGE;
+
+    }
+    
+    /******************Get the Score of the image
+     * 
+     * @param imageOne
+     * @param imageTwo
+     * @param bitsToMatch
+     * @return 
+     */
+    public static Statistic match2ImagesScore(BufferedImage imageOne, BufferedImage imageTwo, int bitsToMatch) {
+        
+        Statistic result=new Statistic();
+
+        HilbertCurve cForpattern = HilbertCurve.bits(bitsToMatch).dimensions(2);
+        TrackingParameters trackingParameters = new TrackingParameters(); //use later
+        int pointsToTravese = bitsToMatch * bitsToMatch;
+        int[] errorArray = new int[pointsToTravese];//use later
+        int matchCount=0;
+        int variance=0;
+        for (int traverseStartp = 0; traverseStartp < pointsToTravese; traverseStartp++) {
+            //Get the XY in images to match
+            long[] pointP = cForpattern.point(traverseStartp);
+            pointP[0] = (long) (pointP[0] * imageOne.getWidth() / Math.sqrt(pointsToTravese));
+            pointP[1] = (long) (pointP[1] * imageOne.getHeight() / Math.sqrt(pointsToTravese));
+            long[] pointT = cForpattern.point(traverseStartp);
+            pointT[0] = (long) (pointT[0] * imageTwo.getWidth() / Math.sqrt(pointsToTravese));
+            pointT[1] = (long) (pointT[1] * imageTwo.getHeight() / Math.sqrt(pointsToTravese));
+            
+            //get pixel value
+            try {
+                //System.out.println(pointT[0]+" /"+targetScaled.getWidth()+" "+pointT[1]+" /"+targetScaled.getHeight());
+                int p = imageOne.getRGB((int) (long) pointP[0], (int) (long) pointP[1]);
+                int pT = imageTwo.getRGB((int) (long) pointT[0], (int) (long) pointT[1]);
+                variance=variance+(p-pT)*(p-pT);
+                // errorArray[traverseStartp] =p-pT;
+                if (p == pT) {
+                    matchCount++;
+                }
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+        
+        result.setVariance(variance/pointsToTravese);
+        result.setStandardDeviation(Math.sqrt(variance/pointsToTravese));
+        result.setSimilarityScore((double)matchCount/(double)pointsToTravese);
+
+        return result;
+    }
+    
     /***********************Find Exactly matching pixel***************
      * 
      * @param imageOne
