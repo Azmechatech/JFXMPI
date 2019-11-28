@@ -86,6 +86,7 @@ public class WebsiteBrowser extends Application {
     static DirectoryChooser dc = new DirectoryChooser();
     static File directory = null;
     static Queue<String> downloadqueue = new LinkedList<>();
+    static Queue<String> urlqueue = new LinkedList<>();
     String webContent = "";
 
     public static void main(String[] args) {
@@ -161,6 +162,7 @@ public class WebsiteBrowser extends Application {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldLocation, String newLocation) {
                 location.setText(newLocation);
+                urlqueue.add(newLocation);
             }
         });
 
@@ -169,6 +171,7 @@ public class WebsiteBrowser extends Application {
         Button goForward = new Button("Forward");
         Button goEditURLs = new Button("Edit URLs");
         Button goDownload = new Button("Download");
+        Button goURLHistory = new Button("Visited URLs");
         Label stateLabel = new Label();
 
         stateLabel.setTextFill(Color.RED);
@@ -227,6 +230,15 @@ public class WebsiteBrowser extends Application {
             @Override
             public void handle(ActionEvent event) {
                 openURLEditor();
+            }
+        });
+        
+        
+        goURLHistory.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                openURLHistory(webView.getEngine());
             }
         });
         // Bind the progress property of ProgressBar
@@ -359,7 +371,7 @@ public class WebsiteBrowser extends Application {
 
         createContextMenu(webView, stateLabel); //Creating a custom context menu works
         webView.getEngine().load(HOME_LOC);
-        browserControls.getChildren().addAll(stateLabel, progressBar, goButton, goBack, goForward, goEditURLs, goDownload);
+        browserControls.getChildren().addAll(stateLabel, progressBar, goButton, goBack, goForward, goEditURLs, goDownload,goURLHistory);
 // VBox root = new VBox();
         //      root.getChildren().addAll(addressBar, goButton, stateLabel, progressBar, browser);
         VBox layout = new VBox(10);
@@ -416,7 +428,10 @@ public class WebsiteBrowser extends Application {
 
                 stateLabel.setText("Download >> " + downloadqueue.size() + " files.");
 
-            } else {
+            }  else if (e.getButton() == MouseButton.SECONDARY) {
+                    stateLabel.setText("Navigating to >> "+webView.getEngine().getLocation());
+                    System.out.println("Navigating to >> "+webView.getEngine().getLocation());
+            }else {
                 contextMenu.hide();
             }
         });
@@ -528,6 +543,84 @@ public class WebsiteBrowser extends Application {
 //actionStatus.setText("Selection: " + selected);
     }
 
+    public static void openURLHistory(WebEngine webEngine) {
+        String[] arrayData = {"First", "Second", "Third", "Fourth"};
+
+        ArrayList dialogData = new ArrayList(urlqueue);
+
+        //   List<String> dialogData = Arrays.asList(arrayData);
+        //ChoiceDialog dialog = new ChoiceDialog(dialogData.get(0), dialogData);
+        Dialog dialog = new Dialog();
+        dialog.setTitle("EDIT URLS");
+        dialog.setHeaderText("Select your choice");
+
+        // Create the Lists for the ListViews
+        ObservableList<String> urlList = FXCollections.<String>observableArrayList(dialogData);
+
+// Create the ListView for the fruits
+        ListView<String> urls = new ListView<String>();
+        urls.getItems().addAll(urlList);
+
+        //CREATE THE INPUT BOXES
+        Label label1 = new Label("STRING:");
+        Label label2 = new Label("REPLACEMENT:");
+        Label label3 = new Label("PREFFIX:");
+        Label label4 = new Label("SUFFIX:");
+        TextField STRING = new TextField();
+        TextField REPLACEMENT = new TextField();
+        TextField PREFFIX = new TextField();
+        TextField SUFFIX = new TextField();
+        Button goReplace = new Button("Append");
+
+        goReplace.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                for (String url : urlList) {
+                    downloadqueue.add(PREFFIX.getText() + url.replace(STRING.getText(), REPLACEMENT.getText()) + SUFFIX.getText());
+                }
+
+                /**
+                 * *****************************
+                 * Copy from clipboard as well
+                 */
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent cc = new ClipboardContent();
+
+                String content = clipboard.getString();
+                String[] contentArray = content.split("\n");
+                List<String> list = Arrays.asList(contentArray);
+                downloadqueue.addAll(list);
+            }
+        });
+
+        urls.setOnMouseClicked(new EventHandler<MouseEvent>() {
+
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println("clicked on " + urls.getSelectionModel().getSelectedItem());
+                STRING.setText(urls.getSelectionModel().getSelectedItem());
+                webEngine.load(urls.getSelectionModel().getSelectedItem());
+            }
+        });
+
+        VBox content = new VBox(label1, STRING, label2, REPLACEMENT, label3, PREFFIX, label4, SUFFIX, goReplace, urls);
+        dialog.getDialogPane().setContent(content);
+        ButtonType buttonTypeOk = new ButtonType("Okay", ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
+
+        Optional<String> result = dialog.showAndWait();
+        String selected = "cancelled.";
+
+        if (result.isPresent()) {
+
+            //   selected = result.get();
+        }
+
+//actionStatus.setText("Selection: " + selected);
+    }
+
+    
     public void executeDownloadQueue(Label stateLabel) {
         Iterator itr = downloadqueue.iterator();
         Queue<String> removeQueue = new LinkedList<>();
@@ -537,6 +630,7 @@ public class WebsiteBrowser extends Application {
 
                 // System.out.println(itr.next());
                  urlToDnld = itr.next().toString();
+                 if(!urlToDnld.startsWith("http")) continue;
                 urlToDnld = urlToDnld.startsWith("http") ? urlToDnld : "https:" + urlToDnld;
                 System.out.println("executeDownloadQueue>> " + urlToDnld);
                 saveImage(urlToDnld, directory, stateLabel);
