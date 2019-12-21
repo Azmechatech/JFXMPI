@@ -448,7 +448,7 @@ public class TextBubble extends StackPane {
             this.chatMessage.setText(results.SpeechText);
             this.chatMessage.setEffect(new DropShadow(+25d, 0d, +2d, Color.BLANCHEDALMOND));
             this.chatMessage.setStyle("-fx-shape: \"" + results.TEXT_BUBBLE + "\";\n"
-                    + "    -fx-background-color: black, white;\n"
+                    + "    -fx-background-color: black, #E0C796;\n"
                     + "    -fx-background-insets: 0,1;\n"
                     + "    -fx-font-family: \"Comic Sans MS\";\n"
                     + "    -fx-font-size: 20px;\n"

@@ -441,7 +441,7 @@ public class MainApp extends Application {
 
                 try {
                     ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
-                    MediaCryptoHelper.saveCryptoMedia(secrteKey,SwingFXUtils.fromFXImage(image, null), selectedDirectory);
+                    //MediaCryptoHelper.saveCryptoMedia(secrteKey,SwingFXUtils.fromFXImage(image, null), selectedDirectory);
    
                 } catch (IOException e) {
                     // TODO: handle exception here
@@ -467,8 +467,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                         java.awt.Image image = getImageFromClipboard();
                         if (image != null) {
                             javafx.scene.image.Image fimage = awtImageToFX(image);
-                            pe.imageView.setFitHeight(scene.getHeight());
-                            pe.imageView.setFitWidth(scene.getWidth());
+                            //pe.imageView.setFitHeight(scene.getHeight());
+                           // pe.imageView.setFitWidth(scene.getWidth());
                             pe.imageView.setX(0);
                             pe.imageView.setY(0);
                             pe.imageView.setImage(fimage);
