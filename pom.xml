@@ -373,6 +373,16 @@
             <artifactId>org.apache.servicemix.bundles.jsoup</artifactId>
             <version>1.5.2_2</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.25.2</version>
+        </dependency>
     </dependencies>
 
 
