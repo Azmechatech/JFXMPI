@@ -5,6 +5,8 @@
  */
 package net.mky.jfxmpi;
 
+import info.debatty.java.stringsimilarity.Levenshtein;
+import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.value.*;
@@ -37,20 +39,26 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.concurrent.Worker.State;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -74,6 +82,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.davidmoten.hilbert.HilbertCurve;
 import net.mky.clustering.HilbertCurvePatternDetect;
+import static net.mky.jfxmpi.WebsiteBrowser.downloadqueue;
+import net.mky.safeStore.CryptoUtils;
 import systemknowhow.Tools;
 
 public class WebsiteBrowser extends Application {
@@ -81,15 +91,37 @@ public class WebsiteBrowser extends Application {
     private static final String HOME_LOC = "http://docs.oracle.com/javafx/2/get_started/animation.htm";
     static ExecutorService executor = Executors.newFixedThreadPool(5);
     private static WebView webView;
+    private static final HashMap<String,WebView> tabData=new HashMap<>();
 
     private File captureFile = new File("cap.png");
     static DirectoryChooser dc = new DirectoryChooser();
     static File directory = null;
     static Queue<String> downloadqueue = new LinkedList<>();
+    static Set<String> failedQueue=new HashSet<>();
     static Queue<String> urlqueue = new LinkedList<>();
     String webContent = "";
+    
+    static Logger loggerForURL = Logger.getLogger("WebsiteBrowser");
+    static FileHandler fhForURL;
+    
+    static Logger loggerForFilter = Logger.getLogger("WebsiteBrowserFltr");
+    static FileHandler fhForFilter;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        fhForURL = new FileHandler("log/WB-" + System.currentTimeMillis() + ".log");
+        loggerForURL.addHandler(fhForURL);
+        SimpleFormatter formatter = new SimpleFormatter();
+        fhForURL.setFormatter(formatter);
+        loggerForURL.info(CryptoUtils.encode("WorkingURL,RawURL",16));
+        
+        ////////FOR FILTER
+        fhForFilter = new FileHandler("log/WBFLTR-" + System.currentTimeMillis() + ".log");
+        loggerForFilter.addHandler(fhForFilter);
+        SimpleFormatter formatter2 = new SimpleFormatter();
+        fhForFilter.setFormatter(formatter2);
+        loggerForFilter.info(CryptoUtils.encode("URL\t _element \t _attribute \tfileExt",16));
+                
+
         Application.launch(WebsiteBrowser.class);
     }
 
@@ -221,7 +253,9 @@ public class WebsiteBrowser extends Application {
 
             @Override
             public void handle(ActionEvent event) {
-                executeDownloadQueue(stateLabel);
+                DownloadTask downLoadTask=new  DownloadTask(stateLabel);
+                new Thread(downLoadTask).start();
+                //executeDownloadQueue(stateLabel);
             }
         });
 
@@ -253,11 +287,78 @@ public class WebsiteBrowser extends Application {
         final Button capture = new Button("Capture");
         final Button getImageList = new Button("Detect Files to download");
         final Button showPageSource = new Button("<html>");
+        final Button pastPageSource = new Button("Paste");
         getImageList.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
                 /**
+                 * *************************
+                 */
+                // Retrieve all direct image URLs
+                /**
+                 * *************************
+                 */
+                // webContent= getWebContent();
+                String[] allImages = imageURLS(webContent, _element.getText(), _attribute.getText(), true);
+                if (allImages.length == 0) {
+                    
+                    imageURLS2(webContent, _element.getText(), _attribute.getText()).toArray(allImages);
+                
+                }
+                for (String url : allImages) {
+                    String[] fileExtelements = fileExt.getText().split(";");
+                    for (String fileExtelement : fileExtelements) {
+                        if (url.endsWith(fileExtelement)) {
+                            downloadqueue.add(url);
+                        }
+                    }
+
+                }
+
+                if(downloadqueue.size()>0) 
+                    loggerForFilter.info(CryptoUtils.encode(webView.getEngine().getLocation()+"\t"+_element.getText()+"\t"+_attribute.getText()+"\t"+fileExt.getText(),16));
+                
+                stateLabel.setText("Automatically added: " + downloadqueue.size() + " files for download . Ext: " + fileExt.getText());
+            }
+        });
+
+        showPageSource.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                /**
+                 * *************************
+                 */
+                // VIEW CONTENT
+                /**
+                 * *************************
+                 */
+                viewWebContent();
+            }
+        });
+        
+        
+        /**
+         * Paste from the clipboard, and detect files to download.
+         */
+        pastPageSource.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+               
+                /**
+                 * *****************************
+                 * Copy from clipboard as well
+                 */
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent cc = new ClipboardContent();
+
+                String content = clipboard.getString();
+                webContent = content;
+                System.out.println(webContent);
+                webView.getEngine().loadContent(webContent);
+                
+                  /**
                  * *************************
                  */
                 // Retrieve all direct image URLs
@@ -280,21 +381,7 @@ public class WebsiteBrowser extends Application {
                 }
 
                 stateLabel.setText("Automatically added: " + downloadqueue.size() + " files for download . Ext: " + fileExt.getText());
-            }
-        });
-
-        showPageSource.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                /**
-                 * *************************
-                 */
-                // VIEW CONTENT
-                /**
-                 * *************************
-                 */
-                viewWebContent();
+                
             }
         });
 //
@@ -302,7 +389,7 @@ public class WebsiteBrowser extends Application {
         progress.setVisible(false);
 
         HBox controls = new HBox(10);
-        controls.getChildren().addAll(capture, progress, prefWidth, prefHeight, labelForImgs, _element, _attribute, fileExt, getImageList, showPageSource);
+        controls.getChildren().addAll(capture, progress, prefWidth, prefHeight, labelForImgs, _element, _attribute, fileExt, getImageList, showPageSource,pastPageSource);
 
         final ImageView imageView = new ImageView();
         ScrollPane imageViewScroll = makeScrollable(imageView);
@@ -368,7 +455,16 @@ public class WebsiteBrowser extends Application {
                 progress.setVisible(true);
             }
         });
-
+        
+        //Implementation for TABs
+        final Button selectTab = new Button("TABS");
+            selectTab.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                //Show a dialog with webEngine preview.
+            }
+        });
+        
         createContextMenu(webView, stateLabel); //Creating a custom context menu works
         webView.getEngine().load(HOME_LOC);
         browserControls.getChildren().addAll(stateLabel, progressBar, goButton, goBack, goForward, goEditURLs, goDownload,goURLHistory);
@@ -389,6 +485,17 @@ public class WebsiteBrowser extends Application {
         stage.show();
     }
 
+    public static boolean isMatching(String stringToCompare){
+        Levenshtein l = new Levenshtein();
+         //NormalizedLevenshtein l = new NormalizedLevenshtein();
+        for(String data:failedQueue){
+            double result=l.distance(data, stringToCompare);
+            if(result>.8){ return true;}
+        }
+        return false;
+    }
+    
+    
     private static void createContextMenu(WebView webView, Label stateLabel) {
 
         MenuItem reload = new MenuItem("reload");
@@ -495,6 +602,8 @@ public class WebsiteBrowser extends Application {
         TextField PREFFIX = new TextField();
         TextField SUFFIX = new TextField();
         Button goReplace = new Button("Append");
+        
+        Button purgeAll = new Button("Purge All");
 
         goReplace.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -502,6 +611,7 @@ public class WebsiteBrowser extends Application {
             public void handle(ActionEvent event) {
                 for (String url : urlList) {
                     downloadqueue.add(PREFFIX.getText() + url.replace(STRING.getText(), REPLACEMENT.getText()) + SUFFIX.getText());
+                    downloadqueue.remove(url);
                 }
 
                 /**
@@ -518,6 +628,16 @@ public class WebsiteBrowser extends Application {
             }
         });
 
+         purgeAll.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+           
+                downloadqueue.clear();
+            }
+        });
+
+         
         urls.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
             @Override
@@ -527,7 +647,7 @@ public class WebsiteBrowser extends Application {
             }
         });
 
-        VBox content = new VBox(label1, STRING, label2, REPLACEMENT, label3, PREFFIX, label4, SUFFIX, goReplace, urls);
+        VBox content = new VBox(label1, STRING, label2, REPLACEMENT, label3, PREFFIX, label4, SUFFIX, goReplace,purgeAll, urls);
         dialog.getDialogPane().setContent(content);
         ButtonType buttonTypeOk = new ButtonType("Okay", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
@@ -620,32 +740,53 @@ public class WebsiteBrowser extends Application {
 //actionStatus.setText("Selection: " + selected);
     }
 
-    
+    /**
+     * 
+     * @param stateLabel 
+     */
     public void executeDownloadQueue(Label stateLabel) {
         Iterator itr = downloadqueue.iterator();
         Queue<String> removeQueue = new LinkedList<>();
-        String urlToDnld="" ;
-        try {
-            while (itr.hasNext()) {
+        String urlToDnld = "";
+        String urlToDnldRaw = "";
+        while (itr.hasNext()) {
+            try {
 
                 // System.out.println(itr.next());
-                 urlToDnld = itr.next().toString();
-                 if(!urlToDnld.startsWith("http")) continue;
-                urlToDnld = urlToDnld.startsWith("http") ? urlToDnld : "https:" + urlToDnld;
-                System.out.println("executeDownloadQueue>> " + urlToDnld);
-                saveImage(urlToDnld, directory, stateLabel);
-               removeQueue.add(urlToDnld);
+                urlToDnld = itr.next().toString();
+                urlToDnldRaw=urlToDnld;
+                if (!urlToDnld.contains("http") && !urlToDnld.contains("https")) {
+                    continue;
+                }
 
+                int indexOf = urlToDnld.contains("http") ? urlToDnld.indexOf("http") : urlToDnld.indexOf("https");
+                urlToDnld = urlToDnld.substring(indexOf);//Trim the prefixes if any
+                // urlToDnld = urlToDnld.startsWith("http") ? urlToDnld : "https:" + urlToDnld;
+                System.out.println("executeDownloadQueue>> " + urlToDnld);
+                if (!isMatching(urlToDnld)) {
+                }else{
+                    System.out.println("executeDownloadQueue>> Matched with failed pattern");
+                }
+                saveImage(urlToDnld, directory, stateLabel);
+                removeQueue.add(urlToDnldRaw);
+                
+                loggerForURL.info(CryptoUtils.encode(urlToDnldRaw+","+urlToDnld, 16));
+                //isMatching(String stringToCompare)
+            } catch (Exception ex) {
+                System.out.println("executeDownloadQueue>> Issue with " + urlToDnld + ">>" + ex.getMessage());
+                if (isMatching(urlToDnld)) {
+                    
+                } else {
+                    failedQueue.add(urlToDnld);
+                }
+                removeQueue.add(urlToDnldRaw);
+                //ex.printStackTrace();
+                // return;//return on exceptions
+                //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (Exception ex) {
-            System.out.println("executeDownloadQueue>> Issue with "+urlToDnld+">>"+ex.getMessage());
-            removeQueue.add(urlToDnld);
-            //ex.printStackTrace();
-           // return;//return on exceptions
-            //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-       downloadqueue.removeAll(removeQueue);
+        downloadqueue.removeAll(removeQueue);
     }
 
     private ScrollPane makeScrollable(final ImageView imageView) {
@@ -692,7 +833,7 @@ public class WebsiteBrowser extends Application {
     public void viewWebContent() {
 
         Dialog dialog = new Dialog();
-        dialog.setTitle("EDIT URLS");
+        dialog.setTitle("Page source");
         dialog.setHeaderText("Select your choice");
         TextArea ta = new TextArea(webContent);
 
@@ -784,7 +925,12 @@ public class WebsiteBrowser extends Application {
 
         }
 
-        stateLabel.setText("Saved" + fileName);
+         Platform.runLater(new Runnable() {
+                 @Override public void run() {
+                    stateLabel.setText("Saved" + fileName);
+                 }
+             });
+        
     }
 
     /**
@@ -887,5 +1033,69 @@ public class WebsiteBrowser extends Application {
         }
         return result;
     }
+    
+    class DownloadTask extends Task {
+
+        Label stateLabel = new Label();
+
+        DownloadTask(Label stateLabel) {
+            this.stateLabel = stateLabel;
+            // initialize
+        }
+
+        @Override
+        protected Object call() throws Exception {
+
+            Iterator itr = downloadqueue.iterator();
+            String[] urlArray=new String[downloadqueue.size()];
+            downloadqueue.toArray(urlArray);
+            Queue<String> removeQueue = new LinkedList<>();
+            String urlToDnld = "";
+            String urlToDnldRaw = "";
+            for  (String thisUrl:urlArray) {
+                try {
+
+                    // System.out.println(itr.next());
+                    urlToDnld = thisUrl;//itr.next().toString();
+                    urlToDnldRaw = urlToDnld;
+                    if (!urlToDnld.contains("http") && !urlToDnld.contains("https")) {
+                        continue;
+                    }
+
+                    int indexOf = urlToDnld.contains("http") ? urlToDnld.indexOf("http") : urlToDnld.indexOf("https");
+                    urlToDnld = urlToDnld.substring(indexOf);//Trim the prefixes if any
+                    // urlToDnld = urlToDnld.startsWith("http") ? urlToDnld : "https:" + urlToDnld;
+                    System.out.println("executeDownloadQueue>> " + urlToDnld);
+                    if (!isMatching(urlToDnld)) {
+                    } else {
+                        System.out.println("executeDownloadQueue>> Matched with failed pattern");
+                    }
+                    saveImage(urlToDnld, directory, stateLabel);
+                    removeQueue.add(urlToDnldRaw);
+
+                    loggerForURL.info(CryptoUtils.encode(urlToDnldRaw + "," + urlToDnld, 16));
+                     downloadqueue.remove(urlToDnldRaw);
+                     downloadqueue.remove(urlToDnld);
+                    //isMatching(String stringToCompare)
+                } catch (Exception ex) {
+                    System.out.println("executeDownloadQueue>> Issue with " + urlToDnld + ">>" + ex.getMessage());
+                    if (isMatching(urlToDnld)) {
+
+                    } else {
+                        failedQueue.add(urlToDnld);
+                    }
+                    removeQueue.add(urlToDnldRaw);
+                    //ex.printStackTrace();
+                    // return;//return on exceptions
+                    //  Logger.getLogger(WebsiteBrowser.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            downloadqueue.removeAll(removeQueue);
+            return null;
+        }
+}
 
 }
+
+

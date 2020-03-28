@@ -383,6 +383,13 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.25.2</version>
         </dependency>
+        
+        <dependency>
+    <groupId>info.debatty</groupId>
+    <artifactId>java-string-similarity</artifactId>
+    <version>RELEASE</version>
+</dependency>
+
     </dependencies>
 
 
