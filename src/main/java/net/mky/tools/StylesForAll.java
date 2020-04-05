@@ -20,7 +20,7 @@ public class StylesForAll {
 "    -fx-background-radius: 9,8,5,4,3;\n" +
 "    -fx-padding: 5 10 5 10;\n" +
 "    -fx-font-family: \"Helvetica\";\n" +
-"    -fx-font-size: 18px;\n" +
+"    -fx-font-size: 12px;\n" +
 "    -fx-font-weight: bold;\n" +
 "    -fx-text-fill: white;\n" +
 "    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +

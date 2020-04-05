@@ -34,6 +34,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -330,6 +331,8 @@ public class TextBubble extends StackPane {
         dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         //TextField textField = new TextField("Name");
         TextArea taxachatMessage = new TextArea(this.chatMessage.getText());
+        TextField  colour=new TextField("black");
+        
         ImageView imageView = new ImageView();
         ImageView forCropiing=new ImageView();;
         imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent e) -> {
@@ -435,11 +438,11 @@ public class TextBubble extends StackPane {
         ComboBox<TextBubbleStyles.STYLES> comboBox = new ComboBox<>(options);
         //comboBox.getSelectionModel().selectFirst();
         comboBox.getSelectionModel().select(tbss);
-        dialogPane.setContent(new VBox(8, taxachatMessage, comboBox, new HBox(new VBox(cText, cImage,pasteButton, playButton), imageView)));
+        dialogPane.setContent(new VBox(8, taxachatMessage,colour, comboBox, new HBox(new VBox(cText, cImage,pasteButton, playButton), imageView)));
         Platform.runLater(taxachatMessage::requestFocus);
         dialog.setResultConverter((ButtonType button) -> {
             if (button == ButtonType.OK) {
-                return new ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue());
+                return new ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue(), colour.getText());
             }
             return null;
         });
@@ -448,7 +451,7 @@ public class TextBubble extends StackPane {
             this.chatMessage.setText(results.SpeechText);
             this.chatMessage.setEffect(new DropShadow(+25d, 0d, +2d, Color.BLANCHEDALMOND));
             this.chatMessage.setStyle("-fx-shape: \"" + results.TEXT_BUBBLE + "\";\n"
-                    + "    -fx-background-color: black, #E0C796;\n"
+                    + "    -fx-background-color: "+colour.getText()+", #E0C796;\n"
                     + "    -fx-background-insets: 0,1;\n"
                     + "    -fx-font-family: \"Comic Sans MS\";\n"
                     + "    -fx-font-size: 20px;\n"
@@ -470,11 +473,14 @@ public class TextBubble extends StackPane {
         TextBubbleStyles.STYLES venue;
 
         String TEXT_BUBBLE = "";
+        
+        String TEXT_COLOUR="white";
 
-        public ResultsOfDialog(String name, TextBubbleStyles.STYLES venue) {
+        public ResultsOfDialog(String name, TextBubbleStyles.STYLES venue, String our) {
             this.SpeechText = name;
             this.venue = venue;
             TEXT_BUBBLE = TextBubbleStyles.getTextBubbleStyles().get(venue.toString());
+            TEXT_COLOUR=our;
 
         }
     }

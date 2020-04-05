@@ -20,6 +20,18 @@
         <name>Your Organisation</name>
     </organization>
        <repositories>
+              
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+ 
      
         <repository>
             <id>xuggle repo</id>
@@ -389,6 +401,8 @@
     <artifactId>java-string-similarity</artifactId>
     <version>RELEASE</version>
 </dependency>
+
+
 
     </dependencies>
 

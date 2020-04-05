@@ -934,7 +934,7 @@ public void refresh(){
         Platform.runLater(taxachatMessage::requestFocus);
         dialog.setResultConverter((ButtonType button) -> {
             if (button == ButtonType.OK) {
-                return new TextBubble.ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue());
+                return new TextBubble.ResultsOfDialog(taxachatMessage.getText(), comboBox.getValue(), "white");
             }
             return null;
         });

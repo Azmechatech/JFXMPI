@@ -35,6 +35,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
@@ -78,6 +79,7 @@ import systemknowhow.human.ConversationMaker;
 import systemknowhow.human.Life;
 import systemknowhow.humanactivity.SocialRelationTags;
 import net.mky.clustering.HilbertCurvePatternDetect;
+import net.mky.jfxmpi.Collage.OPTIONS;
 import systemknowhow.tools.NERHelper;
 import systemknowhow.tools.TextHelper;
 
@@ -103,7 +105,8 @@ public class MainApp extends Application {
     String[] charPrefixes=new String[]{"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
     
     
-    final MainPane pe = new MainPane();
+    final MainPane background = new MainPane();
+    
     final BruteForceRenderer bfr=new BruteForceRenderer();
     static ConversationMaker convMaker;
     String thePath = "";
@@ -141,9 +144,9 @@ public class MainApp extends Application {
          charactersArray=new ArrayList<>();
          //textBubbleArray=new ArrayList<>();
          HBox characters=new HBox();
-         characters.getChildren().add(storyTimeline);
-         pe.setTranslateX(0);
-         pe.setTranslateY(0);
+         //characters.getChildren().add(storyTimeline);
+         background.setTranslateX(0);
+         background.setTranslateY(0);
         //int height = 25;
 
      
@@ -190,6 +193,10 @@ public class MainApp extends Application {
 //
 //        }
 
+
+        /**********************************************************************
+         * BACKGROUND IMPLEMENTAION
+         */
         Button playButton = new Button("Background");
         playButton.getStyleClass().add("play");
 
@@ -202,10 +209,10 @@ public class MainApp extends Application {
 
                     if (file != null) {
                         FileInputStream input = new FileInputStream(file.getAbsolutePath());
-                        pe.imageView.setImage(new Image(input, 1600, 1200, true, true));
-                        pe.bgImageFile = file.getAbsolutePath();
-                        pe.setTranslateX(0);
-                        pe.setTranslateY(0);
+                        background.imageView.setImage(new Image(input, 1600, 1200, true, true));
+                        background.bgImageFile = file.getAbsolutePath();
+                        background.setTranslateX(0);
+                        background.setTranslateY(0);
                         
                         File existDirectory = file.getParentFile();
                         fileChooser.setInitialDirectory(existDirectory);
@@ -236,7 +243,45 @@ public class MainApp extends Application {
                 + "-fx-border-color: GOLDENROD;"*/);
         //Translucent
         buttonPane.setStyle("-fx-background-color: linear-gradient(to right, rgb(203,53,107,0.25), rgb(189,63,50,0.25));");
-        
+       
+        //final Collage collage=new Collage(Collage.OPTIONS.SINGLE);
+/**************************************************************
+ * COLLAGE IMPLEMENTATION
+ */
+
+        Button collageButton = new Button("Collage");
+        EventHandler<ActionEvent> gocollageButtonAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                ChoiceDialog<OPTIONS> choiceDialog = new ChoiceDialog<>();
+                choiceDialog.getItems().addAll(OPTIONS.values());
+                choiceDialog.showingProperty().addListener((ov, b, b1) -> {
+                    
+                    if (b1) {
+                        choiceDialog.setContentText("");
+                    } else {
+                        choiceDialog.setContentText(null);
+                    }
+
+                });
+                
+                 Optional<OPTIONS> optionalResult =choiceDialog.showAndWait();
+                 optionalResult.ifPresent(result->{
+                     System.out.println(result);
+                     Collage collage=new Collage(result);
+                     background.getChildren().clear();//.remove(background.imageView);
+                     background.getChildren().add(collage);
+                     
+                 });
+
+            }
+        };
+        collageButton.setOnAction(gocollageButtonAction);
+        collageButton.setStyle(StylesForAll.transparentAlive);
+        buttonPane.getChildren().add(collageButton);
+        /***********************************************************************
+         * ADD ANIMATION
+         */
         //buttonPane.getChildren().add(toolBar);
         //Add Animation GIF
         EventHandler<ActionEvent> addAnimation = new EventHandler<ActionEvent>() {
@@ -255,7 +300,7 @@ public class MainApp extends Application {
                     Button btResume = new Button("Resume");
                     btResume.setOnAction(e -> ani.play());
 
-                    pe.getChildren().addAll(ani.getView(), btPause, btResume);
+                    background.getChildren().addAll(ani.getView(), btPause, btResume);
                 }
 
             }
@@ -333,7 +378,7 @@ public class MainApp extends Application {
                 try {
                     projData = new JSONObject();
                     projData.put("dirPath", dirPath);
-                    projData.put("bgFile", pe.bgImageFile);
+                    projData.put("bgFile", background.bgImageFile);
 
                     int i=0;
                     for(CharacterPane cp:charactersArray){
@@ -469,9 +514,9 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                             javafx.scene.image.Image fimage = awtImageToFX(image);
                             //pe.imageView.setFitHeight(scene.getHeight());
                            // pe.imageView.setFitWidth(scene.getWidth());
-                            pe.imageView.setX(0);
-                            pe.imageView.setY(0);
-                            pe.imageView.setImage(fimage);
+                            background.imageView.setX(0);
+                            background.imageView.setY(0);
+                            background.imageView.setImage(fimage);
                         }
                     }
                     catch (Exception e) {
@@ -675,8 +720,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
 
                         if (!projData.getString("bgFile").equalsIgnoreCase("")) {
                             input = new FileInputStream(projData.getString("bgFile"));
-                            pe.imageView.setImage(new Image(input, 1600, 1200, true, true));
-                            pe.bgImageFile = projData.getString("bgFile");
+                            background.imageView.setImage(new Image(input, 1600, 1200, true, true));
+                            background.bgImageFile = projData.getString("bgFile");
                         }
 
                         if (projData.has("cpane")) //OLD Convention
@@ -858,7 +903,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
         
         buttonPane.getChildren().add(new WindowButtons());
         
-        border.setCenter(pe);//addAnchorPane(addGridPane())
+        border.setCenter(background);//addAnchorPane(addGridPane())
         //border.setCenter(gp);
         //Old convention
 //        characters.getChildren().add(characterA);
@@ -909,8 +954,8 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                         dirPath = projData.getString("dirPath");
 
                        input = new FileInputStream(projData.getString("bgFile"));
-                        pe.imageView.setImage(new Image(input, 1600, 1200, true, true));
-                        pe.bgImageFile = projData.getString("bgFile");
+                        background.imageView.setImage(new Image(input, 1600, 1200, true, true));
+                        background.bgImageFile = projData.getString("bgFile");
 
                         input = new FileInputStream(projData.getString("cpane"));
                         characterA.CharacterFile = projData.getString("cpane");

@@ -136,7 +136,7 @@ public class WebsiteBrowser extends Application {
         //"img[src]","src",true
         final TextField _element = new TextField("img[src]");
         final TextField _attribute = new TextField("src");
-        final TextField fileExt = new TextField(".jpg;.jpeg");
+        final TextField fileExt = new TextField(".jpg;.jpeg;.png;.PNG");
         Label labelForImgs = new Label("HTML element & attribute: ");
 
         webView.getEngine().getLoadWorker().stateProperty()
