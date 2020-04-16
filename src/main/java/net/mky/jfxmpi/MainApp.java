@@ -1,5 +1,6 @@
 package net.mky.jfxmpi;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
@@ -78,7 +79,7 @@ import systemknowhow.LifePool;
 import systemknowhow.human.ConversationMaker;
 import systemknowhow.human.Life;
 import systemknowhow.humanactivity.SocialRelationTags;
-import net.mky.clustering.HilbertCurvePatternDetect;
+
 import net.mky.jfxmpi.Collage.OPTIONS;
 import systemknowhow.tools.NERHelper;
 import systemknowhow.tools.TextHelper;
@@ -888,7 +889,7 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
                 characters.setVisible(!characters.isVisible());
                 
-                showBubbleSelectionDialog();
+               // showBubbleSelectionDialog();
             }
         };
 
@@ -909,14 +910,14 @@ bnPaste.setOnAction(new EventHandler<ActionEvent>() {
 //        characters.getChildren().add(characterA);
 //        characters.getChildren().add(characterB);
 //        characters.getChildren().add(characterC);
-        border.setLeft(characters);// addVBox()
+        border.setBottom(characters);// addVBox()
         
        // border.setRight(characters);
         border.setTop(buttonPane); //hbox
        
 
        // border.setBottom(StoryBoard);GraphPane
-       border.setBottom(graphBoard);
+       //border.setBottom(graphBoard);
 
         border.setStyle("-fx-background-color: linear-gradient(to right, #642b73, #c6426e);");
         border.setStyle("-fx-background-color:linear-gradient(to right, #40e0d0, #ff8c00, #ff0080);");

@@ -252,7 +252,7 @@ public class TextBubble extends StackPane {
                 chatMessage.setTranslateX(0);
                 chatMessage.setTranslateY(0);
                 
-                cir2.setTranslateX(chatMessage.getWidth());
+                cir2.setTranslateX(0);
                 cir2.setTranslateY(chatMessage.getHeight());
             }
         };

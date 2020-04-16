@@ -5,6 +5,7 @@
  */
 package net.mky.jfxmpi;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.logging.Level;
@@ -46,7 +47,7 @@ import net.mky.graphUI.Graph;
 import net.mky.tools.MediaControl;
 import net.mky.tools.Model;
 import net.mky.tools.StylesForAll;
-import net.mky.clustering.HilbertCurvePatternDetect;
+
 
 /**
  *

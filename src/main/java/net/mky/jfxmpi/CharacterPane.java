@@ -85,7 +85,7 @@ import systemknowhow.human.Life;
 import systemknowhow.human.LifeTagFactory;
 import systemknowhow.human.Male;
 import systemknowhow.human.guns.CompositeGun;
-import net.mky.clustering.HilbertCurvePatternDetect;
+
 
 /**
  *

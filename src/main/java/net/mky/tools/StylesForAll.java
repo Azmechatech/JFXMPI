@@ -26,6 +26,17 @@ public class StylesForAll {
 "    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +
 "                1, 0.0 , 0 , 1);";
     
+     public static String transparentAliveText="-fx-background-color: linear-gradient(to right, #ee9ca7, #ffdde1);"+
+"    -fx-background-insets: 0,1,4,5,6;\n" +
+"    -fx-padding: 5 10 5 10;\n" +
+"    -fx-font-family: \"Helvetica\";\n" +
+"    -fx-font-size: 12px;\n" +
+"    -fx-font-weight: bold;\n" +
+"    -fx-text-fill: white;\n" +
+"    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +
+"                1, 0.0 , 0 , 1);";
+    
+     
     public static String pigletTheme="-fx-background-color: linear-gradient(to right, #ee9ca7, #ffdde1);-fx-font-size: 14px;"+"    -fx-font-family: \"Helvetica\";\n" +
 
 "    -fx-font-weight: bold;\n" +

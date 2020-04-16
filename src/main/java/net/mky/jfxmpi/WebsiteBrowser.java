@@ -5,6 +5,7 @@
  */
 package net.mky.jfxmpi;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import info.debatty.java.stringsimilarity.Levenshtein;
 import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 import javafx.animation.PauseTransition;
@@ -81,7 +82,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.davidmoten.hilbert.HilbertCurve;
-import net.mky.clustering.HilbertCurvePatternDetect;
+
 import static net.mky.jfxmpi.WebsiteBrowser.downloadqueue;
 import net.mky.safeStore.CryptoUtils;
 import systemknowhow.Tools;

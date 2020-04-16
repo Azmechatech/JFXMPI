@@ -5,6 +5,7 @@
  */
 package net.mky.jfxmpi;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -61,7 +62,7 @@ import javafx.util.StringConverter;
 import net.mky.tools.StylesForAll;
 import org.json.JSONArray;
 import systemknowhow.human.*;
-import net.mky.clustering.HilbertCurvePatternDetect;
+
 
 /**
  *

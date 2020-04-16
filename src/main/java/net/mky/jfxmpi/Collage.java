@@ -56,7 +56,9 @@ public class Collage  extends StackPane {
         switch (option){
                 case SINGLE:
                    
-                   
+                   //____
+                  // |  |
+                  // ````        
                     HBox component=getOneImageComponent();
                     gridPane.add(component, 0, 0, 1, 1);
                     GridPane.setMargin(component, new Insets(-1, -1, -1, -1));
@@ -66,6 +68,9 @@ public class Collage  extends StackPane {
                 break;
 
                 case DOUBLE_VERT:
+                   //_______
+                  // |  |  |
+                  // ``````` 
                     
                     component=getOneImageComponent();
                     gridPane.add(component, 0, 0, 1, 1);
@@ -76,10 +81,58 @@ public class Collage  extends StackPane {
                     GridPane.setMargin(component2, new Insets(-1, -1, -1, -1));
 
                     getChildren().add(gridPane);
+                break;
+                
+                case DOUBLE_HORZ:
+                   //____
+                  // |  |
+                  // ----  
+                  // |  |
+                  // ````
+                    gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
                     
+                    gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+
+                    getChildren().add(gridPane);
                     
                 break;
-                case DOUBLE_HORZ:
+                
+                case TRIPLE_VERT:
+                   //__________
+                  // |  |  |  |
+                  // ``````````                     
+                    
+                    gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),1, 0, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),2, 0, 1, 1);
+
+                    getChildren().add(gridPane);
+                    
+                break;
+                
+                
+                case TRIPPLE_HORZ:
+                   //____
+                  // |  |
+                  // ----  
+                  // |  |
+                  // ----  
+                  // |  |
+                  // ````                    
+                    gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),0, 2, 1, 1);
+
+                    getChildren().add(gridPane);
+                    
+                break;
+                
+                
+                case ONE_IS_TO_2_VERT:
                     
                     gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
                     
@@ -88,6 +141,21 @@ public class Collage  extends StackPane {
                     getChildren().add(gridPane);
                     
                 break;
+                
+                
+                case ONE_IS_TO_2_HORZ:
+                    
+                    gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+
+                    getChildren().add(gridPane);
+                    
+                break;
+                
+                
+          
+                
                 
         }
                 
@@ -215,6 +283,9 @@ public class Collage  extends StackPane {
 
                 //instantiating the Light.Point class 
                 Light.Point light = new Light.Point();
+                Light.Distant dist=new Light.Distant();
+                dist.setAzimuth(45.0);
+                dist.setElevation(30.0);
 
                 //Setting the color of the light
                 light.setColor(Color.GREEN);
@@ -228,7 +299,9 @@ public class Collage  extends StackPane {
                 Lighting lighting = new Lighting();
 
                 //Setting the light 
-                lighting.setLight(light);
+                lighting.setLight(dist);
+                
+                lighting.setSurfaceScale(5.0);
 
                 imageView.setEffect(lighting);
 
@@ -376,7 +449,7 @@ public class Collage  extends StackPane {
             }
         });
         
-        VBox vBox=new VBox(selectCharPic,imgIncrease,imgDecrease,imgBlurr,
+        VBox vBox=new VBox(new Button("_"),selectCharPic,imgIncrease,imgDecrease,imgBlurr,
                 imgNoblurr,imgGrey,imgNoGrey,imgLighting,imgDropShadow,imgShadow,imgSepiaTone
         ,imgReflection,imgMotionBlur,imgGlow,imgBloom);
         

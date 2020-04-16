@@ -5,6 +5,7 @@
  */
 package net.mky.tools;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
@@ -33,7 +34,6 @@ import javax.swing.JOptionPane;
 import net.mky.jfxmpi.CharacterPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import net.mky.clustering.HilbertCurvePatternDetect;
 
 /**
  *

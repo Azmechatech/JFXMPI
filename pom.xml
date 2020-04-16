@@ -401,9 +401,11 @@
     <artifactId>java-string-similarity</artifactId>
     <version>RELEASE</version>
 </dependency>
-
-
-
+        <dependency>
+            <groupId>com.truegeometry</groupId>
+            <artifactId>mkHilbertML</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 
