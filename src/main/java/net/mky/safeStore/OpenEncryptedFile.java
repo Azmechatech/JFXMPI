@@ -87,7 +87,20 @@ public class OpenEncryptedFile {
         if (oldData.has(fileToDecrypt.getName())) {
             //Find file name in meta
             String originalFileName = CryptoUtils.decode(oldData.getString(fileToDecrypt.getName()), key.length());
-            originalFileName = tempWorkSpace.getAbsolutePath() + "/" + originalFileName;
+            String originalFolderName = CryptoUtils.decode(fileToDecrypt.getParentFile().getName(), key.length());
+             
+            if (originalFolderName.contains("__")) {//Create Folder Structure
+                //Creating a File object
+                File file = new File(tempWorkSpace.getAbsolutePath() +"/"+ originalFolderName.split("__")[0]+"/"+ originalFolderName.split("__")[1]);
+                //Creating the directory
+                boolean bool = file.mkdirs();
+               // if(!bool)System.out.println("Failed to create>> "+file.getAbsolutePath() );
+
+               originalFileName = file.getAbsolutePath() + "/" + originalFileName;
+            } else {
+                originalFileName = tempWorkSpace.getAbsolutePath() + "/" + originalFileName;
+            }
+            
             File decryptedFile = new File(originalFileName);
             try {
                 CryptoUtils.decrypt(key, fileToDecrypt, decryptedFile);

@@ -5,19 +5,27 @@
  */
 package net.mky.safeStore;
 
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import net.mky.image.DuplicateImageDetection;
 
 /**
  *
@@ -122,7 +130,25 @@ public class FileReadOperations {
 
             JFileChooser chooser = new JFileChooser();
             chooser.setMultiSelectionEnabled(true);
+             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             chooser.showOpenDialog(null);
+           
+
+            if (chooser.getSelectedFile().isDirectory()) {
+                List<File> listOfFiles = new LinkedList<>();
+                try {
+                    Path dir = chooser.getSelectedFile().toPath();
+                    Files.find(dir, 10, (path, attributes)
+                            -> path.getFileName().toString().toLowerCase().endsWith("")) // select all
+                            .forEach(filePath -> {
+                                listOfFiles.add(filePath.toFile());
+                            });
+                } catch (IOException ex1) {
+                    Logger.getLogger(FileReadOperations.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+                return listOfFiles;
+            }
+
             File[] files = chooser.getSelectedFiles();
             return Arrays.stream(files).collect(Collectors.toList());
 
