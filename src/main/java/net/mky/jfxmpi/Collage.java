@@ -41,7 +41,7 @@ import net.mky.tools.StylesForAll;
  * @author mkfs
  */
 public class Collage  extends StackPane {
-    public static enum OPTIONS{SINGLE,DOUBLE_VERT,DOUBLE_HORZ,TRIPLE_VERT,TRIPPLE_HORZ,ONE_IS_TO_2_VERT,ONE_IS_TO_2_HORZ};
+    public static enum OPTIONS{SINGLE,DOUBLE_VERT,DOUBLE_HORZ,TRIPLE_VERT,TRIPPLE_HORZ,ONE_IS_TO_2_VERT,ONE_IS_TO_2_HORZ,TwoX2};
     
     public Collage (OPTIONS option){
         GridPane gridPane = new GridPane();
@@ -134,9 +134,12 @@ public class Collage  extends StackPane {
                 
                 case ONE_IS_TO_2_VERT:
                     
-                    gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
+                     gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
                     
-                    gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+                    gridPane.add(getOneImageComponent(),1, 0, 1, 1);
+                     gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),1, 1, 1, 1);
 
                     getChildren().add(gridPane);
                     
@@ -148,6 +151,19 @@ public class Collage  extends StackPane {
                     gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
                     
                     gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+
+                    getChildren().add(gridPane);
+                    
+                break;
+                
+                case TwoX2:
+                    
+          gridPane.add(getOneImageComponent(), 0, 0, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),1, 0, 1, 1);
+                     gridPane.add(getOneImageComponent(),0, 1, 1, 1);
+                    
+                    gridPane.add(getOneImageComponent(),1, 1, 1, 1);
 
                     getChildren().add(gridPane);
                     
