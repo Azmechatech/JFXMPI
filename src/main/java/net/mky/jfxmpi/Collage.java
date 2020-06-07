@@ -11,6 +11,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.BoxBlur;
@@ -24,6 +25,7 @@ import javafx.scene.effect.Reflection;
 import javafx.scene.effect.SepiaTone;
 import javafx.scene.effect.Shadow;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -42,7 +44,7 @@ import net.mky.tools.StylesForAll;
  */
 public class Collage  extends StackPane {
     public static enum OPTIONS{SINGLE,DOUBLE_VERT,DOUBLE_HORZ,TRIPLE_VERT,TRIPPLE_HORZ,ONE_IS_TO_2_VERT,ONE_IS_TO_2_HORZ,TwoX2};
-    
+     private double pressedX, pressedY;
     public Collage (OPTIONS option){
         GridPane gridPane = new GridPane();
 //        ColumnConstraints colConstraint = new ColumnConstraints(120);
@@ -168,14 +170,30 @@ public class Collage  extends StackPane {
                     getChildren().add(gridPane);
                     
                 break;
-                
-                
-          
-                
-                
+
         }
+        
+          
+    setOnMousePressed(new EventHandler<MouseEvent>() {
+      public void handle(MouseEvent event) {
+        pressedX = event.getX();
+        pressedY = event.getY();
+      }
+    });
+
+    setOnMouseDragged(new EventHandler<MouseEvent>() {
+      public void handle(MouseEvent event) {
+        setTranslateX(getTranslateX() + event.getX() - pressedX);
+        setTranslateY(getTranslateY() + event.getY() - pressedY);
+
+        event.consume();
+      }
+    });
+    
                 
     }
+    
+    
     
     /**
      * Get one component.
@@ -185,6 +203,7 @@ public class Collage  extends StackPane {
     HBox getOneImageComponent() {
         HBox buttonPane = new HBox();
         ImageView imageView = new ImageView();
+        TextArea textArea = new TextArea();
 //        imageView.setFitHeight(500);
 //        imageView.setFitWidth(800);
         Button selectCharPic = new Button("P");
@@ -198,13 +217,28 @@ public class Collage  extends StackPane {
                         javafx.scene.image.Image fimage = awtImageToFX(image);
                         //pe.imageView.setFitHeight(scene.getHeight());
                         // pe.imageView.setFitWidth(scene.getWidth());
-                        imageView.setX(0);
+                        imageView.setX(20);
                         imageView.setY(0);
+                        imageView.setFitWidth(500);
+                        imageView.setFitHeight(500); 
+                        imageView.setPreserveRatio(true);
                         imageView.setImage(fimage);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        });
+        
+        Button textpaste = new Button("t");
+
+        textpaste.setStyle(StylesForAll.aliveTheme);
+        textpaste.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                 
+                textArea.setMaxWidth(500);
+                
+                textArea.setWrapText(true);
             }
         });
 
@@ -465,15 +499,17 @@ public class Collage  extends StackPane {
             }
         });
         
-        VBox vBox=new VBox(new Button("_"),selectCharPic,imgIncrease,imgDecrease,imgBlurr,
+        VBox vBox=new VBox(new Button("_"),selectCharPic,textpaste,imgIncrease,imgDecrease,imgBlurr,
                 imgNoblurr,imgGrey,imgNoGrey,imgLighting,imgDropShadow,imgShadow,imgSepiaTone
         ,imgReflection,imgMotionBlur,imgGlow,imgBloom);
         
         
         
         buttonPane.getChildren().add(vBox);
-        buttonPane.getChildren().add(imageView);
         
+        VBox content=new VBox(imageView,textArea);
+        
+        buttonPane.getChildren().add(content);
         buttonPane.prefWidthProperty().bind(imageView.fitHeightProperty());
         buttonPane.prefWidthProperty().bind(imageView.fitWidthProperty());
 
