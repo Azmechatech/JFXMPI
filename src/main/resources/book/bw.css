@@ -15,4 +15,12 @@ and open the template in the editor.
 
 .text-area, .text-area .viewport, .text-area .content {
     -fx-background-color: transparent ;
+    -fx-font-family: "Helvetica";
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.scroll-pane .viewport {
+       -fx-background-color: transparent;
 }
