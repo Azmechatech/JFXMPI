@@ -555,7 +555,8 @@ public class Voronoi extends Application {
         Button name = new Button(newArc);
         SpeechBox sb = new SpeechBox(newArc + ": " + timeOfEvent, SpeechBox.SpeechDirection.CENTER);
         name.setStyle(StylesForAll.buttonGradientRedYellow);
-        Chapters.getChildren().add(new ArcPane(sb, name, timeOfEvent));
+        List<SpeechBox> listOfSpb=new LinkedList<>();
+        
         File arcFile = new File(gameFile.getParentFile().getAbsolutePath() + "/" + newArc + ".jmpc");
         if (arcFile.exists()) {//Check if it already exists.
             Alert a = new Alert(AlertType.CONFIRMATION);
@@ -574,11 +575,12 @@ public class Voronoi extends Application {
 
         JSONArray allChapters = gameJSON.has("Chapters") ? gameJSON.getJSONArray("Chapters") : new JSONArray();
         TimeLineStory tls = new TimeLineStory("Maker", 800, 700);
-        tls.speechBubbles.add(sb);
+        //tls.speechBubbles.add(sb);
         for (Pair<String,String> message : messages) {
             if (message.getValue().contentEquals("")) {
                 SpeechBox sb2 = new SpeechBox(message.getKey(), SpeechBox.SpeechDirection.CENTER);
                 tls.speechBubbles.add(sb2);
+                listOfSpb.add(sb2);
             } else {
                 SpeechBox sb2;
                 try {
@@ -589,6 +591,7 @@ public class Voronoi extends Application {
                          sb2 = new SpeechBox("What happened next?", message.getValue(), SpeechBox.SpeechDirection.CENTER,1);
                    
                     }
+                    listOfSpb.add(sb2);
                     tls.speechBubbles.add(sb2);
                 } catch (IOException ex) {
                     Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
@@ -612,9 +615,14 @@ public class Voronoi extends Application {
         //Save game file as well.
         saveFile(gameFile, gameJSON.toString(1));
         
+        //Display
+        Chapters.getChildren().add(new ArcPane(listOfSpb, name, timeOfEvent));
+        
         //Free memory
         tls=null;
         messages=null;
+        listOfSpb=null;
+        
     }
 
     /**
