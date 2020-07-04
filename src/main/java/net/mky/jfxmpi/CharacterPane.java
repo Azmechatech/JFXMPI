@@ -112,7 +112,8 @@ public class CharacterPane extends StackPane {
     public void setOtherCharcter(Life otherCharcter) {
         this.otherCharcter = otherCharcter;
     }
-    String name = "";
+    public String name = "";
+    public String Role="SECONDARY";
     String age = "";
     String SeedFile = "";
     LifeTagFactory ltf;
@@ -706,6 +707,10 @@ Image image;
     public Life getLife() {
         return thisCharcter;
     }
+    
+     public void setLife(Life life) {
+        this.thisCharcter=life;
+    }
 
     public void setName(String name) {
         this.name = name;
@@ -722,6 +727,7 @@ Image image;
     public JSONObject getCharacterData() {
         JSONObject data = new JSONObject();
         data.put("name", name);
+        data.put("Role", Role);
         data.put("age", age);
         data.put("ltf", ltf);
         data.put("cpane", CharacterFile);
@@ -739,6 +745,7 @@ public void refresh(){
 }
     public void loadCharacterData(JSONObject data) {
         name = data.has("name") ? data.getString("name") : name;
+        Role = data.has("Role") ? data.getString("Role") : Role;
         age = data.has("age") ? data.getString("age") : age;
         chatMessage.setText( data.has("currentText") ? data.getString("currentText") : "I am ready to play!");
         SeedFile = data.has("SeedFile") ? data.getString("SeedFile") : SeedFile;
@@ -958,4 +965,5 @@ public void refresh(){
 
     }
 
+   
 }

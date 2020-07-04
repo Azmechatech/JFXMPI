@@ -6,6 +6,8 @@
 package net.mky.jfxmpi.TimeLineView;
 
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -107,24 +109,7 @@ public class TimeLineStory extends VBox {
         activeChatFile = chapter.getName();
         
         load(chapter);
-        //Read all the file and conver to json
-        //Render sppech boxes.
-//        try {
-//            String content = new String(Files.readAllBytes(Paths.get(chapter.getAbsolutePath())));
-//            JSONObject metaData = new JSONObject(content);
-//            JSONArray chat_data = metaData.getJSONArray("chat_data");
-//
-//            for (int i = 0; i < chat_data.length(); i++) {
-//                if (chat_data.getJSONObject(i).has("base64Image")) {
-//                    speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")), i));
-//
-//                } else {
-//                    speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
-//                }
-//            }
-//
-//        } catch (Exception ex) {
-//        }
+
 
     }
     
@@ -436,6 +421,36 @@ public class TimeLineStory extends VBox {
         });
     }
 
+      /**
+     * join two BufferedImage
+     * you can add a orientation parameter to control direction
+     * you can use a array to join more BufferedImage
+     * @param img1
+     * @param img2
+     * @return 
+     */
+
+    public static BufferedImage joinBufferedImage(BufferedImage img1,BufferedImage img2) {
+
+        //do some calculate first
+        int offset  = 5;
+        int wid = img1.getWidth()+img2.getWidth()+offset;
+        int height = Math.max(img1.getHeight(),img2.getHeight())+offset;
+        //create a new buffer and draw two image into the new image
+        BufferedImage newImage = new BufferedImage(wid,height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = newImage.createGraphics();
+        java.awt.Color oldColor = g2.getColor();
+        //fill background
+        g2.setPaint(java.awt.Color.WHITE);
+        g2.fillRect(0, 0, wid, height);
+        //draw image
+        g2.setColor(oldColor);
+        g2.drawImage(img1, null, 0, 0);
+        g2.drawImage(img2, null, img1.getWidth()+offset, 0);
+        g2.dispose();
+        return newImage;
+    }
+    
     public static String getImageB64From(File selectedFile) {
         try {
 

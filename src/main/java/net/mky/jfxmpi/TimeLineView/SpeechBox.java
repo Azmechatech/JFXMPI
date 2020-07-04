@@ -12,10 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Base64;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -31,6 +33,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javax.imageio.ImageIO;
+import static net.mky.jfxmpi.MainApp.awtImageToFX;
+import static net.mky.jfxmpi.MainApp.getImageFromClipboard;
+import static net.mky.jfxmpi.TimeLineView.TimeLineStory.getImageB64From;
 import net.mky.tools.StylesForAll;
 import sun.misc.BASE64Decoder;
 
@@ -58,6 +63,7 @@ public class SpeechBox extends HBox{
     public String dateTime="Today";
     public String base64Image;
     private Image image;
+    private Button bnPaste;
     public SpeechDirection direction;
 
     private Label displayedText;
@@ -196,9 +202,47 @@ public class SpeechBox extends HBox{
             imageViewFull.setPreserveRatio(true);
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Image", ButtonType.OK);
             alert.setGraphic(imageViewFull);
-        alert.showAndWait();
-        });
+            alert.showAndWait();
+            });
         
+        }else {//If image is null
+            //Clipboard image
+            bnPaste = new Button("Ctrl+V");
+            bnPaste.setStyle(StylesForAll.transparentAlive);
+            bnPaste.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                    try {
+                        java.awt.Image imageThis = getImageFromClipboard();
+                        if (imageThis != null) {
+                            javafx.scene.image.Image fimage = awtImageToFX(imageThis);
+                            //pe.imageView.setFitHeight(scene.getHeight());
+                            // pe.imageView.setFitWidth(scene.getWidth());
+                            base64Image = getImageB64From(fimage);
+                            image = fimage;
+                            imageView = new ImageView(image);
+                            imageView.setFitWidth(img_width);
+                            imageView.setFitHeight(img_height);
+                            imageView.setPreserveRatio(true);
+
+                            imageView.setOnMouseClicked((MouseEvent e) -> {
+                                System.out.println("Clicked!"); // change functionality
+                                ImageView imageViewFull = new ImageView(image);
+                                imageViewFull.setFitWidth(img_width);
+                                imageViewFull.setFitHeight(img_height);
+                                imageViewFull.setPreserveRatio(true);
+                                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Image", ButtonType.OK);
+                                alert.setGraphic(imageViewFull);
+                                alert.showAndWait();
+                            });
+                            bnPaste.setVisible(false);
+                            configureForSystem();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
         }
 
         if(direction == SpeechDirection.LEFT){
@@ -285,7 +329,11 @@ public class SpeechBox extends HBox{
         HBox container = new HBox(textArea, directionIndicator);
               if(imageView!=null){ VBox withImage=new VBox(boxCount,textArea,imageView);
             withImage.setBackground(DEFAULT_SYSTEM_BACKGROUND);
-            container = new HBox(withImage,directionIndicator);}
+            container = new HBox(withImage,directionIndicator);}else{
+                  VBox withImage=new VBox(boxCount,textArea,bnPaste);
+            withImage.setBackground(DEFAULT_SYSTEM_BACKGROUND);
+            container = new HBox(withImage,directionIndicator);
+              }
         //Use at most 75% of the width provided to the SpeechBox for displaying the message
         container.maxWidthProperty().bind(widthProperty().multiply(0.75));
         getChildren().setAll(container);

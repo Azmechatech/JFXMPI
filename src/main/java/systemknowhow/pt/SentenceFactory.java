@@ -16,31 +16,33 @@ import java.util.Set;
  */
 public class SentenceFactory {
     
-    public static void add(Sentence sentence){
-        Sentences.put(sentence.hashCode()+"", sentence);
+    public static void add(Sentence sentence) {
+        try {
+            Sentences.put(sentence.hashCode() + "", sentence);
 
-        if(sentenceAndKeyMap.containsKey(sentence.getKey())){
-                    sentenceAndKeyMap.get(sentence.getKey()).add(sentence.hashCode()+"");
-                }else{
-                    Set<String> newSet=new HashSet();
-                    newSet.add(sentence.hashCode()+"");
-                    sentenceAndKeyMap.put(sentence.getKey(), newSet);
-                }
-        
-        
-        //Split all words and tag all words and tag them with keys
-        String[] allwords=sentence.getSentenceTemplate().split(" ");
-        for(String word :allwords){
-            if(word.length()>2)
-            {
-                if(searchTags.containsKey(word)){
-                    searchTags.get(word).add(sentence.getKey());
-                }else{
-                    Set<String> newSet=new HashSet();
-                    newSet.add(sentence.getKey());
-                    searchTags.put(word, newSet);
+            if (sentenceAndKeyMap.containsKey(sentence.getKey())) {
+                sentenceAndKeyMap.get(sentence.getKey()).add(sentence.hashCode() + "");
+            } else {
+                Set<String> newSet = new HashSet();
+                newSet.add(sentence.hashCode() + "");
+                sentenceAndKeyMap.put(sentence.getKey(), newSet);
+            }
+
+            //Split all words and tag all words and tag them with keys
+            String[] allwords = sentence.getSentenceTemplate().split(" ");
+            for (String word : allwords) {
+                if (word.length() > 2) {
+                    if (searchTags.containsKey(word)) {
+                        searchTags.get(word).add(sentence.getKey());
+                    } else {
+                        Set<String> newSet = new HashSet();
+                        newSet.add(sentence.getKey());
+                        searchTags.put(word, newSet);
+                    }
                 }
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
     
