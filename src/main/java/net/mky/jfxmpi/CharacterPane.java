@@ -760,7 +760,7 @@ public void refresh(){
             Image image = new Image(input, 400, 600, true, true);
             imageView.setImage(image);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
+           // Logger.getLogger(CharacterPane.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -780,7 +780,7 @@ public void refresh(){
             }
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+           // e.printStackTrace();
         }
 
         String[] result = readStrings.toString().split("\\.");

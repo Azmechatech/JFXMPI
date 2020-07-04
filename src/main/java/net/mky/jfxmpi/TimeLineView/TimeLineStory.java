@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +36,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -56,6 +59,7 @@ import javax.imageio.ImageIO;
 import static net.mky.jfxmpi.MainApp.awtImageToFX;
 import static net.mky.jfxmpi.MainApp.getImageFromClipboard;
 import net.mky.tools.StylesForAll;
+import net.mky.tools.ZipHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -67,16 +71,20 @@ public class TimeLineStory extends VBox {
 
     private String conversationPartner;
     private int prefHeight, prefWidth;
-    private ObservableList<Node> speechBubbles = FXCollections.observableArrayList();
+    public ObservableList<Node> speechBubbles = FXCollections.observableArrayList();
     FileChooser fileChooser = new FileChooser();
     DirectoryChooser dirChooser = new DirectoryChooser();
     String activeChatFile="";
+    public File activeFolder=new File("");
 
     private Label contactHeader;
     public ScrollPane messageScroller;
     private VBox messageContainer;
     private HBox inputContainer;
     private HBox contactHeaderBar;
+    
+    //Time
+    public String dateTime="Today";
 
     public TimeLineStory(String conversationPartner, int prefHeight, int prefWidth) {
         super(5);
@@ -87,34 +95,37 @@ public class TimeLineStory extends VBox {
         setupElements();
     }
     
-    public TimeLineStory(File chapter,String conversationPartner, int prefHeight, int prefWidth) {
+    public TimeLineStory(File chapter, String conversationPartner, int prefHeight, int prefWidth) {
         super(5);
         this.conversationPartner = conversationPartner;
         this.prefHeight = prefHeight;
         this.prefWidth = prefWidth;
         setStyle("-fx-background-color: transparent;");
         setupElements();
+        activeFolder = chapter.getParentFile();
+
+        activeChatFile = chapter.getName();
         
-        activeChatFile=chapter.getName();
-            //Read all the file and conver to json
-            //Render sppech boxes.
-            try {
-                String content = new String(Files.readAllBytes(Paths.get(chapter.getAbsolutePath())));
-                JSONObject metaData = new JSONObject(content);
-                JSONArray chat_data = metaData.getJSONArray("chat_data");
+        load(chapter);
+        //Read all the file and conver to json
+        //Render sppech boxes.
+//        try {
+//            String content = new String(Files.readAllBytes(Paths.get(chapter.getAbsolutePath())));
+//            JSONObject metaData = new JSONObject(content);
+//            JSONArray chat_data = metaData.getJSONArray("chat_data");
+//
+//            for (int i = 0; i < chat_data.length(); i++) {
+//                if (chat_data.getJSONObject(i).has("base64Image")) {
+//                    speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")), i));
+//
+//                } else {
+//                    speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
+//                }
+//            }
+//
+//        } catch (Exception ex) {
+//        }
 
-                for (int i = 0; i < chat_data.length(); i++) {
-                    if (chat_data.getJSONObject(i).has("base64Image")) {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),i));
-
-                    } else {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
-                    }
-                }
-
-            } catch (Exception ex) {
-            }
-            
     }
     
 
@@ -142,46 +153,52 @@ public class TimeLineStory extends VBox {
             
             //Get file Prefix
              // create a text input dialog 
-        TextInputDialog td = new TextInputDialog("Chat file name"); 
-  
-        // setHeaderText 
-        td.setHeaderText("Chat file name"); 
-        td.getEditor().setText(activeChatFile);
-        td.showAndWait();
-        activeChatFile=td.getEditor().getText();
+            if (activeChatFile.contentEquals("")) {
+                TextInputDialog td = new TextInputDialog("Chat file name");
 
-            //Read all the speech box 
-            //and write to JSON
-            JSONObject metaData = new JSONObject();
-            JSONArray completeChat = new JSONArray();
-            for (Node spb : speechBubbles) {
-                JSONObject spbj = new JSONObject();
-                SpeechBox sb = (SpeechBox) spb;
-                spbj.put("direction", sb.direction);
-                
-                spbj.put("message", new String(sb.message.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
-                
-                spbj.put("base64Image", sb.base64Image);
-                completeChat.put(spbj);
-
-               //  System.out.println(spbj);
+                // setHeaderText 
+                td.setHeaderText("Chat file name");
+                td.getEditor().setText(activeChatFile);
+                td.showAndWait();
+                activeChatFile = td.getEditor().getText();
             }
-
-            metaData.put("chat_data", completeChat);
-
-            File dir = dirChooser.showDialog(null);
+                       
             //Write JSON file
             // try (FileWriter file = new FileWriter(dir.getAbsolutePath()+"/Chat_"+System.currentTimeMillis()+".json")) {
             Writer fstream = null;
             BufferedWriter out = null;
+            String dataToWrite=getChapterData().toString();
+            String fileToWrite="";
             try {
-                fstream = new OutputStreamWriter(new FileOutputStream(dir.getAbsolutePath() + "/Chat_"+activeChatFile + System.currentTimeMillis() + ".json"), StandardCharsets.UTF_8);
-                fstream.write(metaData.toString());
-                fstream.flush();
-                
-                System.out.println("Saved the file");
+                if (activeChatFile.contentEquals("")) {
+                    File dir = dirChooser.showDialog(null);
+                    fileToWrite=dir.getAbsolutePath() + "/Chat_" + activeChatFile + System.currentTimeMillis() + ".json"+".zip";
+                    //fstream = new OutputStreamWriter(new FileOutputStream(fileToWrite), StandardCharsets.UTF_8);
+                } else {
+                     fileToWrite=activeFolder.getAbsolutePath()+"/"+activeChatFile+".zip";
+                    //fstream = new OutputStreamWriter(new FileOutputStream(activeFolder.getAbsolutePath()+"/"+activeChatFile+".zip"), StandardCharsets.UTF_8);
+                }
+                //fstream.write(new String(ZipHelper.compress(dataToWrite)));
+                //fstream.flush();
+                ZipHelper.writeToFile(dataToWrite, new File(fileToWrite));
 
-            } catch (IOException e) {
+                System.out.println("Saved the file");
+                Alert a = new Alert(AlertType.CONFIRMATION);
+                a.setContentText("Saved the file"); 
+                a.show(); 
+
+            } catch (Exception e) {
+                 Writer fstreamf = null;
+                 fileToWrite=activeFolder.getAbsolutePath() + "/Chat_" + activeChatFile + System.currentTimeMillis() + ".json"+".tmp";
+                try {
+                    fstream = new OutputStreamWriter(new FileOutputStream(fileToWrite), StandardCharsets.UTF_8);
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
+                }
+              
+                Alert a = new Alert(AlertType.CONFIRMATION);
+                a.setContentText("Failde to save the file"); 
+                a.show(); 
                 e.printStackTrace();
             }
 
@@ -201,10 +218,10 @@ public class TimeLineStory extends VBox {
 
                 for (int i = 0; i < chat_data.length(); i++) {
                     if (chat_data.getJSONObject(i).has("base64Image")) {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),i));
+                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),i));
 
                     } else {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
+                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
                     }
                 }
 
@@ -223,7 +240,7 @@ public class TimeLineStory extends VBox {
                 int counter=0;
                 for (File file : imageList) {
 
-                    speechBubbles.add(new SpeechBox("What happened next?", getImageB64From(file), SpeechDirection.CENTER,counter++));
+                    speechBubbles.add(new SpeechBox("What happened next?", getImageB64From(file), SpeechBox.SpeechDirection.CENTER,counter++));
 
                 }
 
@@ -244,7 +261,7 @@ public class TimeLineStory extends VBox {
                         //pe.imageView.setFitHeight(scene.getHeight());
                         // pe.imageView.setFitWidth(scene.getWidth());
                         String b64Image = getImageB64From(fimage);
-                        speechBubbles.add(new SpeechBox(userInput.getText(), b64Image, SpeechDirection.CENTER));
+                        speechBubbles.add(new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER));
                         userInput.setText("");
                     }
                 } catch (Exception e) {
@@ -263,25 +280,137 @@ public class TimeLineStory extends VBox {
         contactHeaderBar.getChildren().add(userInput);
         contactHeaderBar.getChildren().add(bnPaste);
     }
-
+    
     public static SpeechBox previewHelper(File selectedFile){
+         SpeechBox sb=new SpeechBox("No chapters here.", SpeechBox.SpeechDirection.CENTER);
           try {
                 String content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+                content = content.replace("\n", "").replace("\r", "");
+                JSONObject metaData = new JSONObject(content);
+                JSONArray chat_data = metaData.getJSONArray("chat_data");
+               
+                for (int i = 0; i < chat_data.length(); i++) {
+                    if (chat_data.getJSONObject(i).has("base64Image")) {
+                        Image image=SpeechBox.imagefromBase64(chat_data.getJSONObject(i).getString("base64Image"),200,200);
+                        sb=  new SpeechBox(chat_data.getJSONObject(i).getString("message"), getImageB64From(image), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),200,200,true);
+                        if(chat_data.getJSONObject(i).has("dateTime")){
+                            sb.setDateTime(chat_data.getJSONObject(i).getString("dateTime"));
+                        }else{
+                            sb.setDateTime("Some time recently...");
+                        }
+                        
+                    } else {
+                       sb=new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
+                    }
+                    
+                    break;
+                }
+
+            } catch (Exception ex) {
+            }
+        return sb;
+    }
+    
+    public static List<SpeechBox> previewHelper(File selectedFile,int Count){
+        List<SpeechBox> previews=new LinkedList<>();
+        String content = null ;
+         //
+          try {
+                //Check if zip version is available 
+                if (new File(selectedFile.getAbsolutePath() + ".zip").exists()) {
+                    content = ZipHelper.decompress(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath()+ ".zip")));
+
+                } else {
+                    content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+                }
+                content = content.replace("\n", "").replace("\r", "");
+                JSONObject metaData = new JSONObject(content);
+                JSONArray chat_data = metaData.getJSONArray("chat_data");
+                boolean firstDone=false;
+                for (int i = 0; i < (Count < chat_data.length() ? Count : chat_data.length()); i++) {
+                  SpeechBox sb = new SpeechBox("No chapters here.", SpeechBox.SpeechDirection.CENTER);
+                  if (chat_data.getJSONObject(i).has("base64Image")) {
+                      int width=firstDone?200:300;
+                      int height=firstDone?200:300;
+                      firstDone=true;
+                      Image image = SpeechBox.imagefromBase64(chat_data.getJSONObject(i).getString("base64Image"), width, 200);
+                      
+                      sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), getImageB64From(image), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")), width, height, true);
+                      
+                      if (chat_data.getJSONObject(i).has("dateTime")) {
+                          sb.setDateTime(chat_data.getJSONObject(i).getString("dateTime"));
+                      } else {
+                          sb.setDateTime("Some time recently...");
+                      }
+
+                  } else {
+                      sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
+                  }
+
+                  previews.add(sb);
+                  
+              }
+
+            } catch (Exception ex) {
+                System.out.println(selectedFile.getAbsolutePath()+">>"+content.substring(0, 500));
+                ex.printStackTrace();
+                
+            }
+        return previews;
+    }
+
+    public void load(File selectedFile ){
+       // File selectedFile = fileChooser.showOpenDialog(null);
+            activeChatFile=selectedFile.getName();
+            String content = null ;
+            //Read all the file and conver to json
+            //Render sppech boxes.
+            try {
+                //Check if zip version is available 
+                if (new File(selectedFile.getAbsolutePath() + ".zip").exists()) {
+                    content = ZipHelper.decompress(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath()+ ".zip")));
+
+                } else {
+                    content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+                }
+                
                 JSONObject metaData = new JSONObject(content);
                 JSONArray chat_data = metaData.getJSONArray("chat_data");
 
                 for (int i = 0; i < chat_data.length(); i++) {
                     if (chat_data.getJSONObject(i).has("base64Image")) {
-                      return   new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
+                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),i));
 
                     } else {
-                        return new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
+                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
                     }
                 }
 
             } catch (Exception ex) {
             }
-        return new SpeechBox("No chapters here.", SpeechDirection.CENTER);
+    }
+    public JSONObject getChapterData(){
+          //Read all the speech box 
+            //and write to JSON
+            JSONObject metaData = new JSONObject();
+            JSONArray completeChat = new JSONArray();
+            for (Node spb : speechBubbles) {
+                JSONObject spbj = new JSONObject();
+                SpeechBox sb = (SpeechBox) spb;
+                spbj.put("direction", sb.direction);
+                
+                spbj.put("message", new String(sb.message.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+                
+                spbj.put("base64Image", sb.base64Image);
+                completeChat.put(spbj);
+
+               //  System.out.println(spbj);
+            }
+
+            metaData.put("chat_data", completeChat);
+            metaData.put("dateTime", dateTime);
+            
+            return metaData;
     }
     private void setupMessageDisplay() {
         messageContainer = new VBox(5);
@@ -427,16 +556,16 @@ public class TimeLineStory extends VBox {
     }
 
     public void sendMessage(String message) {
-        speechBubbles.add(new SpeechBox(message, SpeechDirection.RIGHT));
+        speechBubbles.add(new SpeechBox(message, SpeechBox.SpeechDirection.RIGHT));
     }
 
     public void receiveMessage(String message) {
-        speechBubbles.add(new SpeechBox(message, SpeechDirection.LEFT));
+        speechBubbles.add(new SpeechBox(message, SpeechBox.SpeechDirection.LEFT));
     }
 
     public void receivePhoto(String message, String imageB64) {
         try {
-            speechBubbles.add(new SpeechBox(message, imageB64, SpeechDirection.LEFT));
+            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.LEFT));
         } catch (IOException ex) {
             Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -444,9 +573,20 @@ public class TimeLineStory extends VBox {
 
     public void sendPhoto(String message, String imageB64) {
         try {
-            speechBubbles.add(new SpeechBox(message, imageB64, SpeechDirection.RIGHT));
+            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.RIGHT));
         } catch (IOException ex) {
             Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public String getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
+    }
+    
+    
+    
 }

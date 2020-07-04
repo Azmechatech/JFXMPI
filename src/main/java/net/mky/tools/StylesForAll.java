@@ -36,6 +36,13 @@ public class StylesForAll {
 "    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +
 "                1, 0.0 , 0 , 1);";
     
+     public static String transparentAliveLabel=
+"    -fx-font-family: \"Helvetica\";\n" +
+"    -fx-font-size: 12px;\n" +
+"    -fx-font-weight: bold;\n" +
+"    -fx-text-fill: white;\n" +
+"    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +
+"                1, 0.0 , 0 , 1);";
      
     public static String pigletTheme="-fx-background-color: linear-gradient(to right, #ee9ca7, #ffdde1);-fx-font-size: 14px;"+"    -fx-font-family: \"Helvetica\";\n" +
 
@@ -65,6 +72,13 @@ public class StylesForAll {
 "    -fx-effect: dropshadow( three-pass-box , rgba(255,255,255,0.2) ,\n" +
 "                1, 0.0 , 0 , 1);";
     
+    
+    public static String buttonGradientRedYellow="-fx-background-color:\n" +"linear-gradient(#020b02, #3a3a3a);"+
+"    -fx-font-family: \"Helvetica\";\n" +
+"    -fx-font-size: 14px;\n" +
+"    -fx-font-weight: bold;\n" +
+"    -fx-text-fill: white;\n" ;//+
+//"-fx-text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6, 0 0 50px #ff4da6, 0 0 60px #ff4da6, 0 0 70px #ff4da6, 0 0 80px #ff4da6;";
     
     
 }

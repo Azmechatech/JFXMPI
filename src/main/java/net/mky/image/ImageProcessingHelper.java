@@ -61,9 +61,11 @@ import com.jhlabs.image.UnsharpFilter;
 import com.jhlabs.image.VariableBlurFilter;
 import com.jhlabs.image.WaterFilter;
 import com.jhlabs.image.WeaveFilter;
+import com.truegeometry.mkhilbertml.HilbertCurvePatternDetect;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
@@ -71,12 +73,18 @@ import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 //import jjil.algorithm.RgbAvgGray;
 //import jjil.core.Error;
 //import jjil.core.Rect;
@@ -1064,6 +1072,45 @@ public class ImageProcessingHelper {
         return StampImageBG;
     }
     
+    /**
+     * https://stackoverflow.com/questions/21571888/subtracting-a-bitamap-image-from-another-java-android
+     * @return 
+     */
+    public static BufferedImage subtract(File image1, File image2) throws IOException {
+        BufferedImage bimage1 = ImageIO.read(image1);
+        BufferedImage bimage2 = ImageIO.read(image2);
+        BufferedImage bimage3 = new BufferedImage(bimage1.getWidth(), bimage1.getHeight(), bimage1.getType());
+
+        for (int x = 0; x < bimage1.getWidth(); x++) {
+            for (int y = 0; y < bimage1.getHeight(); y++) {
+                int argb1 = bimage1.getRGB(x, y);
+                int argb2 = bimage2.getRGB(x, y);
+
+                //int a1 = (argb1 >> 24) & 0xFF;
+                int r1 = (argb1 >> 16) & 0xFF;
+                int g1 = (argb1 >> 8) & 0xFF;
+                int b1 = argb1 & 0xFF;
+
+                //int a2 = (argb2 >> 24) & 0xFF;
+                int r2 = (argb2 >> 16) & 0xFF;
+                int g2 = (argb2 >> 8) & 0xFF;
+                int b2 = argb2 & 0xFF;
+
+                //int aDiff = Math.abs(a2 - a1);
+                int rDiff = Math.abs(r2 - r1);
+                int gDiff = Math.abs(g2 - g1);
+                int bDiff = Math.abs(b2 - b1);
+
+                int diff
+                        = (255 << 24) | (rDiff << 16) | (gDiff << 8) | bDiff;
+
+                bimage3.setRGB(x, y, diff);
+            }
+        }
+
+        return bimage3;
+    }
+    
     
     
     /**
@@ -1338,7 +1385,43 @@ public class ImageProcessingHelper {
     }
 
 
-    public static void main(String... args) {
+    public static void main(String... args) throws IOException {
+        
+        //Test subtract
+        JFrame f = new JFrame("Test Image Subtract"); 
+        JFileChooser fileOpener = new JFileChooser();
+        fileOpener.setMultiSelectionEnabled(false);
+        int action = fileOpener.showOpenDialog(null);
+        File baseFile=fileOpener.getSelectedFile();
+        
+        fileOpener.showOpenDialog(null);
+        File refFile=fileOpener.getSelectedFile();
+        
+       
+        
+        JPanel p =new JPanel(); 
+        p.setLayout(new GridLayout(5,5));
+        JButton image1 = new JButton(new ImageIcon(ImageIO.read(baseFile)));
+        p.add(image1);
+        JButton image2 = new JButton(new ImageIcon(ImageIO.read(refFile)));
+         p.add(image2);
+                
+        JButton imageop = new JButton(new ImageIcon( subtract(baseFile, refFile)));
+        p.add(imageop);
+        
+         //Write to disk
+       ImageIO.write(subtract(baseFile, refFile), "png", new File(baseFile.getParentFile().getAbsolutePath()+"/Delta-"+baseFile.getName()));
+                
+       
+        
+         f.add(p); 
+          
+        //set the size of frame 
+        f.setSize(400,400); 
+           
+        f.setVisible(true);
+        
+        
 
     }
 }

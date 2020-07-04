@@ -22,10 +22,9 @@ import javafx.scene.paint.Color;
  *
  * @author mkfs
  */
-
 public class DrawOnCanvas extends StackPane {
 
-    Canvas canvas = new Canvas(400, 400);
+    Canvas canvas = new Canvas(900, 800);
     List<Point2D> points = new ArrayList<Point2D>();
 
     public DrawOnCanvas(Image bimg) {
