@@ -8,6 +8,7 @@ package net.mky.jfxmpi.TimeLineView;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,12 +18,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,6 +44,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -84,6 +88,9 @@ public class TimeLineStory extends VBox {
     private VBox messageContainer;
     private HBox inputContainer;
     private HBox contactHeaderBar;
+     ComboBox<SpeechBox.SpeechTheme> cbxStatus;
+    
+    public final HashMap<String,String> userPics=new HashMap<>();
     
     //Time
     public String dateTime="Today";
@@ -109,8 +116,6 @@ public class TimeLineStory extends VBox {
         activeChatFile = chapter.getName();
         
         load(chapter);
-
-
     }
     
 
@@ -125,10 +130,14 @@ public class TimeLineStory extends VBox {
     private void setupContactHeader() {
         contactHeaderBar = new HBox(5);
         contactHeaderBar.setBackground(new Background(new BackgroundFill(Color.ANTIQUEWHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+        
+        cbxStatus = new ComboBox<>();
+        cbxStatus.setItems( FXCollections.observableArrayList( SpeechBox.SpeechTheme.values()));
+        cbxStatus.setValue(SpeechBox.SpeechTheme.NEUTRAL);
 
          TextField userInput = new TextField();
         userInput.setPromptText("...");
-        userInput.setPrefWidth(580);//Widht control
+        userInput.setPrefWidth(500);//Widht control
         
         //Save and load
         //For testing purposes
@@ -197,8 +206,22 @@ public class TimeLineStory extends VBox {
             //Read all the file and conver to json
             //Render sppech boxes.
             try {
-                String content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
-                JSONObject metaData = new JSONObject(content);
+                //String content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(new FileInputStream(selectedFile), "UTF8"));
+                String str;
+                StringBuilder contentSb = new StringBuilder();
+                while ((str = in.readLine()) != null) {
+                    System.out.println(str);
+                    contentSb.append(str);
+
+                }
+
+                in.close();
+                
+                
+                JSONObject metaData = new JSONObject(contentSb.toString());
                 JSONArray chat_data = metaData.getJSONArray("chat_data");
 
                 for (int i = 0; i < chat_data.length(); i++) {
@@ -246,7 +269,8 @@ public class TimeLineStory extends VBox {
                         //pe.imageView.setFitHeight(scene.getHeight());
                         // pe.imageView.setFitWidth(scene.getWidth());
                         String b64Image = getImageB64From(fimage);
-                        speechBubbles.add(new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER));
+                        SpeechBox sb=new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER,cbxStatus.getValue());
+                        speechBubbles.add(sb);
                         userInput.setText("");
                     }
                 } catch (Exception e) {
@@ -264,6 +288,7 @@ public class TimeLineStory extends VBox {
         contactHeaderBar.getChildren().add(loadChat);
         contactHeaderBar.getChildren().add(userInput);
         contactHeaderBar.getChildren().add(bnPaste);
+        contactHeaderBar.getChildren().add(cbxStatus);
     }
     
     public static SpeechBox previewHelper(File selectedFile){
@@ -362,17 +387,28 @@ public class TimeLineStory extends VBox {
                 JSONObject metaData = new JSONObject(content);
                 JSONArray chat_data = metaData.getJSONArray("chat_data");
 
-                for (int i = 0; i < chat_data.length(); i++) {
-                    if (chat_data.getJSONObject(i).has("base64Image")) {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),i));
+             for (int i = 0; i < chat_data.length(); i++) {
+                SpeechBox sb = null;
+                SpeechBox.SpeechTheme th=SpeechBox.SpeechTheme.NEUTRAL;
+                if (chat_data.getJSONObject(i).has("theme")) {
+                    th = SpeechBox.SpeechTheme.valueOf(chat_data.getJSONObject(i).getString("theme"));
+                   cbxStatus.setValue(th);
+                }
+                if (chat_data.getJSONObject(i).has("base64Image")) {
+                    sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),th);
 
-                    } else {
-                        speechBubbles.add(new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction"))));
-                    }
+                } else {
+                    sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
+
                 }
 
-            } catch (Exception ex) {
+                
+
+                speechBubbles.add(sb);
             }
+
+        } catch (Exception ex) {
+        }
     }
     public JSONObject getChapterData(){
           //Read all the speech box 
@@ -383,6 +419,7 @@ public class TimeLineStory extends VBox {
                 JSONObject spbj = new JSONObject();
                 SpeechBox sb = (SpeechBox) spb;
                 spbj.put("direction", sb.direction);
+                spbj.put("theme", sb.theme);
                 
                 spbj.put("message", new String(sb.message.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
                 
@@ -580,7 +617,7 @@ public class TimeLineStory extends VBox {
 
     public void receivePhoto(String message, String imageB64) {
         try {
-            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.LEFT));
+            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.LEFT,cbxStatus.getValue()));
         } catch (IOException ex) {
             Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -588,7 +625,7 @@ public class TimeLineStory extends VBox {
 
     public void sendPhoto(String message, String imageB64) {
         try {
-            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.RIGHT));
+            speechBubbles.add(new SpeechBox(message, imageB64, SpeechBox.SpeechDirection.RIGHT,cbxStatus.getValue()));
         } catch (IOException ex) {
             Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -600,6 +637,10 @@ public class TimeLineStory extends VBox {
 
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public HashMap<String, String> getUserPics() {
+        return userPics;
     }
     
     

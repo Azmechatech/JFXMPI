@@ -26,6 +26,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
+import javafx.scene.web.HTMLEditor;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -54,6 +55,15 @@ public class BW  extends Application {
     textArea.setTranslateX(-250);textArea.setTranslateY(100);textArea.setMaxWidth(500);textArea.setWrapText(true);
     TextArea textArea2 = new TextArea();
     textArea2.setTranslateX(300);textArea2.setTranslateY(100);textArea2.setMaxWidth(500);textArea2.setWrapText(true);
+    final HTMLEditor htmlEditor = new HTMLEditor();
+        htmlEditor.setPrefHeight(245);
+        htmlEditor.setStyle(
+                " -fx-background-color: transparent ;"+
+    "-fx-font: 12 cambria;"
+    + "-fx-border-color: brown; "
+    + "-fx-border-style: dotted;"
+    + "-fx-border-width: 2;"
+);
     
    
     
@@ -129,6 +139,8 @@ Button loadChat = new Button("Load");
         });
         
         StackPane root = new StackPane(prevPage,newPage,textArea,textArea2);
+        //StackPane root = new StackPane(htmlEditor);
+        
         
          /**************************************************************
  * COLLAGE IMPLEMENTATION
@@ -178,7 +190,7 @@ root.setStyle("-fx-background-color: linear-gradient(to bottom right, white 0%, 
                 + "-fx-background-repeat: stretch; -fx-background-size: cover;");
 
         scene = new Scene(root,1200, 860);
-        scene.getStylesheets().add( BW.class.getResource("/book/bw.css").toExternalForm());
+        scene.getStylesheets().add( BW.class.getResource("/book/bw_1.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
     }

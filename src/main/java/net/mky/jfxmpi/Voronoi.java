@@ -352,8 +352,9 @@ public class Voronoi extends Application {
             td.getEditor().setText("Day one");
             td.showAndWait();
             String timeOfEvent = td.getEditor().getText();
-            
-            addArc( newArc, timeOfEvent,new ArrayList() );
+             List<Pair<String, String>> messages = new LinkedList<>();
+             messages.add(new Pair(newArc+": "+timeOfEvent,""));
+            addArc( newArc, timeOfEvent,messages );
 
 
         });
