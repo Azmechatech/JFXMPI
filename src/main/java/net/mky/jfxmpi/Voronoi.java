@@ -5,6 +5,7 @@
  */
 package net.mky.jfxmpi;
 
+import java.awt.image.BufferedImage;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
@@ -18,16 +19,24 @@ import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +45,8 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Point3D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -51,6 +62,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.util.Pair;
+import net.mky.image.VideoHelper;
 import net.mky.jfxmpi.TimeLineView.ArcPane;
 import net.mky.jfxmpi.TimeLineView.CharactersMenu;
 import net.mky.jfxmpi.TimeLineView.SpeechBox;
@@ -58,7 +70,12 @@ import net.mky.jfxmpi.TimeLineView.TimeLineStory;
 import static net.mky.jfxmpi.TimeLineView.TimeLineStory.getImageB64From;
 import net.mky.jfxmpi.TimeLineView.TimePane;
 import net.mky.jfxmpi.bookView.BW;
+import net.mky.safeStore.MapDB;
 import net.mky.tools.StylesForAll;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.presets.javacpp;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -88,8 +105,10 @@ public class Voronoi extends Application {
     public ScrollPane messageScroller;
     VBox SystemButtons = new VBox();
     TimePane timePane = new TimePane();
-    CharactersMenu charactermenu=new CharactersMenu(new CharacterPane(400, 600, false));
+    //CharactersMenu charactermenu=new CharactersMenu(new CharacterPane(400, 600, false));
+    CharactersMenu charactermenu=new CharactersMenu(new CharacterPane(400, 600, false),true);
     VBox Chapters = new VBox();
+    
 
     File gameFile = new File("GameTemp.jmp");
     JSONObject gameJSON = new JSONObject();
@@ -106,6 +125,9 @@ public class Voronoi extends Application {
 
     String village = Voronoi.class.getResource("/buildings/barracks_1.png").toExternalForm();
     List<Point3D> villageLocs = new LinkedList<>();
+    
+    //Temp store
+    MapDB mapdb=new MapDB(System.getProperty("user.home"));
 
     @Override
     public void init() {
@@ -138,7 +160,21 @@ public class Voronoi extends Application {
         
        // messageScroller.prefWidthProperty().bind(Chapters.prefWidthProperty().subtract(5));
         messageScroller.setFitToWidth(true);
-     
+        
+        
+//        try {
+//            try {
+//                Loader.load(javacpp.class);
+//            } catch (UnsatisfiedLinkError e) {
+//                String path = Loader.cacheResource(javacpp.class, "windows-x86_64/jnijavacpp.dll").getPath();
+//                new ProcessBuilder("DependenciesGui.exe", path).start().waitFor();
+//            }
+//
+//            FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(".");
+//            Java2DFrameConverter bimConverter = new Java2DFrameConverter();
+//        } catch (Exception ex) {
+//        }
+
     }
 
     void loadWorld(Pane root) {
@@ -235,9 +271,10 @@ public class Voronoi extends Application {
         Scene scene = new Scene(root);
         loadWorld(root);
         root.getChildren().add(border);
-        HBox menu=new HBox(timePane,charactermenu);
+        HBox menu=new HBox(timePane);
         border.setTop(menu);
         border.setLeft(messageScroller);
+        border.setRight(charactermenu);
         border.setTranslateX(100);
         border.setTranslateY(0);
         
@@ -250,25 +287,30 @@ public class Voronoi extends Application {
             FileChooser fileChooser = new FileChooser();
             File selectedFile = fileChooser.showOpenDialog(null);
             gameFile = selectedFile;
+            
+            mapdb.close();//Close previous
+            mapdb=new MapDB(selectedFile.getParentFile().getAbsolutePath());//Temp map db will be created here.
 
             String content;
             try {
-                content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+                content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())), StandardCharsets.UTF_8);
                 gameJSON = new JSONObject(content);
                 JSONArray ChaptersJSON = gameJSON.getJSONArray("Chapters");
                 for (int i = 0; i < ChaptersJSON.length(); i++) {
                     if (ChaptersJSON.getJSONObject(i).has("file")) {
                         Button name = new Button(ChaptersJSON.getJSONObject(i).getString("file"));
                         File chapter = new File(gameFile.getParentFile().getAbsolutePath()+"/"+ChaptersJSON.getJSONObject(i).getString("file"));
-                        SpeechBox sb = TimeLineStory.previewHelper(chapter);
-                        List<SpeechBox> sbs = TimeLineStory.previewHelper(chapter,5);
+                        //SpeechBox sb = TimeLineStory.previewHelper(chapter,mapdb);
+                        List<SpeechBox> sbs = TimeLineStory.previewHelper(chapter,5,mapdb);
+                        //mapdb.commit();
                         
-                        name.setText("Chapter: "+sb.message);
+                        name.setText("Chapter ");
                         name.setStyle(StylesForAll.transparentAlive);
                         name.setOnAction(event2 -> {
-                            chapterShow(chapter,"Today");
+                            chapterShow(chapter,"Today",mapdb);
+                            mapdb.commit();
                         });
-                        Chapters.getChildren().add(new ArcPane(sbs, name,sb.getDateTime()));
+                        Chapters.getChildren().add(new ArcPane(sbs, name,"  "));
                     } else {
 
                     }
@@ -281,7 +323,7 @@ public class Voronoi extends Application {
                 for (int i = 0; i < characters.length(); i++) {
                     CharacterPane characterThis = new CharacterPane(width, height, false);
                     characterThis.loadCharacterData(characters.getJSONObject(i));
-                    charactermenu.addCharacter(characterThis);
+                    charactermenu.addCharacter(characterThis,null);
                 };
 
             } catch (IOException ex) {
@@ -293,9 +335,9 @@ public class Voronoi extends Application {
         /***********************************************************************
          * SAVE CHAPTERS
          */
-        Button saveChat = new Button("Save");
-        saveChat.setStyle(StylesForAll.transparentAlive);
-        saveChat.setOnAction(event -> {
+        Button saveChapter = new Button("Save");
+        saveChapter.setStyle(StylesForAll.transparentAlive);
+        saveChapter.setOnAction(event -> {
             //Write JSON file
             // try (FileWriter file = new FileWriter(dir.getAbsolutePath()+"/Chat_"+System.currentTimeMillis()+".json")) {
             Writer fstream = null;
@@ -354,7 +396,7 @@ public class Voronoi extends Application {
             String timeOfEvent = td.getEditor().getText();
              List<Pair<String, String>> messages = new LinkedList<>();
              messages.add(new Pair(newArc+": "+timeOfEvent,""));
-            addArc( newArc, timeOfEvent,messages );
+            addArc( newArc, timeOfEvent,messages,SpeechBox.SpeechTheme.NEUTRAL );
 
 
         });
@@ -376,19 +418,20 @@ public class Voronoi extends Application {
                 for (File file : imageList) {
                     storyLine.add(file);
 
-                    SpeechBox sb = TimeLineStory.previewHelper(file);
+                    SpeechBox sb = TimeLineStory.previewHelper(file,mapdb);
                     sb.setScaleX(.3);
                     sb.setScaleY(.3);
                     sb.setScaleZ(.3);
                     sb.setTranslateX(.3 * points[counter].getX());
                     sb.setTranslateY(.3 * points[counter].getY());
                     
-                    List<SpeechBox> sbs = TimeLineStory.previewHelper(file,3);
+                    List<SpeechBox> sbs = TimeLineStory.previewHelper(file,3,mapdb);
 
                     Button name = new Button(file.getName());
                     name.setStyle(StylesForAll.transparentAlive);
                     name.setOnAction(event2 -> {
-                        chapterShow(file,"Today");
+                        chapterShow(file,"Today",mapdb);
+                        mapdb.commit();
                     });
 
                     Chapters.getChildren().add(new ArcPane(sbs, name,sb.getDateTime()));
@@ -398,7 +441,7 @@ public class Voronoi extends Application {
                     
                     //Add to game temp
                     JSONArray allChapters = gameJSON.has("Chapters") ? gameJSON.getJSONArray("Chapters") : new JSONArray();
-                    JSONObject chapterData = new TimeLineStory(file, " ", height, width).getChapterData();
+                    JSONObject chapterData = new TimeLineStory(file, " ", height, width,mapdb).getChapterData();
                     chapterData.put("file", file.getName());
                     allChapters.put(chapterData);
                     saveFile(file, allChapters.toString(1));
@@ -481,9 +524,82 @@ public class Voronoi extends Application {
                     Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                addArc(comb.getKey(), "When", messages);//One chapter per set.
+                addArc(comb.getKey(), "When", messages,SpeechBox.SpeechTheme.NEUTRAL);//One chapter per set.
 
                 System.out.println();
+            }
+        });
+        
+        /***********************************************************************
+         * GENERATE CHARACTER INTERACTIONS
+         */
+        //Generate Character combinations
+        //Add the scenes
+        Button storyImport = new Button("Load Story");
+        storyImport.setStyle(StylesForAll.transparentAlive);
+        storyImport.setOnAction(event -> {
+             List<Pair<String, String>> messages = new LinkedList<>();
+                FileChooser fileChooser = new FileChooser();
+                File textFile = fileChooser.showOpenDialog(stage);
+                
+                BufferedReader in;
+            try {
+                in = new BufferedReader(
+                        new InputStreamReader(new FileInputStream(textFile), "UTF-8"));
+                String str;
+                StringBuilder sb = new StringBuilder();
+                while ((str = in.readLine()) != null) {
+                    System.out.println(str);
+                    sb.append(str);
+                    if (sb.length() >= 500) {//New message
+                            messages.add(new Pair(sb.toString(), ""));
+                            sb = new StringBuilder();
+                            
+                    }
+                    
+                }
+                
+                   in.close();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
+            }
+              
+                addArc(textFile.getName(), textFile.getName(), messages,SpeechBox.SpeechTheme.BOOK);//One chapter per set.
+
+                System.out.println();
+            
+        });
+        
+          //Clipboard image
+        Button vidExtract = new Button("Video Story Create");
+        vidExtract.setStyle(StylesForAll.transparentAlive);
+        vidExtract.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                try {
+                    FileChooser fileChooser = new FileChooser();
+                    File selectedFile = fileChooser.showOpenDialog(null);
+                    List<BufferedImage> listOfImgs = VideoHelper.getUniqueImages(selectedFile.getAbsolutePath(), .2f);
+                    List<Pair<String, String>> messages = new LinkedList<>();
+
+                    for (BufferedImage bimg : listOfImgs) {
+                        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        ImageIO.write(bimg, "png", os);
+                        byte pgnBytes[] = os.toByteArray();
+                        Base64.Encoder base64_enc = Base64.getEncoder();
+                        //return base64_enc.encodeToString(pgnBytes);
+                        messages.add(new Pair("What happened next?", base64_enc.encodeToString(pgnBytes)));
+
+                    }
+
+                    addArc(selectedFile.getName(), selectedFile.getName(), messages, SpeechBox.SpeechTheme.NEUTRAL);//One chapter per set.
+
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
             }
         });
 
@@ -491,7 +607,10 @@ public class Voronoi extends Application {
         SystemButtons.getChildren().add(createChapter);
         SystemButtons.getChildren().add(characterInteractionCombinations);
         SystemButtons.getChildren().add(loadWorld);
-        SystemButtons.getChildren().add(saveChat);
+        SystemButtons.getChildren().add(saveChapter);
+        SystemButtons.getChildren().add(storyImport);
+        SystemButtons.getChildren().add(vidExtract);
+        
 
         root.getChildren().add(SystemButtons);
 
@@ -517,12 +636,14 @@ public class Voronoi extends Application {
      * Show chapter
      *
      * @param file
+     * @param timeOfEvent
+     * @param mapdb
      */
-    public void chapterShow(File file,String timeOfEvent) {
+    public void chapterShow(File file,String timeOfEvent, MapDB mapdb) {
         Dialog dialog = new Dialog();
         dialog.getDialogPane().setStyle("-fx-background-color:linear-gradient(to right, #fc5c7d, #6a82fb);");
         dialog.getDialogPane().getStylesheets().add(BW.class.getResource("/book/bw.css").toExternalForm());
-        TimeLineStory tls=new TimeLineStory(file, "User", 650, 500);
+        TimeLineStory tls=new TimeLineStory(file, "User", 650, 800,mapdb);
         tls.setDateTime(timeOfEvent);
         dialog.getDialogPane().setContent(tls);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
@@ -550,8 +671,9 @@ public class Voronoi extends Application {
      * @param newArc File name
      * @param timeOfEvent Time
      * @param messages Messages
+     * @param theme
      */
-    public void addArc(String newArc,String timeOfEvent,List<Pair<String,String>> messages ){
+    public void addArc(String newArc,String timeOfEvent,List<Pair<String,String>> messages,SpeechBox.SpeechTheme theme ){
 
         Button name = new Button(newArc);
         SpeechBox sb = new SpeechBox(newArc + ": " + timeOfEvent, SpeechBox.SpeechDirection.CENTER);
@@ -571,7 +693,8 @@ public class Voronoi extends Application {
             Logger.getLogger(Voronoi.class.getName()).log(Level.SEVERE, null, ex);
         }
         name.setOnAction(event2 -> {
-            chapterShow(arcFile, timeOfEvent);
+            chapterShow(arcFile, timeOfEvent,mapdb);
+            mapdb.commit();
         });
 
         JSONArray allChapters = gameJSON.has("Chapters") ? gameJSON.getJSONArray("Chapters") : new JSONArray();
@@ -587,9 +710,9 @@ public class Voronoi extends Application {
                 try {
                     if(message.getValue().length()<500)
                     {
-                        sb2 = new SpeechBox("What happened next?", getImageB64From(new File(message.getValue())), SpeechBox.SpeechDirection.CENTER,1);
+                        sb2 = new SpeechBox("What happened next?", getImageB64From(new File(message.getValue())), SpeechBox.SpeechDirection.CENTER,theme);
                     }else{//Value is base64Image
-                         sb2 = new SpeechBox("What happened next?", message.getValue(), SpeechBox.SpeechDirection.CENTER,1);
+                         sb2 = new SpeechBox("What happened next?", message.getValue(), SpeechBox.SpeechDirection.CENTER,theme);
                    
                     }
                     listOfSpb.add(sb2);

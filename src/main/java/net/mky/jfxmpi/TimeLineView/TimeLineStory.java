@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +29,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,12 +64,17 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javax.imageio.ImageIO;
+import net.mky.image.ImageProcessingHelper;
+import net.mky.image.VideoHelper;
 import static net.mky.jfxmpi.MainApp.awtImageToFX;
 import static net.mky.jfxmpi.MainApp.getImageFromClipboard;
+import net.mky.safeStore.MapDB;
 import net.mky.tools.StylesForAll;
 import net.mky.tools.ZipHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -104,7 +111,7 @@ public class TimeLineStory extends VBox {
         setupElements();
     }
     
-    public TimeLineStory(File chapter, String conversationPartner, int prefHeight, int prefWidth) {
+    public TimeLineStory(File chapter, String conversationPartner, int prefHeight, int prefWidth, MapDB mapdb) {
         super(5);
         this.conversationPartner = conversationPartner;
         this.prefHeight = prefHeight;
@@ -115,7 +122,7 @@ public class TimeLineStory extends VBox {
 
         activeChatFile = chapter.getName();
         
-        load(chapter);
+        load(chapter, mapdb);
     }
     
 
@@ -137,7 +144,7 @@ public class TimeLineStory extends VBox {
 
          TextField userInput = new TextField();
         userInput.setPromptText("...");
-        userInput.setPrefWidth(500);//Widht control
+        userInput.setPrefWidth(450);//Widht control
         
         //Save and load
         //For testing purposes
@@ -266,6 +273,9 @@ public class TimeLineStory extends VBox {
                     java.awt.Image image = getImageFromClipboard();
                     if (image != null) {
                         javafx.scene.image.Image fimage = awtImageToFX(image);
+                        /**/
+                        
+                        
                         //pe.imageView.setFitHeight(scene.getHeight());
                         // pe.imageView.setFitWidth(scene.getWidth());
                         String b64Image = getImageB64From(fimage);
@@ -278,12 +288,39 @@ public class TimeLineStory extends VBox {
                 }
             }
         });
+        
+          //Clipboard image
+        Button vidExtract = new Button("Vid Extract");
+        vidExtract.setStyle(StylesForAll.transparentAlive);
+        vidExtract.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                try {
+                    File selectedFile = fileChooser.showOpenDialog(null);
+                    List<BufferedImage> listOfImgs = VideoHelper.getUniqueImages(selectedFile.getAbsolutePath(), .2f);
+
+                    for (BufferedImage bimg : listOfImgs) {
+                        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        ImageIO.write(bimg, "png", os);
+                        byte pgnBytes[] = os.toByteArray();
+                        Base64.Encoder base64_enc = Base64.getEncoder();
+                        //return base64_enc.encodeToString(pgnBytes);
+
+                        speechBubbles.add(new SpeechBox("What happened next?", base64_enc.encodeToString(pgnBytes), SpeechBox.SpeechDirection.CENTER, cbxStatus.getValue()));
+
+                    }
+
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
+            }
+        });
 
         contactHeader = new Label(conversationPartner);
         contactHeader.setAlignment(Pos.CENTER);
         contactHeader.setFont(Font.font("Comic Sans MS", 14));
         contactHeaderBar.getChildren().add(contactHeader);
         contactHeaderBar.getChildren().add(loadGameImages);
+        contactHeaderBar.getChildren().add(vidExtract);
         contactHeaderBar.getChildren().add(saveChat);
         contactHeaderBar.getChildren().add(loadChat);
         contactHeaderBar.getChildren().add(userInput);
@@ -291,7 +328,7 @@ public class TimeLineStory extends VBox {
         contactHeaderBar.getChildren().add(cbxStatus);
     }
     
-    public static SpeechBox previewHelper(File selectedFile){
+    public static SpeechBox previewHelper(File selectedFile,MapDB mapdb){
          SpeechBox sb=new SpeechBox("No chapters here.", SpeechBox.SpeechDirection.CENTER);
           try {
                 String content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
@@ -302,6 +339,7 @@ public class TimeLineStory extends VBox {
                 for (int i = 0; i < chat_data.length(); i++) {
                     if (chat_data.getJSONObject(i).has("base64Image")) {
                         Image image=SpeechBox.imagefromBase64(chat_data.getJSONObject(i).getString("base64Image"),200,200);
+                        mapdb.save(selectedFile.getName()+i, getImageB64From(image), getImageB64From(getScaledImage(getImageB64From(image), 100, 100),"jpeg"));
                         sb=  new SpeechBox(chat_data.getJSONObject(i).getString("message"), getImageB64From(image), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),200,200,true);
                         if(chat_data.getJSONObject(i).has("dateTime")){
                             sb.setDateTime(chat_data.getJSONObject(i).getString("dateTime"));
@@ -321,32 +359,41 @@ public class TimeLineStory extends VBox {
         return sb;
     }
     
-    public static List<SpeechBox> previewHelper(File selectedFile,int Count){
+    public static List<SpeechBox> previewHelper(File selectedFile,int Count,MapDB mapdb){
         List<SpeechBox> previews=new LinkedList<>();
         String content = null ;
          //
           try {
                 //Check if zip version is available 
-                if (new File(selectedFile.getAbsolutePath() + ".zip").exists()) {
-                    content = ZipHelper.decompress(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath()+ ".zip")));
+               if (new File(selectedFile.getAbsolutePath() + ".zip").exists()) {
+                  if (mapdb.store.containsKey("P-"+selectedFile.getName())) {//Check cache as well.
+                      content = mapdb.store.get("P-"+selectedFile.getName());
+                  } else {
+                      content = ZipHelper.decompress(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath() + ".zip")));
+                  }
 
-                } else {
-                    content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
-                }
+              } else {
+                  content = new String(Files.readAllBytes(Paths.get(selectedFile.getAbsolutePath())));
+              }
                 content = content.replace("\n", "").replace("\r", "");
                 JSONObject metaData = new JSONObject(content);
                 JSONArray chat_data = metaData.getJSONArray("chat_data");
+                
+                JSONObject metaDataTemp = new JSONObject();
+                JSONArray chat_dataTemp =new JSONArray();
+                        
                 boolean firstDone=false;
                 for (int i = 0; i < (Count < chat_data.length() ? Count : chat_data.length()); i++) {
+                  chat_dataTemp.put(chat_data.getJSONObject(i));
                   SpeechBox sb = new SpeechBox("No chapters here.", SpeechBox.SpeechDirection.CENTER);
                   if (chat_data.getJSONObject(i).has("base64Image")) {
-                      int width=firstDone?200:300;
-                      int height=firstDone?200:300;
-                      firstDone=true;
+                      int width = firstDone ? 200 : 300;
+                      int height = firstDone ? 200 : 300;
+                      firstDone = true;
                       Image image = SpeechBox.imagefromBase64(chat_data.getJSONObject(i).getString("base64Image"), width, 200);
-                      
+
                       sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), getImageB64From(image), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")), width, height, true);
-                      
+
                       if (chat_data.getJSONObject(i).has("dateTime")) {
                           sb.setDateTime(chat_data.getJSONObject(i).getString("dateTime"));
                       } else {
@@ -358,18 +405,21 @@ public class TimeLineStory extends VBox {
                   }
 
                   previews.add(sb);
-                  
+
               }
+                
+                metaDataTemp.put("chat_data", chat_dataTemp);
+                mapdb.store.put("P-"+selectedFile.getName(), metaDataTemp.toString());
 
             } catch (Exception ex) {
-                System.out.println(selectedFile.getAbsolutePath()+">>"+content.substring(0, 500));
+                //System.out.println(selectedFile.getAbsolutePath()+">>"+content.substring(0, 500));
                 ex.printStackTrace();
                 
             }
         return previews;
     }
 
-    public void load(File selectedFile ){
+    public void load(File selectedFile ,MapDB mapdb){
        // File selectedFile = fileChooser.showOpenDialog(null);
             activeChatFile=selectedFile.getName();
             String content = null ;
@@ -396,11 +446,14 @@ public class TimeLineStory extends VBox {
                 }
                 if (chat_data.getJSONObject(i).has("base64Image")) {
                     sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), chat_data.getJSONObject(i).getString("base64Image"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")),th);
-
+                    mapdb.save(selectedFile.getName()+i, chat_data.getJSONObject(i).getString("base64Image"), getImageB64From(getScaledImage(chat_data.getJSONObject(i).getString("base64Image"), 100, 100),"jpeg"));
+                       
                 } else {
                     sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
 
                 }
+                
+                
 
                 
 
@@ -429,7 +482,10 @@ public class TimeLineStory extends VBox {
                //  System.out.println(spbj);
             }
 
+            JSONObject userPicsCache = new JSONObject(userPics);
+
             metaData.put("chat_data", completeChat);
+            metaData.put("userPicsCache", completeChat);
             metaData.put("dateTime", dateTime);
             
             return metaData;
@@ -488,6 +544,131 @@ public class TimeLineStory extends VBox {
         return newImage;
     }
     
+    /**
+     * Vertical stitch similar to joinBufferedImage
+     * @param img1
+     * @param img2
+     * @return 
+     */
+    public static BufferedImage joinBufferedImageV(BufferedImage img1,BufferedImage img2) {
+
+        //do some calculate first
+        int offset  = 5;
+        int height= img1.getHeight()+img2.getHeight()+offset;
+        int  wid  = Math.max(img1.getWidth(),img2.getWidth())+offset;
+        //create a new buffer and draw two image into the new image
+        BufferedImage newImage = new BufferedImage(wid,height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = newImage.createGraphics();
+        java.awt.Color oldColor = g2.getColor();
+        //fill background
+        g2.setPaint(java.awt.Color.WHITE);
+        g2.fillRect(0, 0, wid, height);
+        //draw image
+        g2.setColor(oldColor);
+        g2.drawImage(img1, null, 0, 0);
+        g2.drawImage(img2, null, 0 , img1.getHeight()+offset);
+        g2.dispose();
+        return newImage;
+    }
+    
+    /**
+     * 
+     * @param b641
+     * @param b642
+     * @param rightStitch
+     * @return
+     * @throws IOException 
+     */
+    public static BufferedImage joinBufferedImage(String b641, String b642, boolean rightStitch) throws IOException {
+        // create a buffered image
+        BufferedImage image = null;
+        byte[] imageByte;
+
+        BASE64Decoder decoder = new BASE64Decoder();
+        imageByte = decoder.decodeBuffer(b641);
+        ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
+        image = ImageIO.read(bis);
+        bis.close();
+
+        BufferedImage image2 = null;
+        byte[] imageByte2;
+
+        BASE64Decoder decoder2 = new BASE64Decoder();
+        imageByte2 = decoder.decodeBuffer(b642);
+        ByteArrayInputStream bis2 = new ByteArrayInputStream(imageByte2);
+        image2 = ImageIO.read(bis2);
+        bis2.close();
+
+        if (rightStitch) {
+            return joinBufferedImage(image, getScaledImage(image2, image.getWidth(), image.getHeight()));
+        } else {
+            return joinBufferedImageV(image, getScaledImage(image2, image.getWidth(), image.getHeight()));
+        }
+    }
+    
+    /**
+     * 
+     * @param b641
+     * @param w
+     * @param h
+     * @return
+     * @throws IOException 
+     */
+    public static BufferedImage getScaledImage(String b641, int w, int h) throws IOException {
+
+        // create a buffered image
+        BufferedImage image = null;
+        byte[] imageByte;
+
+        BASE64Decoder decoder = new BASE64Decoder();
+        imageByte = decoder.decodeBuffer(b641);
+        ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
+        image = ImageIO.read(bis);
+        bis.close();
+
+        return getScaledImage(image, w, h);
+    }
+    
+    /**
+     * 
+     * @param src
+     * @param w
+     * @param h
+     * @return 
+     */
+    public static BufferedImage getScaledImage(BufferedImage src, int w, int h){
+    int original_width = src.getWidth();
+    int original_height = src.getHeight();
+    int bound_width = w;
+    int bound_height = h;
+    int new_width = original_width;
+    int new_height = original_height;
+
+    // first check if we need to scale width
+    if (original_width > bound_width) {
+        //scale width to fit
+        new_width = bound_width;
+        //scale height to maintain aspect ratio
+        new_height = (new_width * original_height) / original_width;
+    }
+
+    // then check if we need to scale even with the new height
+    if (new_height > bound_height) {
+        //scale height to fit instead
+        new_height = bound_height;
+        //scale width to maintain aspect ratio
+        new_width = (new_height * original_width) / original_height;
+    }
+
+    BufferedImage resizedImg = new BufferedImage(new_width, new_height, BufferedImage.TYPE_INT_RGB);
+    Graphics2D g2 = resizedImg.createGraphics();
+    g2.setBackground(java.awt.Color.WHITE);
+    g2.clearRect(0,0,new_width, new_height);
+    g2.drawImage(src, 0, 0, new_width, new_height, null);
+    g2.dispose();
+    return resizedImg;
+}
+    
     public static String getImageB64From(File selectedFile) {
         try {
 
@@ -527,6 +708,24 @@ public class TimeLineStory extends VBox {
 
         return base64_enc.encodeToString(pgnBytes);
 
+    }
+    
+    public static String getImageB64From(BufferedImage image, String type) {
+        String imageString = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+ 
+        try {
+            ImageIO.write(image, type, bos);
+            byte[] imageBytes = bos.toByteArray();
+ 
+            BASE64Encoder encoder = new BASE64Encoder();
+            imageString = encoder.encode(imageBytes);
+ 
+            bos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return imageString;
     }
 
     private void setupInputDisplay() {

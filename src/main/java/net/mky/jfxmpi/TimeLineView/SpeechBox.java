@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Base64;
+import java.util.Optional;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -19,9 +21,11 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -31,14 +35,20 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javax.imageio.ImageIO;
+import net.mky.jfxmpi.Collage;
 import static net.mky.jfxmpi.MainApp.awtImageToFX;
 import static net.mky.jfxmpi.MainApp.getImageFromClipboard;
+import net.mky.jfxmpi.TextBubble;
 import static net.mky.jfxmpi.TimeLineView.TimeLineStory.getImageB64From;
 import net.mky.jfxmpi.bookView.BW;
 import net.mky.tools.StylesForAll;
@@ -58,9 +68,9 @@ public class SpeechBox extends HBox{
 }
 
     public static enum SpeechTheme{
-    NEUTRAL, BOOK, MYTHOLOGY
+    NEUTRAL, BOOK,MEME, TEXT_BUBBLE,MYTHOLOGY
 }
-    
+    public static enum imageStitch{RIGHT,LEFT,TOP,BOTTOM,FOREGROUND,BACKGROUND}
     
     private Color DEFAULT_SENDER_COLOR = Color.GOLD;
     private Color DEFAULT_RECEIVER_COLOR = Color.LIMEGREEN;
@@ -216,9 +226,11 @@ public class SpeechBox extends HBox{
             alert.showAndWait();
             });
         
-        }else {//If image is null
+        }
+        
+        //If image is null
             //Clipboard image
-            bnPaste = new Button("Ctrl+V");
+            bnPaste = new Button("[+]");
             bnPaste.setStyle(StylesForAll.transparentAlive);
             bnPaste.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent event) {
@@ -228,33 +240,82 @@ public class SpeechBox extends HBox{
                             javafx.scene.image.Image fimage = awtImageToFX(imageThis);
                             //pe.imageView.setFitHeight(scene.getHeight());
                             // pe.imageView.setFitWidth(scene.getWidth());
-                            base64Image = getImageB64From(fimage);
-                            image = fimage;
-                            imageView = new ImageView(image);
-                            imageView.setFitWidth(img_width);
-                            imageView.setFitHeight(img_height);
-                            imageView.setPreserveRatio(true);
+                            //base64Image = getImageB64From(fimage);
+                            if (image != null) {
+                                ChoiceDialog<imageStitch> choiceDialog = new ChoiceDialog<>();
+                                choiceDialog.getItems().addAll(imageStitch.values());
+                                choiceDialog.showingProperty().addListener((ov, b, b1) -> {
 
-                            imageView.setOnMouseClicked((MouseEvent e) -> {
-                                System.out.println("Clicked!"); // change functionality
-                                ImageView imageViewFull = new ImageView(image);
-                                imageViewFull.setFitWidth(img_width);
-                                imageViewFull.setFitHeight(img_height);
-                                imageViewFull.setPreserveRatio(true);
-                                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Image", ButtonType.OK);
-                                alert.setGraphic(imageViewFull);
-                                alert.showAndWait();
-                            });
-                            bnPaste.setVisible(false);
-                            configureForSystem();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                                    if (b1) {
+                                        choiceDialog.setContentText("");
+                                    } else {
+                                        choiceDialog.setContentText(null);
+                                    }
+
+                                });
+                                Optional<imageStitch> optionalResult = choiceDialog.showAndWait();
+                                optionalResult.ifPresent(result -> {
+                                    try {
+                                        switch (result) {
+                                            case RIGHT:
+                                                BufferedImage newUpdatedImage = TimeLineStory.joinBufferedImage(base64Image, getImageB64From(fimage), true);
+                                                //Image imagen = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                image = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                break;
+
+                                            case LEFT:
+                                                newUpdatedImage = TimeLineStory.joinBufferedImage(getImageB64From(fimage),base64Image,  true);
+                                                //Image imagen = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                image = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                break;
+
+                                            case TOP:
+                                                newUpdatedImage = TimeLineStory.joinBufferedImage( getImageB64From(fimage),base64Image, false);
+                                                //Image imagen = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                image = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                break;
+
+                                            case BOTTOM:
+                                                newUpdatedImage = TimeLineStory.joinBufferedImage(base64Image, getImageB64From(fimage), false);
+                                                //Image imagen = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                image = SwingFXUtils.toFXImage(newUpdatedImage, null);
+                                                break;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                });
+
+                                   
+                               } else {
+                                   image = fimage;
+                               }
+                        base64Image = getImageB64From(image);
+                        imageView = new ImageView(image);
+                        imageView.setFitWidth(img_width);
+                        imageView.setFitHeight(img_height);
+                        imageView.setPreserveRatio(true);
+
+                        imageView.setOnMouseClicked((MouseEvent e) -> {
+                            System.out.println("Clicked!"); // change functionality
+                            ImageView imageViewFull = new ImageView(image);
+                            imageViewFull.setFitWidth(img_width);
+                            imageViewFull.setFitHeight(img_height);
+                            imageViewFull.setPreserveRatio(true);
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Image", ButtonType.OK);
+                            alert.setGraphic(imageViewFull);
+                            alert.showAndWait();
+                        });
+                        //bnPaste.setVisible(false);
+                        configureForSystem();
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
+            }
+        });
 
-        }
+
       
 
         if(direction == SpeechDirection.LEFT){
@@ -395,10 +456,33 @@ public class SpeechBox extends HBox{
                     }
                 }
                 imageView = new ImageView(writableImage);
+                imageView.setFitWidth(img_width); 
+                imageView.setFitHeight(img_height); 
+                imageView.setPreserveRatio(true);
                 
             };
 
-        }
+         } else if (theme == SpeechTheme.MEME) {
+             setStyle(" -fx-background-color: transparent ;\n");
+             textArea.setPrefRowCount(2);
+             textArea.setStyle(" -fx-background-color: transparent ;\n" //transparent
+                     + "    -fx-font-family: \"Helvetica\";\n"
+                     + "    -fx-font-size: 25px;\n"
+                     + "    -fx-font-weight: bold;\n"
+                     + "    -fx-text-fill: white; "
+                     + "-fx-text-alignment: center;");
+             textArea.setPadding(new Insets(-65));
+             //This slows down
+//             if (imageView != null) {
+//                 //Instantiating the Glow class 
+//                 Glow glow = new Glow();
+//
+//                 //setting level of the glow effect 
+//                 glow.setLevel(0.9);
+//                 imageView.setEffect(glow);
+//             }
+
+         }
         
         //displayedText.setBackground(DEFAULT_SYSTEM_BACKGROUND);
         displayedText.setAlignment(Pos.CENTER);
@@ -407,11 +491,20 @@ public class SpeechBox extends HBox{
 
          HBox container = new HBox(textArea, directionIndicator);
          if (imageView != null) {
-             VBox withImage = new VBox(boxCount, textArea, imageView);
+             VBox withImage = new VBox(boxCount, textArea,bnPaste, imageView);
              if (theme != SpeechTheme.BOOK) {
                  withImage.setBackground(DEFAULT_SYSTEM_BACKGROUND);
                  withImage.setPadding(new Insets(5));
              }
+             
+             if(theme == SpeechTheme.MEME){
+                 withImage = new VBox(bnPaste,imageView, textArea);
+             }
+             
+             if(theme == SpeechTheme.TEXT_BUBBLE){
+                 withImage = new VBox(bnPaste,imageView,new TextBubble( false));
+             }
+             
              container = new HBox(withImage, directionIndicator);
              withImage.setAlignment(Pos.CENTER);
          } else {

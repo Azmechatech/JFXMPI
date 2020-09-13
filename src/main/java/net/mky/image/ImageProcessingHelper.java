@@ -76,6 +76,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.IntBuffer;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1110,9 +1111,7 @@ public class ImageProcessingHelper {
 
         return bimage3;
     }
-    
-    
-    
+        
     /**
      * Encode image to string
      *

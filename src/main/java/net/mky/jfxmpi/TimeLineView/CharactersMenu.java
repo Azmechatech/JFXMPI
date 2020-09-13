@@ -24,11 +24,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javax.imageio.ImageIO;
 import net.mky.jfxmpi.CharacterPane;
 import net.mky.jfxmpi.Collage;
@@ -47,6 +50,8 @@ public class CharactersMenu  extends StackPane  {
     public List<CharacterPane> charactersArray=new LinkedList<>();
     Set<CharacterPane> selectedCharacters=new LinkedHashSet<>();
     HBox menu=new HBox();
+     VBox menuV=new VBox();
+      boolean vertical;
     ToggleGroup Characters = new ToggleGroup();
     public static enum LIFE_OPTIONS{MALE,FEMALE,SYSTEM};
     public static enum CHARACTER_ROLE{PRIMARY,SECONDARY};
@@ -57,7 +62,7 @@ public class CharactersMenu  extends StackPane  {
             public void handle(ActionEvent event) {
                 System.out.println("Adding character.");
                 CharacterPane newCharacter = new CharacterPane((int) system.getWidth(), (int) system.getHeight(), false);
-                addCharacter(newCharacter);
+                addCharacter(newCharacter,menu);
 
             }
         };
@@ -70,11 +75,41 @@ public class CharactersMenu  extends StackPane  {
         
         getChildren().add(menu);
     }
+    
+     public CharactersMenu(CharacterPane system, boolean vertical){
+         this.vertical=vertical;
+         ScrollPane messageScroller;
+        messageScroller = new ScrollPane(menuV);
+        messageScroller.setStyle("-fx-background-color: transparent;");
+        messageScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        messageScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        messageScroller.setMaxHeight(800);//420
+        messageScroller.setPrefWidth(400);//420
+       // addCharacter(system);
+        EventHandler<ActionEvent> addCharacterPane = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("Adding character.");
+                CharacterPane newCharacter = new CharacterPane((int) system.getWidth(), (int) system.getHeight(), false);
+                addCharacter(newCharacter,menuV);
+
+            }
+        };
+
+        Button addCharPane = new Button("Add Character");
+        //addCharPane.getStyleClass().add("play");
+        addCharPane.setOnAction(addCharacterPane);
+        addCharPane.setStyle(StylesForAll.transparentAlive);
+        menuV.getChildren().add(addCharPane);
+        
+        getChildren().add(messageScroller);
+    }
+     
     /**
      * 
      * @param character 
      */
-    public void addCharacter(CharacterPane character) {
+    public void addCharacter(CharacterPane character, Pane menu) {
 
         System.out.println("Adding character.");
         if (character.getLife() == null) {
@@ -110,16 +145,19 @@ public class CharactersMenu  extends StackPane  {
                         Life lifeM = new Male(nameOfChar, 20, 5, new double[]{});
                         character.setLtf(LifeTagFactory.MALE);
                         character.setLife(lifeM);
+                        character.setName(nameOfChar);
                         break;
                     case FEMALE:
                         Life lifeF = new Female(nameOfChar, 20, 5, new double[]{});
                         character.setLtf(LifeTagFactory.FEMALE);
                         character.setLife(lifeF);
+                        character.setName(nameOfChar);
                         break;
                     case SYSTEM:
                         Life life = new Male(nameOfChar, 20, 5, new double[]{});
                         character.setLtf(LifeTagFactory.MALE);
                         character.setLife(life);
+                        character.setName(nameOfChar);
                         break;
 
                 }
@@ -174,7 +212,16 @@ public class CharactersMenu  extends StackPane  {
             dialog.showAndWait();
         });
 
-        menu.getChildren().add(thisCharacter);
+        if (menu == null) {
+            if (!vertical) {
+                this.menu.getChildren().add(thisCharacter); //Default is vertical add.
+            }
+            if (vertical) {
+                this.menuV.getChildren().add(thisCharacter); //Default is vertical add.
+            }
+        }
+        else
+            menu.getChildren().add(thisCharacter);
 
     }
     
