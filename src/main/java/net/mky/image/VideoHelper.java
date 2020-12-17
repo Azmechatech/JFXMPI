@@ -42,7 +42,7 @@ public class VideoHelper {
                 //ImageIO.write(result, "png", new File("..."+i+".png"));
 
                 if (previous != null) {
-                    com.truegeometry.mkhilbertml.Statistic st = HilbertCurvePatternDetect.match2ImagesScore(result, previous, 32);
+                    com.truegeometry.mkhilbertml.pojo.Statistic st = HilbertCurvePatternDetect.match2ImagesScore(result, previous, 32);
                     if (st.getSimilarityScore() < .5) {
                         uniqueImages.add(result);
                     }
@@ -82,7 +82,7 @@ public class VideoHelper {
                 //ImageIO.write(result, "png", new File("C:\\$AVG\\baseDir\\Imports\\Yugkatha\\ShortOnes\\SouthDiaries\\Img"+i+".png"));
 
                 if (previous != null) {
-                    com.truegeometry.mkhilbertml.Statistic st = HilbertCurvePatternDetect.match2ImagesScore(result, previous, 32);
+                    com.truegeometry.mkhilbertml.pojo.Statistic st = HilbertCurvePatternDetect.match2ImagesScore(result, previous, 32);
                     if (st.getSimilarityScore() < threshold0to1) {
                         uniqueImages.add(result);
                         System.out.println("getUniqueImages>> Found: "+uniqueImages.size()+"/"+frameGrabber.getLengthInFrames());

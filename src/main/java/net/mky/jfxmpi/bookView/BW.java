@@ -26,7 +26,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
-import javafx.scene.web.HTMLEditor;
+//import javafx.scene.web.HTMLEditor;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -55,15 +55,15 @@ public class BW  extends Application {
     textArea.setTranslateX(-250);textArea.setTranslateY(100);textArea.setMaxWidth(500);textArea.setWrapText(true);
     TextArea textArea2 = new TextArea();
     textArea2.setTranslateX(300);textArea2.setTranslateY(100);textArea2.setMaxWidth(500);textArea2.setWrapText(true);
-    final HTMLEditor htmlEditor = new HTMLEditor();
-        htmlEditor.setPrefHeight(245);
-        htmlEditor.setStyle(
-                " -fx-background-color: transparent ;"+
-    "-fx-font: 12 cambria;"
-    + "-fx-border-color: brown; "
-    + "-fx-border-style: dotted;"
-    + "-fx-border-width: 2;"
-);
+//    final HTMLEditor htmlEditor = new HTMLEditor();
+//        htmlEditor.setPrefHeight(245);
+//        htmlEditor.setStyle(
+//                " -fx-background-color: transparent ;"+
+//    "-fx-font: 12 cambria;"
+//    + "-fx-border-color: brown; "
+//    + "-fx-border-style: dotted;"
+//    + "-fx-border-width: 2;"
+//);
     
    
     

@@ -73,8 +73,7 @@ import net.mky.tools.StylesForAll;
 import net.mky.tools.ZipHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+
 
 /**
  *
@@ -584,8 +583,9 @@ public class TimeLineStory extends VBox {
         BufferedImage image = null;
         byte[] imageByte;
 
-        BASE64Decoder decoder = new BASE64Decoder();
-        imageByte = decoder.decodeBuffer(b641);
+        //BASE64Decoder decoder = new BASE64Decoder();
+        Base64.Decoder decoder = Base64.getDecoder();
+        imageByte = decoder.decode(b641);
         ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
         image = ImageIO.read(bis);
         bis.close();
@@ -593,8 +593,8 @@ public class TimeLineStory extends VBox {
         BufferedImage image2 = null;
         byte[] imageByte2;
 
-        BASE64Decoder decoder2 = new BASE64Decoder();
-        imageByte2 = decoder.decodeBuffer(b642);
+        //BASE64Decoder decoder2 = new BASE64Decoder();
+        imageByte2 = decoder.decode(b642);
         ByteArrayInputStream bis2 = new ByteArrayInputStream(imageByte2);
         image2 = ImageIO.read(bis2);
         bis2.close();
@@ -620,8 +620,9 @@ public class TimeLineStory extends VBox {
         BufferedImage image = null;
         byte[] imageByte;
 
-        BASE64Decoder decoder = new BASE64Decoder();
-        imageByte = decoder.decodeBuffer(b641);
+        //BASE64Decoder decoder = new BASE64Decoder();
+        Base64.Decoder decoder = Base64.getDecoder();
+        imageByte = decoder.decode(b641);
         ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
         image = ImageIO.read(bis);
         bis.close();
@@ -718,8 +719,9 @@ public class TimeLineStory extends VBox {
             ImageIO.write(image, type, bos);
             byte[] imageBytes = bos.toByteArray();
  
-            BASE64Encoder encoder = new BASE64Encoder();
-            imageString = encoder.encode(imageBytes);
+            //BASE64Encoder encoder = new BASE64Encoder();
+            Base64.Encoder encoder = Base64.getEncoder();
+            imageString = encoder.encodeToString(imageBytes);
  
             bos.close();
         } catch (IOException e) {

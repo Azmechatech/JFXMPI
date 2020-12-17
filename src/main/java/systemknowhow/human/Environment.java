@@ -5,7 +5,7 @@
  */
 package systemknowhow.human;
 
-import com.sun.javafx.css.Rule;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -150,27 +150,27 @@ public class Environment {
 class ConsequenceEngine extends Consequence{
 
     @Override
-    public Object evaluate(Rule rule, SocialRelationTags srt) {
+    public Object evaluate(Rules rule, SocialRelationTags srt) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Object xevaluate(Rule rule, SecretActivityTagFactory satf, SocialRelationTags srt) {
+    public Object xevaluate(Rules rule, SecretActivityTagFactory satf, SocialRelationTags srt) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Object xevaluate(Rule rule, IndoorActivityTagFactory iatf, SocialRelationTags srt) {
+    public Object xevaluate(Rules rule, IndoorActivityTagFactory iatf, SocialRelationTags srt) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Object xevaluate(Rule rule, OutdoorActivityTagFactory oatf, SocialRelationTags srt) {
+    public Object xevaluate(Rules rule, OutdoorActivityTagFactory oatf, SocialRelationTags srt) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Object xevaluate(Rule rule, SocialActionTagFactory satf, SocialRelationTags srt) {
+    public Object xevaluate(Rules rule, SocialActionTagFactory satf, SocialRelationTags srt) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

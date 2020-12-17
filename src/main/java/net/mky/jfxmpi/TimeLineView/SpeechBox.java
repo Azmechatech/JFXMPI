@@ -52,7 +52,7 @@ import net.mky.jfxmpi.TextBubble;
 import static net.mky.jfxmpi.TimeLineView.TimeLineStory.getImageB64From;
 import net.mky.jfxmpi.bookView.BW;
 import net.mky.tools.StylesForAll;
-import sun.misc.BASE64Decoder;
+
 
 /**
  *

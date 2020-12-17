@@ -77,6 +77,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
+import java.util.Base64;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -94,8 +95,6 @@ import javax.swing.JPanel;
 //import net.mk.JJIL.Gray8DetectHaarMultiScale;
 //import net.mk.JJIL.Main;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  *
@@ -255,8 +254,9 @@ public class ImageProcessingHelper {
         BufferedImage image = null;
         byte[] imageByte;
         try {
-            BASE64Decoder decoder = new BASE64Decoder();
-            imageByte = decoder.decodeBuffer(imageString);
+            //BASE64Decoder decoder = new BASE64Decoder();
+            Base64.Decoder decoder = Base64.getDecoder();
+            imageByte = decoder.decode(imageString);
             ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
             image = ImageIO.read(bis);
             bis.close();
@@ -1127,8 +1127,9 @@ public class ImageProcessingHelper {
             ImageIO.write(image, type, bos);
             byte[] imageBytes = bos.toByteArray();
 
-            BASE64Encoder encoder = new BASE64Encoder();
-            imageString = encoder.encode(imageBytes);
+            //BASE64Encoder encoder = new BASE64Encoder();
+            Base64.Encoder encoder = Base64.getEncoder();
+            imageString = encoder.encodeToString(imageBytes);
 
             bos.close();
         } catch (IOException e) {
@@ -1140,8 +1141,9 @@ public class ImageProcessingHelper {
     public static String encodeToString(byte[] imageBytes, String type) {
         String imageString = null;
 
-        BASE64Encoder encoder = new BASE64Encoder();
-        imageString = encoder.encode(imageBytes);
+        //BASE64Encoder encoder = new BASE64Encoder();
+        Base64.Encoder encoder = Base64.getEncoder();
+        imageString = encoder.encodeToString(imageBytes);
 
         return imageString;
     }

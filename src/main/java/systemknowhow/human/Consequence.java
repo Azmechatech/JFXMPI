@@ -5,7 +5,7 @@
  */
 package systemknowhow.human;
 
-import com.sun.javafx.css.Rule;
+
 import systemknowhow.humanactivity.IndoorActivityTagFactory;
 import systemknowhow.humanactivity.OutdoorActivityTagFactory;
 import systemknowhow.humanactivity.SecretActivityTagFactory;
@@ -32,15 +32,15 @@ import systemknowhow.humanactivity.SocialRelationTags;
     SocialRule sr;
     NaturalRule nr;
     
-     abstract public Object evaluate(Rule rule, SocialRelationTags srt) ;
+     abstract public Object evaluate(Rules rule, SocialRelationTags srt) ;
      
-    abstract public Object xevaluate(Rule rule,SecretActivityTagFactory satf, SocialRelationTags srt);
+    abstract public Object xevaluate(Rules rule,SecretActivityTagFactory satf, SocialRelationTags srt);
      
-    abstract public Object xevaluate(Rule rule,IndoorActivityTagFactory iatf, SocialRelationTags srt) ;
+    abstract public Object xevaluate(Rules rule,IndoorActivityTagFactory iatf, SocialRelationTags srt) ;
      
-     abstract public Object xevaluate(Rule rule,OutdoorActivityTagFactory oatf, SocialRelationTags srt) ;
+     abstract public Object xevaluate(Rules rule,OutdoorActivityTagFactory oatf, SocialRelationTags srt) ;
      
-     abstract public Object xevaluate(Rule rule,SocialActionTagFactory satf, SocialRelationTags srt);
+     abstract public Object xevaluate(Rules rule,SocialActionTagFactory satf, SocialRelationTags srt);
     
     
 }
