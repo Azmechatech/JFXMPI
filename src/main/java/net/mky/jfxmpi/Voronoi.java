@@ -698,7 +698,7 @@ public class Voronoi extends Application {
         });
 
         JSONArray allChapters = gameJSON.has("Chapters") ? gameJSON.getJSONArray("Chapters") : new JSONArray();
-        TimeLineStory tls = new TimeLineStory("Maker", 800, 700);
+        TimeLineStory tls = new TimeLineStory("Maker", 900, 1024);
         //tls.speechBubbles.add(sb);
         for (Pair<String,String> message : messages) {
             if (message.getValue().contentEquals("")) {
