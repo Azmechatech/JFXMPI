@@ -5,9 +5,15 @@
  */
 package net.mky.jfxmpi;
 
+import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -16,19 +22,30 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import net.mky.tools.StylesForAll;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
+import org.mapdb.serializer.SerializerArrayTuple;
 
 /**
  * From
  * :https://stackoverflow.com/questions/50307003/chess-border-around-pawns-javafx
- *
+ * Create character log, use character log for their conversation
+ * Introduce character goals. 
+ * Build over mapdb
  * @author ryzen
  */
 public class WorldBoard extends Application {
@@ -36,14 +53,42 @@ public class WorldBoard extends Application {
     int worldSizeW = 23;
     int worldSizeH = 13;
     WorldObjects wo = new WorldObjects();
-    HashMap<String, String> WorldObjectsLocation = new HashMap<>();
+    public HTreeMap<String, String> WorldObjectsLocation;// = new HashMap<>();
+    NavigableSet<Object[]> charLog;
+    NavigableSet<Object[]> charCurrentLocation;
     HashMap<ImageView, Long> objectStay = new HashMap<>();
     HashMap<ImageView, String> objectStayLocation = new HashMap<>();
     HashMap<ImageView, String> objectName = new HashMap<>();
     final GridPane group = new GridPane();
+     DB db;
 
     @Override
     public void start(Stage primaryStage) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File selectedDirectory = directoryChooser.showDialog(primaryStage);
+        
+        db = DBMaker
+                .fileDB(selectedDirectory.getAbsolutePath() + "/WorldBoard.db").transactionEnable()
+                .fileMmapEnable()
+                .make();
+        WorldObjectsLocation = db.hashMap("WorldObjectsLocation")
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.STRING)
+                .createOrOpen();
+        charLog = db.treeSet("charLog")//Log of the character's actions and stay
+                //set tuple serializer //Name, Systemmillisec,location, stay duration, action, action duration
+                .serializer(new SerializerArrayTuple(Serializer.STRING, Serializer.LONG, Serializer.STRING, Serializer.LONG, Serializer.STRING, Serializer.LONG))
+                .counterEnable()
+                .counterEnable()
+                .counterEnable()
+                .createOrOpen();
+        charCurrentLocation = db.treeSet("charCurrentLocation")//Log of the character's actions and stay
+                //set tuple serializer //Location Character action
+                .serializer(new SerializerArrayTuple(Serializer.STRING, Serializer.STRING, Serializer.STRING))
+                .counterEnable()
+                .counterEnable()
+                .counterEnable()
+                .createOrOpen();
         primaryStage.setTitle("ChessGame");
         primaryStage.getIcons().add(new Image("/char/7JU7r.png"));
         GridPane root = new GridPane();
@@ -72,110 +117,35 @@ public class WorldBoard extends Application {
         }
 
         //Add characters
-        for (int i = 0; i < 3; i++) {
-            blackPawn BlackP_2 = new blackPawn(1, 1);
-            objectName.put(BlackP_2.IMG, "Character " + (i + 1));
+        HashMap<String,blackPawn.TYPE> characters = new HashMap<>();
+        characters.put("Mone", blackPawn.TYPE.MALE);
+        characters.put("Fone", blackPawn.TYPE.FEMALE);
+        characters.put("Mtwo", blackPawn.TYPE.MALE);
+        characters.put("Ftwo", blackPawn.TYPE.FEMALE);
+        for (Map.Entry<String,blackPawn.TYPE> charName : characters.entrySet()) {
+            blackPawn BlackP_2 = new blackPawn(1, 1,charName.getValue());
+            objectName.put(BlackP_2.IMG, charName.getKey());
             runTimer(BlackP_2);
         }
+        
+        Button CharLogs = new Button("Character Logs");
+        //group.add(CharLogs, worldSizeW-1, worldSizeH-1);//Add to last cell
+        CharLogs.setStyle(StylesForAll.transparentAlive);
+        CharLogs.setOnAction(event -> {
+            for (String chars : objectName.values()) { // print all values associated with John:
+                Set johnSubset = charLog.subSet(
+                        new Object[]{chars}, // lower interval bound
+                        new Object[]{chars, null});  // upper interval bound, null is positive infinity
+                
+                johnSubset.forEach(object->{
+                    Object[] log=(Object[]) object;
+                    System.out.println(new Date((long) log[1])+":"+log[0]+" at "+log[2]+" did "+log[4]);
+                });
+            }
 
-        //FIGURES
-        //Black
-        //Pawns
-//    final blackPawn BlackP_1 = new blackPawn(0,1,64,65);
-//    group.add(BlackP_1.IMG,BlackP_1.x,BlackP_1.y);
-//
-//    BlackP_1.IMG.setOnMouseEntered(new EventHandler<MouseEvent>() {
-//        @Override
-//        public void handle(MouseEvent event) {
-//            group.getChildren().remove(64,65);
-//            group.add(BlackP_1.IMGglow,0,1);
-//        }
-//    });
-//
-//
-//
-//    BlackP_1.IMGglow.setOnMouseExited(new EventHandler<MouseEvent>() {
-//        @Override
-//        public void handle(MouseEvent event) {
-//            group.getChildren().remove(64,65);
-//            group.add(BlackP_1.IMG,BlackP_1.x,BlackP_1.y);
-//        }
-//    });
-//    group.add(BlackP_2.IMG,BlackP_2.x,BlackP_2.y);
-        //   blackPawn BlackP_3 = new blackPawn(2,1);objectName.put(BlackP_3.IMG, "Number Two");
-//    group.add(BlackP_3.IMG,BlackP_3.x,BlackP_3.y);
-//    blackPawn BlackP_4 = new blackPawn(3,1);
-//    group.add(BlackP_4.IMG,BlackP_4.x,BlackP_4.y);
-//    blackPawn BlackP_5 = new blackPawn(4,1);
-//    group.add(BlackP_5.IMG,BlackP_5.x,BlackP_5.y);
-//    blackPawn BlackP_6 = new blackPawn(5,1);
-//    group.add(BlackP_6.IMG,BlackP_6.x,BlackP_6.y);
-//    blackPawn BlackP_7 = new blackPawn(6,1);
-//    group.add(BlackP_7.IMG,BlackP_7.x,BlackP_7.y);
-//    blackPawn BlackP_8 = new blackPawn(7,1);
-//    group.add(BlackP_8.IMG,BlackP_8.x,BlackP_8.y);
-        //Rooks
-//    blackRook BlackR_1 = new blackRook();
-//    group.add(BlackR_1.IMG,7,0);
-//    blackRook BlackR_2 = new blackRook();
-//    group.add(BlackR_2.IMG,0,0);
-//    //Knights
-//    blackKnight BlackK_1 = new blackKnight();
-//    group.add(BlackK_1.IMG,1,0);
-//    blackKnight BlackK_2 = new blackKnight();
-//    group.add(BlackK_2.IMG,6,0);
-//    //Bishop
-//    blackBishop BlackB_1 = new blackBishop();
-//    group.add(BlackE_1.IMG,2,0);
-//    blackBishop BlackB_2 = new blackBishop();
-//    group.add(BlackE_2.IMG,5,0);
-//    //Queen
-//    blackQueen blackQueen= new blackQueen();
-//    group.add(blackQueen.IMG,3,0);
-//    //King
-//    blackKing blackking = new blackKing();
-//    group.add(blackking.IMG,4,0);
-//
-//    //WHITE
-//    //Pawns
-//    final whitePawn WhiteP_1 = new whitePawn();
-//    group.add(WhiteP_1.IMG,0,6);
-//    whitePawn WhiteP_2 = new whitePawn();
-//    group.add(WhiteP_2.IMG,1,6);
-//    whitePawn WhiteP_3 = new whitePawn();
-//    group.add(WhiteP_3.IMG,2,6);
-//    whitePawn WhiteP_4 = new whitePawn();
-//    group.add(WhiteP_4.IMG,3,6);
-//    whitePawn WhiteP_5 = new whitePawn();
-//    group.add(WhiteP_5.IMG,4,6);
-//    whitePawn WhiteP_6 = new whitePawn();
-//    group.add(WhiteP_6.IMG,5,6);
-//    whitePawn WhiteP_7 = new whitePawn();
-//    group.add(WhiteP_7.IMG,6,6);
-//    whitePawn WhiteP_8 = new whitePawn();
-//    group.add(WhiteP_8.IMG,7,6);
-//    //Rooks
-//    whiteRook WhiteR_1 = new whiteRook();
-//    group.add(WhiteR_1.IMG,0,7);
-//    whiteRook WhiteR_2 = new whiteRook();
-//    group.add(WhiteR_2.IMG,7,7);
-//    //Knights
-//    whiteKnight WhiteK_1 = new whiteKnight();
-//    group.add(WhiteK_1.IMG,1,7);
-//    whiteKnight WhiteK_2 = new whiteKnight();
-//    group.add(WhiteK_2.IMG,6,7);
-//    //Bishop
-//    whiteBishop WhiteB_1 = new whiteBishop();
-//    group.add(WhiteB_1.IMG,2,7);
-//    whiteBishop WhiteB_2 = new whiteBishop();
-//    group.add(WhiteB_2.IMG,5,7);
-//    //Queen
-//    whiteQueen whitequeen = new whiteQueen();
-//    group.add(whitequeen.IMG,3,7);
-//    //King
-//    whiteKing whiteking = new whiteKing();
-//    group.add(whiteking.IMG,4,7);
+        });
         root.getChildren().add(group);
+        root.getChildren().add(CharLogs);
         root.setStyle("-fx-background-color: #C1D1E8;");
 
         Scene scene = new Scene(root, 1650, 1024);
@@ -203,13 +173,16 @@ public class WorldBoard extends Application {
 
                         if (objectStay.containsKey(character.IMG)) {
                             long getEntryTime = objectStay.get(character.IMG);
-                            if ((System.currentTimeMillis() - getEntryTime) < 30 * 1000) {
-                                System.out.println(objectName.get(character.IMG) + " is at " + objectStayLocation.get(character.IMG));
+                            if ((System.currentTimeMillis() - getEntryTime) < wo.getStayDuration().get(objectStayLocation.get(character.IMG))*1000) {//15 min
+                                //System.out.println(objectName.get(character.IMG) + " is at " + objectStayLocation.get(character.IMG));
                                 return;
                             } //Basically keep the obset at same location for some time.
                             else{
                                 System.out.println(objectName.get(character.IMG) + " left " + objectStayLocation.get(character.IMG));
+                                charLog.add(new Object[]{objectName.get(character.IMG),System.currentTimeMillis(),objectStayLocation.get(character.IMG),30L,"Exit",5L});
+                                charCurrentLocation.remove(new Object[]{objectStayLocation.get(character.IMG),objectName.get(character.IMG),"Enter"});
                                 objectStay.remove(character.IMG);
+                                db.commit();
                             }
                         }
                         group.getChildren().remove(character.IMG);
@@ -219,9 +192,25 @@ public class WorldBoard extends Application {
                         group.add(character.IMG, newX, newY);
 
                         if (WorldObjectsLocation.containsKey(newX + ":" + newY)) {
-                            System.out.println(objectName.get(character.IMG) + " reached to " + WorldObjectsLocation.get(newX + ":" + newY));
+                            String location= WorldObjectsLocation.get(newX + ":" + newY);
+                            System.out.println(objectName.get(character.IMG) + " reached to " +location);
+                            charLog.add(new Object[]{objectName.get(character.IMG),System.currentTimeMillis(),location,30L,"Enter",5L});
+                            charCurrentLocation.add(new Object[]{location,objectName.get(character.IMG),"Enter"});
                             objectStay.put(character.IMG, System.currentTimeMillis());
                             objectStayLocation.put(character.IMG, WorldObjectsLocation.get(newX + ":" + newY));
+                            db.commit();
+                            
+                            //Check same location
+                            Set johnSubset = charCurrentLocation.subSet(
+                                    new Object[]{location}, // lower interval bound
+                                    new Object[]{location, null});  // upper interval bound, null is positive infinity
+                            if (johnSubset.size() > 1) {
+                                johnSubset.forEach(object -> {
+                                    Object[] log = (Object[]) object;
+                                    System.out.print(log[1] + "  ");
+                                });
+                                System.out.println("are at " + location);
+                            }
 
                         }
                     }
@@ -240,7 +229,7 @@ class WorldObjects {
 
     Queue<WorldObject> q
             = new LinkedList<>();
-
+    HashMap<String, Long> stayDuration=new HashMap<>();
     public WorldObjects() {
         q.add(new WorldObject("Bedroom One", new ImageView("/char/bedroom.png")));
         q.add(new WorldObject("Bedroom Two", new ImageView("/char/bedroom.png")));
@@ -256,6 +245,22 @@ class WorldObjects {
         q.add(new WorldObject("Gym", new ImageView("/char/gym.jpg")));
         q.add(new WorldObject("Dance Room", new ImageView("/char/dance.png")));
         q.add(new WorldObject("House", new ImageView("/char/house_with_garden.png")));
+        
+        //Set stay duration
+        stayDuration.put("Bedroom One", 30L);
+        stayDuration.put("Bedroom Two",  30L);
+        stayDuration.put("Bedroom Three",  30L);
+        stayDuration.put("Restroom One",  5L);
+        stayDuration.put("Bath room One",  15L);
+        stayDuration.put("Bath room Two", 15L);
+        stayDuration.put("Bath room Three",  15L);
+        //stayDuration.put("Greeting",new ImageView("/char/Greeting.png")));
+        stayDuration.put("Kitchen",  30L);
+        stayDuration.put("Living room",  30L);
+        stayDuration.put("Dining table",  15L);
+        stayDuration.put("Gym", 30L);
+        stayDuration.put("Dance Room",  45L);
+        stayDuration.put("House",  5L);
 
     }
 
@@ -266,6 +271,12 @@ class WorldObjects {
     public void setQ(Queue<WorldObject> q) {
         this.q = q;
     }
+
+    public HashMap<String, Long> getStayDuration() {
+        return stayDuration;
+    }
+    
+    
 
 }
 
@@ -300,19 +311,24 @@ class WorldObject {
 }
 
 class blackPawn {
-
+public enum TYPE {MALE,FEMALE}
     public int x;
     public int y;
     public int start;
     public int end;
     String name;
+    TYPE gender;
+    public ImageView IMG = new ImageView("/char/boy.png");
+    public ImageView IMGglow = new ImageView("/char/female.png");
 
-    public ImageView IMG = new ImageView("/char/7JU7r.png");
-    public ImageView IMGglow = new ImageView("/char/rd71Q.png");
-
-    public blackPawn(int x, int y) {
+    public blackPawn(int x, int y,TYPE gender) {
         this.x = x;
         this.y = y;
+        this.gender=gender;
+        if(TYPE.FEMALE==gender){IMG = new ImageView("/char/female.png");}
+        if(TYPE.MALE==gender){IMG = new ImageView("/char/boy.png");}
+        this.IMG.setFitHeight(75);
+        this.IMG.setFitWidth(75);
     }
 
     public blackPawn(int x, int y, int start, int end) {
