@@ -21,7 +21,7 @@ public class RuleFactory {
     
     public static Map<SocialRelationTags,Rules> rules=new HashMap();
     
-  static void init() {
+  public static void init() {
       rules=new HashMap();
       
       SocialRule srule=new SocialRule(SocialRelationTags.GIRLFRIEND,IndoorActivityTagFactory.values().length,OutdoorActivityTagFactory.values().length,SecretActivityTagFactory.values().length,SocialActionTagFactory.values().length);

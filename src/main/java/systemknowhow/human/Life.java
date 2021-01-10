@@ -107,15 +107,15 @@ public abstract class Life {
     }
 
     //Life runs senses and generate Behaviour or FixedActionPattern.
-    abstract SocialActionTagFactory makeSocialDecision(Life withThis);
+    public abstract SocialActionTagFactory makeSocialDecision(Life withThis);
 
-    abstract SecretActivityTagFactory makeSecretDecision(Life withThis);
+    public abstract SecretActivityTagFactory makeSecretDecision(Life withThis);
 
-    abstract OutdoorActivityTagFactory makeOutdoorDecision(Life withThis);
+    public abstract OutdoorActivityTagFactory makeOutdoorDecision(Life withThis);
 
-    abstract IndoorActivityTagFactory makeIndoorDecision(Life withThis);
+    public abstract IndoorActivityTagFactory makeIndoorDecision(Life withThis);
     
-    abstract Goal setGoal(Goal tag);
+    public abstract Goal setGoal(Goal tag);
     
     public void learnToSentence(String[] sentences){
         /**

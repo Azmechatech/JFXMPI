@@ -639,7 +639,7 @@ public class Voronoi extends Application {
      * @param timeOfEvent
      * @param mapdb
      */
-    public void chapterShow(File file,String timeOfEvent, MapDB mapdb) {
+    public static void chapterShow(File file,String timeOfEvent, MapDB mapdb) {
         Dialog dialog = new Dialog();
         dialog.getDialogPane().setStyle("-fx-background-color:linear-gradient(to right, #fc5c7d, #6a82fb);");
         dialog.getDialogPane().getStylesheets().add(BW.class.getResource("/book/bw.css").toExternalForm());
@@ -651,7 +651,7 @@ public class Voronoi extends Application {
 
     }
 
-    public void saveFile(File file, String content) {
+    public static void saveFile(File file, String content) {
         Writer fstream = null;
         BufferedWriter out = null;
         try {

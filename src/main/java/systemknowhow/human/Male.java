@@ -97,26 +97,26 @@ public class Male extends Life {
        
 
     @Override
-    SocialActionTagFactory makeSocialDecision(Life withThis) {
+    public SocialActionTagFactory makeSocialDecision(Life withThis) {
         SocialRule sr=(SocialRule) RuleFactory.rules.get(relations.get(withThis));
         return sr.getSocialActionAllowed((int) (Math.random()*5));
     }
 
     @Override
-    SecretActivityTagFactory makeSecretDecision(Life withThis) {
+    public SecretActivityTagFactory makeSecretDecision(Life withThis) {
         SocialRule sr=(SocialRule) RuleFactory.rules.get(relations.get(withThis));
         return sr.getSecretActivity((int) (Math.random()*5));
         
     }
 
     @Override
-    OutdoorActivityTagFactory makeOutdoorDecision(Life withThis) {
+    public OutdoorActivityTagFactory makeOutdoorDecision(Life withThis) {
         SocialRule sr=(SocialRule) RuleFactory.rules.get(relations.get(withThis));
         return sr.getOutdoorActivity((int) (Math.random()*5));
     }
 
     @Override
-    IndoorActivityTagFactory makeIndoorDecision(Life withThis) {
+    public IndoorActivityTagFactory makeIndoorDecision(Life withThis) {
        SocialRule sr=(SocialRule) RuleFactory.rules.get(relations.get(withThis));
         return sr.getIndoorActivity((int) (Math.random()*5));
     }
@@ -124,7 +124,7 @@ public class Male extends Life {
  
 
     @Override
-    Goal setGoal(Goal tag) {
+    public Goal setGoal(Goal tag) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
