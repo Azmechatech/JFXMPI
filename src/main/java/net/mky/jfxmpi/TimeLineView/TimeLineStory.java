@@ -6,8 +6,16 @@
 package net.mky.jfxmpi.TimeLineView;
 
 
+import com.truegeometry.mkhilbertml.GridImage;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -64,6 +72,7 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import net.mky.image.ImageProcessingHelper;
 import net.mky.image.VideoHelper;
 import static net.mky.jfxmpi.MainApp.awtImageToFX;
@@ -274,12 +283,21 @@ public class TimeLineStory extends VBox {
                         javafx.scene.image.Image fimage = awtImageToFX(image);
                         /**/
                         
+                        //Check if image can be split up. and add multiple sb
+                       List<BufferedImage> bimgs=GridImage.splitImages(toBufferedImage(image),  GridImage.rowLevelSplit(toBufferedImage( image)));
                         
-                        //pe.imageView.setFitHeight(scene.getHeight());
-                        // pe.imageView.setFitWidth(scene.getWidth());
-                        String b64Image = getImageB64From(fimage);
-                        SpeechBox sb=new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER,cbxStatus.getValue());
-                        speechBubbles.add(sb);
+                       bimgs.forEach(bimg->{
+                            try {
+                                //pe.imageView.setFitHeight(scene.getHeight());
+                                // pe.imageView.setFitWidth(scene.getWidth());
+                                String b64Image = getImageB64From(bimg,"jpeg");
+                                SpeechBox sb=new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER,cbxStatus.getValue());
+                                speechBubbles.add(sb);
+                            } catch (IOException ex) {
+                                Logger.getLogger(TimeLineStory.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                       });
+                        
                         userInput.setText("");
                     }
                 } catch (Exception e) {
@@ -844,6 +862,68 @@ public class TimeLineStory extends VBox {
         return userPics;
     }
     
-    
+        public static BufferedImage toBufferedImage(java.awt.Image image) {
+        if (image instanceof BufferedImage)
+        return (BufferedImage)image;
+
+        // This code ensures that all the pixels in the image are loaded
+        image = new ImageIcon(image).getImage();
+
+        // Determine if the image has transparent pixels
+        boolean hasAlpha = hasAlpha(image);
+
+        // Create a buffered image with a format that's compatible with the screen
+        BufferedImage bimage = null;
+
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+        try {
+            // Determine the type of transparency of the new buffered image
+            int transparency = Transparency.OPAQUE;
+
+            if (hasAlpha == true)
+                transparency = Transparency.BITMASK;
+
+            // Create the buffered image
+            GraphicsDevice gs = ge.getDefaultScreenDevice();
+            GraphicsConfiguration gc = gs.getDefaultConfiguration();
+
+            bimage = gc.createCompatibleImage(image.getWidth(null), image.getHeight(null), transparency);
+        } catch (HeadlessException e) { } //No screen
+
+        if (bimage == null) {
+            // Create a buffered image using the default color model
+            int type = BufferedImage.TYPE_INT_RGB;
+
+            if (hasAlpha == true) {type = BufferedImage.TYPE_INT_ARGB;}
+                bimage = new BufferedImage(image.getWidth(null), image.getHeight(null), type);
+        }
+
+        // Copy image to buffered image
+        Graphics g = bimage.createGraphics();
+
+        // Paint the image onto the buffered image
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
+        return bimage;
+    }
+
+
+    public static boolean hasAlpha(java.awt.Image image) {
+        // If buffered image, the color model is readily available
+        if (image instanceof BufferedImage)
+            return ((BufferedImage)image).getColorModel().hasAlpha();
+
+        // Use a pixel grabber to retrieve the image's color model;
+        // grabbing a single pixel is usually sufficient
+        PixelGrabber pg = new PixelGrabber(image, 0, 0, 1, 1, false);
+        try {
+            pg.grabPixels();
+        } catch (InterruptedException e) { }
+
+        // Get the image's color model
+        return pg.getColorModel().hasAlpha();
+    }
     
 }

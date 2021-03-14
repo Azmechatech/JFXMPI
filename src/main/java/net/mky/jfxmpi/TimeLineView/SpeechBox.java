@@ -90,7 +90,7 @@ public class SpeechBox extends HBox{
     Label boxCount;
     
     public TextArea textArea;
-    private ImageView imageView ; int img_width=700,img_height=700;
+    private ImageView imageView ; int img_width=900,img_height=800;
     private SVGPath directionIndicator;
 
     public SpeechBox(String message, SpeechDirection direction){

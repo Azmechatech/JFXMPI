@@ -29,12 +29,11 @@ public class MapDB {
     public MapDB(String mapdbFolder) {
         db = DBMaker
                 .fileDB(mapdbFolder + "/" + "file.db").transactionEnable()
-                .fileMmapEnable()
+                .closeOnJvmShutdown().cleanerHackEnable().fileChannelEnable().fileMmapEnableIfSupported()
                 .make();
         store = db.hashMap("store")
                 .keySerializer(Serializer.STRING)
-                .valueSerializer(Serializer.STRING).expireAfterUpdate(1440, TimeUnit.MINUTES)
-                .expireAfterCreate(1440, TimeUnit.MINUTES)
+                .valueSerializer(Serializer.STRING)
                 .createOrOpen();
 
         index = db.treeMap("index")
@@ -50,7 +49,7 @@ public class MapDB {
         db = DBMaker
                 .fileDB(mapdbFile)
                 .readOnly()
-                .fileMmapEnable()
+                .fileMmapEnable().closeOnJvmShutdown()
                 .make();
         store = db.hashMap("store")
                 .keySerializer(Serializer.STRING)

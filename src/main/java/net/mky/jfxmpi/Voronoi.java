@@ -62,6 +62,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.util.Pair;
+import javax.swing.JFileChooser;
 import net.mky.image.VideoHelper;
 import net.mky.jfxmpi.TimeLineView.ArcPane;
 import net.mky.jfxmpi.TimeLineView.CharactersMenu;
@@ -155,8 +156,8 @@ public class Voronoi extends Application {
         messageScroller.setStyle("-fx-background-color: transparent;");
         messageScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         messageScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        messageScroller.setMaxHeight(800);//420
-        messageScroller.setPrefWidth(1000);//420
+        messageScroller.setMaxHeight(1000);//420
+        messageScroller.setPrefWidth(1200);//420
         
        // messageScroller.prefWidthProperty().bind(Chapters.prefWidthProperty().subtract(5));
         messageScroller.setFitToWidth(true);
@@ -285,7 +286,7 @@ public class Voronoi extends Application {
         loadWorld.setStyle(StylesForAll.transparentAlive);
         loadWorld.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
-            File selectedFile = fileChooser.showOpenDialog(null);
+            File selectedFile = pickFile("Select World",new File("/"));//fileChooser.showOpenDialog(null);
             gameFile = selectedFile;
             
             mapdb.close();//Close previous
@@ -643,7 +644,7 @@ public class Voronoi extends Application {
         Dialog dialog = new Dialog();
         dialog.getDialogPane().setStyle("-fx-background-color:linear-gradient(to right, #fc5c7d, #6a82fb);");
         dialog.getDialogPane().getStylesheets().add(BW.class.getResource("/book/bw.css").toExternalForm());
-        TimeLineStory tls=new TimeLineStory(file, "User", 650, 800,mapdb);
+        TimeLineStory tls=new TimeLineStory(file, "User", 1000, 800,mapdb);
         tls.setDateTime(timeOfEvent);
         dialog.getDialogPane().setContent(tls);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
@@ -813,5 +814,57 @@ public class Voronoi extends Application {
 
     public static void main(String[] args) {
         Application.launch(Voronoi.class, args);
+    }
+    
+     public static File pickFolder(String title){
+         String choosertitle;
+        JFileChooser chooser;
+        chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new java.io.File("."));
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        //
+        // disable the "All files" option.
+        //
+        chooser.setAcceptAllFileFilterUsed(false);
+        //    
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            System.out.println("getCurrentDirectory(): "
+                    + chooser.getCurrentDirectory());
+            System.out.println("getSelectedFile() : "
+                    + chooser.getSelectedFile());
+            
+            return chooser.getSelectedFile();
+        } else {
+            System.out.println("No Selection ");
+        }
+        return null;
+    
+    }
+    
+       public static File pickFile(String title,File hostDirectory){
+         String choosertitle;
+        JFileChooser chooser;
+        chooser = new JFileChooser();
+        chooser.setCurrentDirectory(hostDirectory==null?new java.io.File("."):hostDirectory);
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        //
+        // disable the "All files" option.
+        //
+        chooser.setAcceptAllFileFilterUsed(false);
+        //    
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            System.out.println("getCurrentDirectory(): "
+                    + chooser.getCurrentDirectory());
+            System.out.println("getSelectedFile() : "
+                    + chooser.getSelectedFile());
+            
+            return chooser.getSelectedFile();
+        } else {
+            System.out.println("No Selection ");
+        }
+        return null;
+    
     }
 }
