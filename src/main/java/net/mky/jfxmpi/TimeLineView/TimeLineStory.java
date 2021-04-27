@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -106,6 +107,7 @@ public class TimeLineStory extends VBox {
      ComboBox<SpeechBox.SpeechTheme> cbxStatus;
     
     public final HashMap<String,String> userPics=new HashMap<>();
+    NavigableSet<Object[]> jmpc;
     
     //Time
     public String dateTime="Today";
@@ -131,6 +133,21 @@ public class TimeLineStory extends VBox {
         activeChatFile = chapter.getName();
         
         load(chapter, mapdb);
+    }
+    
+    public TimeLineStory(File chapter, String conversationPartner, int prefHeight, int prefWidth ,NavigableSet<Object[]> jmpc) {
+        super(5);
+        this.conversationPartner = conversationPartner;
+        this.prefHeight = prefHeight;
+        this.prefWidth = prefWidth;
+        setStyle("-fx-background-color: transparent;");
+        setupElements();
+        activeFolder = chapter.getParentFile();
+
+        activeChatFile = chapter.getName();
+        
+        this.jmpc=jmpc;
+       
     }
     
 
@@ -285,7 +302,15 @@ public class TimeLineStory extends VBox {
                         
                         //Check if image can be split up. and add multiple sb
                        List<BufferedImage> bimgs=GridImage.splitImages(toBufferedImage(image),  GridImage.rowLevelSplit(toBufferedImage( image)));
-                        
+                       
+                       if(bimgs.size()==0){
+                            String b64Image = getImageB64From(toBufferedImage(image),"jpeg");
+                                SpeechBox sb=new SpeechBox(userInput.getText(), b64Image, SpeechBox.SpeechDirection.CENTER,cbxStatus.getValue());
+                                speechBubbles.add(sb);
+                                
+                                
+                       }
+                       
                        bimgs.forEach(bimg->{
                             try {
                                 //pe.imageView.setFitHeight(scene.getHeight());
@@ -469,11 +494,6 @@ public class TimeLineStory extends VBox {
                     sb = new SpeechBox(chat_data.getJSONObject(i).getString("message"), SpeechBox.SpeechDirection.valueOf(chat_data.getJSONObject(i).getString("direction")));
 
                 }
-                
-                
-
-                
-
                 speechBubbles.add(sb);
             }
 

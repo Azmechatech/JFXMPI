@@ -29,3 +29,5 @@ https://github.com/Azmechatech/MEN.git
 
 
 TO RUN: java -Xms6g -Xmx6g -Dprism.order=sw --module-path="D:\DevTools\openjfx-11.0.2_windows-x64_bin-sdk\javafx-sdk-11.0.2\lib" --add-modules="javafx.base,javafx.controls" -cp target/JFXMPI-1.0-SNAPSHOT.jar net.mky.jfxmpi.Voronoi
+
+
