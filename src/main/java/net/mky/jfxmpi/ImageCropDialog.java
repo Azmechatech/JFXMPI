@@ -423,4 +423,61 @@ public class ImageCropDialog extends Application  {
          return imageView.getImage();
     
     }
+    
+        /**
+     * https://stackoverflow.com/questions/39851404/get-average-image-of-a-set-of-images-in-java
+     *
+     * @param input1
+     * @param input2
+     * @param awayFromCenter how far away from center
+     * @return 
+     */
+    public static BufferedImage getImageAverage(BufferedImage input1, BufferedImage input2,int awayFromCenter) {
+        // images are of same size that's why i'll use first one's width and height
+        int width = input1.getWidth(), height = input1.getHeight();
+
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        int[] rgb1 = input1.getRGB(0, 0, width, height, new int[width * height], 0, width);
+        int[] rgb2 = input2.getRGB(0, 0, width, height, new int[width * height], 0, width);
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int rgbIndex = i * width + j;
+                if(i>awayFromCenter && i<width-awayFromCenter && j>awayFromCenter && j<height-awayFromCenter)
+                rgb1[rgbIndex] = average(rgb1[rgbIndex], rgb2[rgbIndex]);
+            }
+        }
+
+        output.setRGB(0, 0, width, height, rgb1, 0, width);
+        return output;
+    }
+
+    public static int average(int argb1, int argb2) {
+        return (((argb1 & 0xFF) + (argb2 & 0xFF)) >> 1)
+                | //b
+                (((argb1 >> 8 & 0xFF) + (argb2 >> 8 & 0xFF)) >> 1) << 8
+                | //g
+                (((argb1 >> 16 & 0xFF) + (argb2 >> 16 & 0xFF)) >> 1) << 16
+                | //r
+                (((argb1 >> 24 & 0xFF) + (argb2 >> 24 & 0xFF)) >> 1) << 24;  //a
+    }
+    
+    public static BufferedImage toBufferedImage(java.awt.Image img)
+{
+    if (img instanceof BufferedImage)
+    {
+        return (BufferedImage) img;
+    }
+
+    // Create a buffered image with transparency
+    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+    // Draw the image on to the buffered image
+    Graphics2D bGr = bimage.createGraphics();
+    bGr.drawImage(img, 0, 0, null);
+    bGr.dispose();
+
+    // Return the buffered image
+    return bimage;
+}
 }
