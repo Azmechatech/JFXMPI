@@ -5,6 +5,8 @@
  */
 package net.mky.jfxmpi;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -480,4 +482,23 @@ public class ImageCropDialog extends Application  {
     // Return the buffered image
     return bimage;
 }
+    
+    /**
+     * 
+     * @param before
+     * @param scale
+     * @return 
+     */
+    public static BufferedImage scale(BufferedImage before, double scale) {
+        //  BufferedImage before = getBufferedImage(encoded);
+        int w = before.getWidth();
+        int h = before.getHeight();
+        BufferedImage after = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        AffineTransform at = new AffineTransform();
+        at.scale(scale, scale);
+        AffineTransformOp scaleOp
+                = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+        after = scaleOp.filter(before, after);
+        return after;
+    }
 }

@@ -23,6 +23,7 @@ import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -30,6 +31,7 @@ import static javafx.application.Application.launch;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -172,6 +174,8 @@ public class CachePreview extends Application {
                 .counterEnable()
                 .createOrOpen();
 
+        
+        
         ScrollPane root = new ScrollPane();
         TilePane tile = new TilePane();
         ListView listView = new ListView();
@@ -190,11 +194,18 @@ public class CachePreview extends Application {
         Button loadImgIndex = new Button("Load Index");
         List<String> imgIndex = new LinkedList<>();
         List<String> imgTextIndex = new LinkedList<>();
+        TreeSet<String> chapOptions=new TreeSet<>();
         loadImgIndex.setOnAction(e -> {
             tile.getChildren().clear();//Clear window
             index.entrySet().stream().forEach(fileSig -> {
                 imgIndex.add(fileSig.getKey()[0].toString());
                 imgTextIndex.add(fileSig.getKey()[2].toString());
+            });
+            
+            jmpc.forEach(objArray->{
+                Object[] resultr = (Object[]) objArray;
+                String chapKey=resultr[0]+":::"+resultr[1];
+                chapOptions.add(chapKey);
             });
         });
 
@@ -423,6 +434,65 @@ public class CachePreview extends Application {
 
             });
         });
+        //Select a chapter from list
+     
+        Button selectChapter = new Button("Select Chapter");
+        selectChapter.setStyle(StylesForAll.transparentAlive);
+        selectChapter.setOnAction(event -> {
+           
+            if(chapOptions.isEmpty())
+            jmpc.forEach(objArray->{
+                Object[] resultr = (Object[]) objArray;
+                String chapKey=resultr[0]+":::"+resultr[1];
+                chapOptions.add(chapKey);
+            });
+            
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            choiceDialog.getItems().addAll(chapOptions);
+            choiceDialog.setWidth(300);
+            choiceDialog.showingProperty().addListener((ov, b, b1) -> {
+
+                if (b1) {
+                    choiceDialog.setContentText(chapOptions.last());
+                } else {
+                    choiceDialog.setContentText(null);
+                }
+
+            });
+            Optional<String> optionalResult = choiceDialog.showAndWait();
+            optionalResult.ifPresent(result -> {
+                String[] keys=result.split(":::");
+                worldName.setText(keys[0]);
+                chapterName.setText(keys[1]);
+                 Set johnSubset = jmpc.subSet(
+                    new Object[]{keys[0],keys[1]}, // lower interval bound
+                    new Object[]{keys[0],keys[1], null});  // upper interval bound, null is positive infinity
+                 
+                johnSubset.forEach(kv -> {
+                    Object[] resultr = (Object[]) kv;
+                    try {
+                        VBox imageView;
+                        // System.out.println("index >>" + imgIndex.get(i));
+                        //System.out.println("store.containsKey >>" + store.containsKey(imgIndex.get(i)));
+                        ByteArrayInputStream bis = new ByteArrayInputStream(store.get(resultr[2]).getBytes());
+                        InputStream in = Base64.getDecoder().wrap(bis);
+                        Image image = new Image(in);
+
+                        bis.close();
+                        in.close();
+                        imageView = createImageViewV2(image, resultr[3].toString(), store, index, resultr[2].toString(), stage);
+
+                        tile.getChildren().addAll(imageView);
+                    } catch (IOException ex) {
+                        Logger.getLogger(CachePreview.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                });
+
+            });
+
+            
+        });
 
         //Import JMPC
         Button loadChapter = new Button("Import JMPC");
@@ -471,7 +541,7 @@ public class CachePreview extends Application {
         Status.setStyle(StylesForAll.transparentAlive);
 
         HBox statusBox = new HBox(loadImgIndex, loadWorld/*,previewDeleteDuplicateButton*/,
-                 loadChapter, SaveDB,/*Status,*/ pageLimitLabel, PageLimit, prev100, random100, next100, worldName, chapterName, searchText, SaveToChapter, viewChapter);
+                 loadChapter, SaveDB,/*Status,*/ pageLimitLabel, PageLimit, prev100, random100, next100, worldName, chapterName, searchText, SaveToChapter, viewChapter,selectChapter);
         VBox vbox = new VBox(statusBox, splitPane);
         vbox.setStyle("-fx-background-color: linear-gradient(to right, rgb(203,53,107,0.25), rgb(189,63,50,0.25));");
         leftControl.setStyle("-fx-background-color: linear-gradient(to right, rgb(203,53,107,0.25), rgb(189,63,50,0.25));");
@@ -559,15 +629,34 @@ public class CachePreview extends Application {
 
                 @Override
                 public void handle(MouseEvent mouseEvent) {
+                    
+                     if (mouseEvent.getButton().equals(MouseButton.SECONDARY)) {
+                        
+                        if (mouseEvent.getClickCount() == 1) { //Edit option
+                            DrawOnCanvas drawOnCanvas = new DrawOnCanvas( SpeechBox.imagefromBase64(store.get(bigImgKey), 800, 800));
+                            Dialog dialog = new Dialog();
+                            dialog.getDialogPane().setContent(drawOnCanvas);
+                            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
+                            dialog.show();
+
+                            drawOnCanvas.cropedImages.forEach(bimg -> {
+                                String b64 = getImageB64From(bimg, "png");
+                                indexOfCrop.put(new Object[]{bigImgKey, b64.length(), labelText}, b64);
+                            });
+                        }}
 
                     if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-
+                        
+                        if (mouseEvent.getClickCount() == 2) { //Edit option
+                          
+                        }
+                        
                         if (mouseEvent.getClickCount() == 1) {
                             try {
                                 BorderPane borderPane = new BorderPane();
                                 // image layer: a group of images
                                 Group imageLayer = new Group();
-
+                                 ImageCropDialog.RubberBandSelection rubberBandSelection;
                                 ImageView imageView = new ImageView();
                                 Image image = SpeechBox.imagefromBase64(store.get(bigImgKey), 800, 800);///mapdb;
 //                                 ByteArrayInputStream bis = new ByteArrayInputStream(mapdb.store.get(mapdb.store.get(bigImgKey)).getBytes());
@@ -585,37 +674,21 @@ public class CachePreview extends Application {
                                 imageView.setPreserveRatio(true);
                                 imageView.setSmooth(true);
                                 imageView.setCache(true);
+                                
+                                 // rubberband selection
+                                rubberBandSelection = new ImageCropDialog.RubberBandSelection(imageLayer);
 
-                                imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+ 
+                                
+                                imageView.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
                                     @Override
                                     public void handle(MouseEvent mouseEvent) {
+                                        // get bounds for image crop
+                                        Bounds selectionBounds = rubberBandSelection.getBounds();
 
-                                        if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-
-                                            if (mouseEvent.getClickCount() == 2) {
-                                                DrawOnCanvas drawOnCanvas = new DrawOnCanvas(imageView.getImage());
-                                                Dialog dialog = new Dialog();
-                                                dialog.getDialogPane().setContent(drawOnCanvas);
-                                                dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
-                                                dialog.show();
-
-                                                drawOnCanvas.cropedImages.forEach(bimg->{
-                                                    String b64=getImageB64From(bimg, "png");
-                                                    indexOfCrop.put(new Object[]{bigImgKey, b64.length(), labelText}, b64);
-                                                });
-                                                
-//                                                LinkedList<Point2D> points = drawOnCanvas.getFullPath();//Full path of selectiob of area.
-//                                                Point2D min=new Point2D(Double.MAX_VALUE,Double.MAX_VALUE);
-//                                                Point2D max=new Point2D(Double.MIN_VALUE,Double.MIN_VALUE);
-//                                                 //Creating a Polygon 
-//                                                 Polygon polygon = new Polygon(); 
-//                                                 points.forEach(point2d->{
-//                                                    polygon.getPoints().add(point2d.getX());
-//                                                    polygon.getPoints().add(point2d.getY());
-//                                                 });
-                                            }
-                                        }
+                                        // show bounds info
+                                        System.out.println("Selected area: " + selectionBounds);
                                     }
                                 });
 
@@ -632,6 +705,13 @@ public class CachePreview extends Application {
                                                 javafx.scene.image.Image fimage = awtImageToFX(image);
                                                 ImageView imv = new ImageView();
                                                 imv.setImage(fimage);
+                                                
+                                                //Set default location to rubberband selection
+                                                Bounds bounds=rubberBandSelection.getBounds();
+                                                imv.setTranslateX(bounds.getMinX());
+                                                imv.setTranslateY(bounds.getMinY());
+                                                imv.setFitWidth(bounds.getWidth());
+                                                imv.setFitHeight(bounds.getHeight());
  
                                                 EventHandler<MouseEvent> imgMoveImg = new EventHandler<MouseEvent>() {
                                                     public void handle(MouseEvent event) {
@@ -680,12 +760,20 @@ public class CachePreview extends Application {
                                                         // imageView.setTranslateX(imageView.getTranslateX() + event.getX() - pressedX);
                                                         //  imageView.setTranslateY(imageView.getTranslateY() + event.getY() - pressedY);
 
-                                                        imv.setTranslateX(imv.getTranslateX() + event.getX() - pressedX);
+                                                        if(imv.getTranslateX()>=0)//Restrict motion to view port
+                                                            imv.setTranslateX(imv.getTranslateX() + event.getX() - pressedX);
+                                                        else
+                                                            imv.setTranslateX(0);
+                                                        
+                                                        if(imv.getTranslateY()>=0)
                                                         imv.setTranslateY(imv.getTranslateY() + event.getY() - pressedY);
+                                                        else
+                                                            imv.setTranslateY(0);
                                                         event.consume();
                                                     }
                                                 };
 
+                                                //Algo to be improved
                                                 EventHandler<MouseEvent> mouseRelease= new EventHandler<MouseEvent>() {
                                                     @Override
                                                     public void handle(MouseEvent e) {
@@ -695,11 +783,11 @@ public class CachePreview extends Application {
                                                         double currY = imv.getTranslateY();currY=currY<0?0:currY;
                                                         double height=imv.getBoundsInLocal().getHeight();
                                                         double width=imv.getBoundsInLocal().getWidth();
-                                                        System.out.println("currX"+currX+"\tcurrY "+currY +"\twidth"+width+"\theight"+height+"\t boundary"+Math.min((int)height, (int)width)/5);
-                                                        BufferedImage temp=SwingFXUtils.fromFXImage(imageLayer.snapshot(new SnapshotParameters(), null),null);
+                                                        System.out.println("currX"+currX+"\tcurrY "+currY +"\twidth"+width+"\theight"+height+"\t boundary"+Math.min((int)height, (int)width)/5+" scaleX="+imv.getScaleX() );
+                                                        BufferedImage temp=SwingFXUtils.fromFXImage(imageView.snapshot(new SnapshotParameters(), null),null);
                                                          
-                                                        BufferedImage tempMini=temp.getSubimage((int)currX, (int)currY, (int)width,(int)height);
-                                                        BufferedImage averagedImage=ImageCropDialog.getImageAverage(ImageCropDialog.toBufferedImage(image), tempMini,Math.min((int)height, (int)width)/5);
+                                                        BufferedImage tempMini=temp.getSubimage((int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(),(int)bounds.getHeight());
+                                                        BufferedImage averagedImage=ImageCropDialog.getImageAverage(ImageCropDialog.scale(ImageCropDialog.toBufferedImage(image),imv.getScaleX()), tempMini,Math.min((int)height, (int)width)/5);
                                                         
                                                         //For debugging purpose
 //                                                         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Image", ButtonType.OK);
@@ -714,7 +802,7 @@ public class CachePreview extends Application {
 
                                                 imv.setOnMouseClicked(imgMoveImg);
                                                 imv.setOnMouseDragged(imgMoveImg2);
-                                                imv.setOnMouseReleased(mouseRelease);
+                                                //imv.setOnMouseReleased(mouseRelease);
                                                 //rightControl.getChildren().add(imv);
                                                 imageLayer.getChildren().add(imv);
                                             } catch (Exception ex) {
@@ -842,7 +930,8 @@ public class CachePreview extends Application {
                                 Button imgSnap = new Button("Ctrl+C");
                                 imgSnap.setStyle(StylesForAll.transparentAlive);
                                 Button imgSnapScene = new Button("Ctrl+C Filter");
-                                imgSnapScene.setStyle(StylesForAll.transparentAlive);
+                                Button imgCropScene = new Button("Crop");
+                                imgCropScene.setStyle(StylesForAll.transparentAlive);
                                 Button imgIncrease = new Button("+");
                                 imgIncrease.setStyle(StylesForAll.transparentAlive);
                                 Button imgDecrease = new Button("-");
@@ -872,6 +961,24 @@ public class CachePreview extends Application {
                                 imgGlow.setStyle(StylesForAll.transparentAlive);
                                 Button imgBloom = new Button("B");
                                 imgBloom.setStyle(StylesForAll.transparentAlive);
+                                
+                                imgCropScene.setOnAction(new EventHandler<ActionEvent>() {
+                                    @Override
+                                    public void handle(ActionEvent event) {
+                                    DrawOnCanvas drawOnCanvas = new DrawOnCanvas(imageView.getImage());
+                                                Dialog dialog = new Dialog();
+                                                dialog.getDialogPane().setContent(drawOnCanvas);
+                                                dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
+                                                dialog.show();
+
+                                                drawOnCanvas.cropedImages.forEach(bimg->{
+                                                    String b64=getImageB64From(bimg, "png");
+                                                    indexOfCrop.put(new Object[]{bigImgKey, b64.length(), labelText}, b64);
+                                                });
+                                    }
+                                });
+                                    
+                                                
                                 imgIncrease.setOnAction(new EventHandler<ActionEvent>() {
                                     @Override
                                     public void handle(ActionEvent event) {
@@ -1130,7 +1237,7 @@ public class CachePreview extends Application {
                                     }
                                 });
 
-                                HBox vBox = new HBox(bnPaste, imgIncrease, imgDecrease, imgBlurr,
+                                HBox vBox = new HBox(bnPaste,imgCropScene, imgIncrease, imgDecrease, imgBlurr,
                                         imgNoblurr, imgGrey, imgNoGrey, imgLighting, imgDropShadow, imgShadow, imgSepiaTone,
                                         imgReflection, imgMotionBlur, imgGlow, imgBloom);
 

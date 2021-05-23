@@ -9,9 +9,13 @@ import com.truegeometry.mkhilbertml.GridImage;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,6 +59,7 @@ public class DrawOnCanvas extends StackPane {
         
         // container for image layers
         ScrollPane scrollPane = new ScrollPane();
+        ScrollPane scrollPaneRight = new ScrollPane();
 
         // image layer: a group of images
         Group imageLayer = new Group(); 
@@ -103,15 +108,19 @@ public class DrawOnCanvas extends StackPane {
                 Utils.setClipboard(bimgCrop); //Copy to clipboard
                 BufferedImage bimgCropHFlip=crop(SwingFXUtils.fromFXImage(bimg, null), pointsInt,1);
                 BufferedImage bimgCropVFlip=crop(SwingFXUtils.fromFXImage(bimg, null), pointsInt,2);
+                BufferedImage bimgBlurr=crop(SwingFXUtils.fromFXImage(bimg, null), pointsInt,4);
                 cropedImages.add(bimgCrop);
                 //cropedImages.add(bimgCropHFlip);cropedImages.add(bimgCropVFlip);
                 
                 Image img = SwingFXUtils.toFXImage(bimgCrop, null);
                 Image imgHFlip = SwingFXUtils.toFXImage(bimgCropHFlip, null);
                 Image imgVFlip = SwingFXUtils.toFXImage(bimgCropVFlip, null);
-                ImageView imgv = new ImageView();ImageView imgvHFlip = new ImageView();ImageView imgvVFlip = new ImageView();
-                imgv.setImage(img);imgvHFlip.setImage(imgHFlip);imgvVFlip.setImage(imgVFlip);
-                rightControl.getChildren().add(imgv);rightControl.getChildren().add(imgvHFlip);rightControl.getChildren().add(imgvVFlip);
+                Image imgBlurr= SwingFXUtils.toFXImage(bimgBlurr, null);
+                ImageView imgv = new ImageView();ImageView imgvHFlip = new ImageView();ImageView imgvVFlip = new ImageView();ImageView imgvBlurr = new ImageView();
+                imgv.setImage(img);imgvHFlip.setImage(imgHFlip);imgvVFlip.setImage(imgVFlip);imgvBlurr.setImage(imgBlurr);
+                VBox results=new VBox(imgv,imgvHFlip,imgvVFlip,imgvBlurr);
+                scrollPaneRight.setContent(results);
+                //rightControl.getChildren().add(imgv);rightControl.getChildren().add(imgvHFlip);rightControl.getChildren().add(imgvVFlip);rightControl.getChildren().add(imgvBlurr);
                 pointsInt.clear();
                 imgv.setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
@@ -143,6 +152,16 @@ public class DrawOnCanvas extends StackPane {
                         }
                     }
                 });
+                imgvBlurr.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent mouseEvent) {
+                        if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
+                            if (mouseEvent.getClickCount() == 1) {
+                                Utils.setClipboard(bimgBlurr); //Copy to clipboard
+                            }
+                        }
+                    }
+                });
 
             }
         });
@@ -151,6 +170,7 @@ public class DrawOnCanvas extends StackPane {
         //rubberBandSelection = new ImageCropDialog.RubberBandSelection(imageLayer);
         
         leftControl.getChildren().add(scrollPane);
+        rightControl.getChildren().add(scrollPaneRight);
         
         splitPane.getItems().addAll(leftControl, rightControl);
         
@@ -252,25 +272,41 @@ public class DrawOnCanvas extends StackPane {
         //  BufferedImage source = ImageIO.read(new File("Example.jpg"));
 
         GeneralPath clip = new GeneralPath();
+        CubicCurve2D shape = new CubicCurve2D.Float();
         clip.moveTo(path.get(0)[0], path.get(0)[1]); //Move to location
         int minX=Integer.MAX_VALUE;
         int minY=Integer.MAX_VALUE;
-        for (int i = 1; i < path.size(); i++) {
+        double[] cubicCurveData=new double[path.size()*2+1];
+        for (int i = 1,j=0; i < path.size(); i++,j=j+2) {
             clip.lineTo(path.get(i)[0], path.get(i)[1]);
             minX=minX<path.get(i)[0]?minX:path.get(i)[0];
             minY=minY<path.get(i)[1]?minY:path.get(i)[1];
+            
+            cubicCurveData[j]=path.get(i)[0];
+            cubicCurveData[j+1]=path.get(i)[1];
+            
         }
 //        
 //        clip.lineTo(241, 178);
 //        clip.lineTo(268, 405);
 //        clip.lineTo(145, 512);
         clip.closePath();
+        //Close curve
+        cubicCurveData[cubicCurveData.length-2]=path.get(0)[0];
+        cubicCurveData[cubicCurveData.length-1]=path.get(0)[1];
+        shape.setCurve(cubicCurveData, 0);
+        
+        
+       
+        shape.setCurve(250F,250F,20F,90F,140F,100F,350F,330F); 
 
         Rectangle bounds = clip.getBounds();
         BufferedImage img = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
         clip.transform(AffineTransform.getTranslateInstance(-minX, -minY));
         g2d.setClip(clip);
+        //g2d.setClip(shape); // Not great!
+        
         g2d.translate(-minX, -minY);
         g2d.drawImage(source, 0, 0, null);
         
@@ -299,6 +335,18 @@ public class DrawOnCanvas extends StackPane {
             tx.translate(-img.getWidth(null), -img.getHeight(null));
             op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             img = op.filter(img, null);
+        }
+        
+        if (flipType == 4) { //Blurr
+            float[] matrix = new float[400];
+            for (int i = 0; i < 400; i++) {
+                matrix[i] = 1.0f / 500.0f;
+            }
+           // BufferedImage image = /* ... */ ;
+            //BufferedImage dest = image.getSubimage(10, 20, 30, 40);  // x, y, width, height
+            ColorModel cm = img.getColorModel();
+            BufferedImage src = new BufferedImage(cm, img.copyData(img.getRaster().createCompatibleWritableRaster()), cm.isAlphaPremultiplied(), null).getSubimage(0, 0, img.getWidth(), img.getHeight());
+            new ConvolveOp(new Kernel(20, 20, matrix), ConvolveOp.EDGE_NO_OP, null).filter(src, img);
         }
 
          g2d.dispose();
